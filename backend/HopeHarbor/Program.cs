@@ -1,6 +1,49 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using HopeHarbor.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddControllers()
+    .AddJsonOptions(opts =>
+    {
+        opts.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        opts.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+    });
+
 builder.Services.AddOpenApi();
+
+builder.Services.AddDbContext<HopeHarborContext>(opts =>
+    opts.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=hopeharbor.db"));
+
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(opts =>
+    {
+        opts.Password.RequireDigit = true;
+        opts.Password.RequiredLength = 8;
+        opts.Password.RequireNonAlphanumeric = false;
+        opts.Password.RequireUppercase = true;
+        opts.Password.RequireLowercase = true;
+    })
+    .AddEntityFrameworkStores<HopeHarborContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.ConfigureApplicationCookie(opts =>
+{
+    opts.Cookie.HttpOnly = true;
+    opts.Cookie.SameSite = SameSiteMode.None;
+    opts.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    opts.ExpireTimeSpan = TimeSpan.FromHours(8);
+    opts.Events.OnRedirectToLogin = ctx =>
+    {
+        ctx.Response.StatusCode = 401;
+        return Task.CompletedTask;
+    };
+    opts.Events.OnRedirectToAccessDenied = ctx =>
+    {
+        ctx.Response.StatusCode = 403;
+        return Task.CompletedTask;
+    };
+});
 
 builder.Services.AddCors(options =>
 {
@@ -10,13 +53,28 @@ builder.Services.AddCors(options =>
                 "http://localhost:5173",
                 "http://127.0.0.1:5173",
                 "http://localhost:8080",
-                "http://127.0.0.1:8080")
+                "http://127.0.0.1:8080",
+                "https://localhost:5173")
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<HopeHarborContext>();
+    db.Database.EnsureCreated();
+
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+    if (await userManager.FindByEmailAsync("admin@hopeharbor.org") == null)
+    {
+        var admin = new IdentityUser { UserName = "admin@hopeharbor.org", Email = "admin@hopeharbor.org", EmailConfirmed = true };
+        await userManager.CreateAsync(admin, "HopeHarbor2025!");
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {
@@ -33,24 +91,10 @@ if (Directory.Exists(wwwroot))
     app.UseStaticFiles();
 }
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+app.MapControllers();
 
 if (Directory.Exists(wwwroot))
 {
@@ -58,8 +102,3 @@ if (Directory.Exists(wwwroot))
 }
 
 app.Run();
-
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

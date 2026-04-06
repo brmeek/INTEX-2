@@ -22,8 +22,7 @@ export default defineConfig({
     host: "::",
     port: 5173,
     proxy: {
-      // Forward API calls to the ASP.NET Core backend during local dev
-      "/weatherforecast": {
+      "/api": {
         target: "http://localhost:5216",
         changeOrigin: true,
       },
