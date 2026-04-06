@@ -1,0 +1,58 @@
+# Gitignore for a React Frontend and .NET Backend Project
+
+### React Frontend specific ignores
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/build
+/dist
+/out
+
+# misc
+.DS_Store
+.env.local
+.env*.local
+.next
+.vercel
+.turbo
+
+### .NET Backend specific ignores
+# Build results
+[Dd]ebug/
+[Rr]elease/
+*.suo
+*.user
+*.log
+*.bak
+*.ncb
+*.opensdf
+*.sdf
+*.cache
+*.obj
+*.pdb
+*.dll
+*.exe
+
+# Visual Studio and other IDE files
+.vs/
+.vscode/
+
+# Package Manager files
+/packages
+
+# Rider
+.idea/
+
+# Other
+appsettings.Development.json
+appsettings.Production.json
+```
+<!--
+[PROMPT_SUGGESTION]Explain the purpose of each section in the provided .gitignore file.[/PROMPT_SUGGESTION]
+[PROMPT_SUGGESTION]How can I customize this .gitignore for a project that uses Yarn instead of npm?[/PROMPT_SUGGESTION]
