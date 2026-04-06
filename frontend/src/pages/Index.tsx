@@ -1,24 +1,21 @@
-import Navbar from "@/components/landing/Navbar";
+import Layout from "@/components/Layout";
 import HeroSection from "@/components/landing/HeroSection";
 import MissionSection from "@/components/landing/MissionSection";
+import ProgramsPreview from "@/components/landing/ProgramsPreview";
 import ImpactSection from "@/components/landing/ImpactSection";
 import TransparencySection from "@/components/landing/TransparencySection";
 import CTASection from "@/components/landing/CTASection";
-import Footer from "@/components/landing/Footer";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main>
-        <HeroSection />
-        <MissionSection />
-        <ImpactSection />
-        <TransparencySection />
-        <CTASection />
-      </main>
-      <Footer />
-    </div>
+    <Layout>
+      <HeroSection />
+      <MissionSection />
+      <ProgramsPreview />
+      <ImpactSection />
+      <TransparencySection />
+      <CTASection />
+    </Layout>
   );
 };
 

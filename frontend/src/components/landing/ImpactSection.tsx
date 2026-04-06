@@ -1,46 +1,39 @@
-import { Heart, Users, GraduationCap } from "lucide-react";
-
 const stats = [
-  {
-    icon: Heart,
-    value: "24/7",
-    label: "Medical & Emotional Care",
-    color: "bg-accent text-accent-foreground",
-  },
-  {
-    icon: Users,
-    value: "120+",
-    label: "Survivors Supported",
-    color: "bg-coral text-primary-foreground",
-  },
-  {
-    icon: GraduationCap,
-    value: "100%",
-    label: "Educational Success",
-    color: "bg-navy text-primary-foreground",
-  },
+  { value: "120+", label: "Girls sheltered since founding" },
+  { value: "24/7", label: "On-site care at every home" },
+  { value: "98¢", label: "Of every dollar funds programs" },
+  { value: "4", label: "Countries with active programs" },
 ];
 
 const ImpactSection = () => {
   return (
-    <section className="py-20 md:py-28 bg-secondary">
-      <div className="container text-center">
-        <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-4">
-          Direct Impact
-        </h2>
-        <p className="font-body text-muted-foreground max-w-2xl mx-auto mb-14 leading-relaxed">
-          Transparency is the bedrock of our sanctuary. Every contribution translates into measurable transformation.
-        </p>
+    <section className="py-24 md:py-32 bg-navy text-white">
+      <div className="container">
+        <div className="max-w-2xl mb-16">
+          <p className="font-body text-teal-light text-sm font-semibold tracking-widest uppercase mb-4">
+            Our Impact
+          </p>
+          <h2 className="font-heading text-3xl md:text-4xl font-bold leading-tight mb-6">
+            The numbers tell part
+            <br className="hidden md:block" />
+            of the story.
+          </h2>
+          <p className="font-body text-white/60 leading-relaxed">
+            Behind every statistic is a young woman rebuilding her life. We track
+            outcomes carefully — not to generate reports, but to make sure every
+            girl in our care is truly progressing.
+          </p>
+        </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-white/10 rounded-2xl overflow-hidden">
           {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className={`${stat.color} rounded-2xl p-8 shadow-card transition-transform hover:-translate-y-1`}
-            >
-              <stat.icon className="h-10 w-10 mx-auto mb-4 opacity-90" />
-              <div className="font-heading text-4xl md:text-5xl font-bold mb-2">{stat.value}</div>
-              <div className="font-body text-sm font-medium opacity-90">{stat.label}</div>
+            <div key={stat.label} className="bg-navy p-8 lg:p-10">
+              <p className="font-heading text-4xl md:text-5xl font-bold text-teal-light mb-3">
+                {stat.value}
+              </p>
+              <p className="font-body text-sm text-white/60 leading-snug">
+                {stat.label}
+              </p>
             </div>
           ))}
         </div>
