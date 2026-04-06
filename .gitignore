@@ -57,3 +57,7 @@ appsettings.Production.json
 <!--
 [PROMPT_SUGGESTION]Explain the purpose of each section in the provided .gitignore file.[/PROMPT_SUGGESTION]
 [PROMPT_SUGGESTION]How can I customize this .gitignore for a project that uses Yarn instead of npm?[/PROMPT_SUGGESTION]
+
+# Environment files
+.env
+backend/HopeHarbor/.env
