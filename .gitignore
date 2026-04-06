@@ -13,7 +13,7 @@
 /build
 /dist
 /out
-backend/HopeHarbor/obj
+/obj
 
 # misc
 .DS_Store
