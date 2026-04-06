@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("HopeHarbor")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a2dc74b7b92affcb54bf9cf47e49d77e7e29881c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9ab53eecf7c03ccb2a1c4f8b413edda90357032a")]
 [assembly: System.Reflection.AssemblyProductAttribute("HopeHarbor")]
 [assembly: System.Reflection.AssemblyTitleAttribute("HopeHarbor")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
