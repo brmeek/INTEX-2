@@ -74,17 +74,32 @@ public class ReportsController : ControllerBase
         var totalDonations = await _db.Donations.Where(d => d.Amount != null).SumAsync(d => d.Amount ?? 0);
         var donorCount = await _db.Supporters.CountAsync();
 
-        var educationProgress = await _db.EducationRecords
+                // Compute latest-per-resident averages in memory to avoid provider translation edge cases.
+        var educationProgressRows = await _db.EducationRecords
             .Where(e => e.ProgressPercent != null)
-            .GroupBy(e => e.ResidentId)
-            .Select(g => g.OrderByDescending(e => e.RecordDate).First())
-            .AverageAsync(e => (double)(e.ProgressPercent ?? 0));
+            .Select(e => new { e.ResidentId, e.RecordDate, e.ProgressPercent })
+            .ToListAsync();
 
-        var healthScores = await _db.HealthWellbeingRecords
+        var educationProgress = educationProgressRows
+            .Where(e => e.ResidentId != null)
+            .GroupBy(e => e.ResidentId)
+            .Select(g => g.OrderByDescending(e => e.RecordDate).First().ProgressPercent ?? 0)
+            .Select(v => (double)v)
+            .DefaultIfEmpty(0)
+            .Average();
+
+        var healthScoreRows = await _db.HealthWellbeingRecords
             .Where(h => h.GeneralHealthScore != null)
+            .Select(h => new { h.ResidentId, h.RecordDate, h.GeneralHealthScore })
+            .ToListAsync();
+
+        var healthScores = healthScoreRows
+            .Where(h => h.ResidentId != null)
             .GroupBy(h => h.ResidentId)
-            .Select(g => g.OrderByDescending(h => h.RecordDate).First())
-            .AverageAsync(h => (double)(h.GeneralHealthScore ?? 0));
+            .Select(g => g.OrderByDescending(h => h.RecordDate).First().GeneralHealthScore ?? 0)
+            .Select(v => (double)v)
+            .DefaultIfEmpty(0)
+            .Average();
 
         var donationsByType = await _db.Donations
             .GroupBy(d => d.DonationType)
@@ -151,3 +166,4 @@ public class ReportsController : ControllerBase
         return Ok(new { byStatus, byCategory, reintegrationRate });
     }
 }
+
