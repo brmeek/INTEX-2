@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using HopeHarbor.Data;
 using System.Data.Common;
+using System.Net;
 using System.Net.Sockets;
 
 LoadDotEnvIfPresent(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
@@ -97,12 +98,7 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:5173",
-                "http://127.0.0.1:5173",
-                "http://localhost:8080",
-                "http://127.0.0.1:8080",
-                "https://localhost:5173")
+        policy.SetIsOriginAllowed(IsAllowedDevelopmentOrigin)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -177,6 +173,42 @@ static bool CanReachPostgresHost(string connectionString)
     {
         return false;
     }
+}
+
+static bool IsAllowedDevelopmentOrigin(string origin)
+{
+    if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+        return false;
+
+    if (uri.Scheme == Uri.UriSchemeHttps
+        && uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
+        && uri.Port == 5173)
+    {
+        return true;
+    }
+
+    if (uri.Scheme != Uri.UriSchemeHttp || uri.Port is not 5173 and not 8080)
+        return false;
+
+    if (uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
+        || uri.Host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase)
+        || uri.Host.Equals("::1", StringComparison.OrdinalIgnoreCase))
+    {
+        return true;
+    }
+
+    if (!IPAddress.TryParse(uri.Host, out var ipAddress))
+        return false;
+
+    var bytes = ipAddress.GetAddressBytes();
+    if (bytes.Length != 4)
+        return false;
+
+    var is10 = bytes[0] == 10;
+    var is192 = bytes[0] == 192 && bytes[1] == 168;
+    var is172 = bytes[0] == 172 && bytes[1] is >= 16 and <= 31;
+
+    return is10 || is192 || is172;
 }
 
 static void LoadDotEnvIfPresent(string dotEnvPath)
