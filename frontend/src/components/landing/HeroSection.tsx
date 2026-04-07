@@ -5,7 +5,94 @@ import heroImage from "@/assets/harbor.jpg";
 import { ShieldAlert, ArrowRight } from "lucide-react";
 
 const WATER_START = 0.42;
-const STRIP_H = 3;
+const STRIP_H = 2;
+
+interface Bird {
+  x: number;
+  y: number;
+  speed: number;
+  size: number;
+  dir: 1 | -1;
+  wingPhase: number;
+  wingSpeed: number;
+  drift: number;
+  delay: number;
+}
+
+function spawnBird(w: number, h: number, close = false): Bird {
+  const dir = (Math.random() < 0.5 ? 1 : -1) as 1 | -1;
+  const skyH = h * WATER_START;
+  if (close) {
+    return {
+      x: dir === 1 ? -50 : w + 50,
+      y: skyH * 0.25 + Math.random() * skyH * 0.5,
+      speed: 25 + Math.random() * 20,
+      size: 4 + Math.random() * 3,
+      dir,
+      wingPhase: Math.random() * Math.PI * 2,
+      wingSpeed: 5 + Math.random() * 3,
+      drift: (Math.random() - 0.5) * 4,
+      delay: Math.random() * 6,
+    };
+  }
+  return {
+    x: dir === 1 ? -30 : w + 30,
+    y: skyH * 0.1 + Math.random() * skyH * 0.55,
+    speed: 10 + Math.random() * 14,
+    size: 1.5 + Math.random() * 2.5,
+    dir,
+    wingPhase: Math.random() * Math.PI * 2,
+    wingSpeed: 4 + Math.random() * 3,
+    drift: (Math.random() - 0.5) * 3,
+    delay: Math.random() * 12,
+  };
+}
+
+function spawnFlock(w: number, h: number): Bird[] {
+  const dir = (Math.random() < 0.5 ? 1 : -1) as 1 | -1;
+  const skyH = h * WATER_START;
+  const count = 3 + Math.floor(Math.random() * 4);
+  const baseY = skyH * 0.1 + Math.random() * skyH * 0.4;
+  const baseSpeed = 12 + Math.random() * 10;
+  const baseSize = 1.5 + Math.random() * 1.5;
+  const flock: Bird[] = [];
+  for (let i = 0; i < count; i++) {
+    const offset = (i - count / 2) * (8 + Math.random() * 6);
+    flock.push({
+      x: (dir === 1 ? -30 : w + 30) - dir * Math.abs(offset) * 1.5,
+      y: baseY + offset + (Math.random() - 0.5) * 10,
+      speed: baseSpeed + (Math.random() - 0.5) * 4,
+      size: baseSize + (Math.random() - 0.5) * 0.6,
+      dir,
+      wingPhase: Math.random() * Math.PI * 2,
+      wingSpeed: 4 + Math.random() * 2,
+      drift: (Math.random() - 0.5) * 2,
+      delay: Math.random() * 4,
+    });
+  }
+  return flock;
+}
+
+function drawBird(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  wingAngle: number,
+  dir: 1 | -1
+) {
+  const wing = Math.sin(wingAngle) * size * 1.1;
+  ctx.beginPath();
+  ctx.moveTo(x - size * 1.6 * dir, y - wing);
+  ctx.quadraticCurveTo(x - size * 0.5 * dir, y + size * 0.2, x, y);
+  ctx.quadraticCurveTo(x + size * 0.5 * dir, y + size * 0.2, x + size * 1.6 * dir, y - wing * 0.8);
+  const alpha = size > 3.5 ? 0.55 : 0.45;
+  ctx.strokeStyle = `rgba(15,15,20,${alpha})`;
+  ctx.lineWidth = Math.max(0.6, size * 0.3);
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.stroke();
+}
 
 const HeroSection = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -20,6 +107,12 @@ const HeroSection = () => {
     const img = new Image();
     img.src = heroImage;
     let mounted = true;
+
+    const birds: Bird[] = [];
+    const DISTANT_COUNT = 3;
+    let nextCloseAt = 15 + Math.random() * 25;
+    let nextFlockAt = 40 + Math.random() * 50;
+    let elapsed = 0;
 
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -58,9 +151,52 @@ const HeroSection = () => {
 
       const t = time * 0.001;
       const waterY = Math.floor(h * WATER_START);
+
       const srcWaterH = (waterY / h) * sh;
 
       ctx.drawImage(img, sx, sy, sw, srcWaterH, 0, 0, w, waterY);
+
+      // --- Birds in the sky ---
+      const dt = 1 / 60;
+      elapsed += dt;
+
+      // Keep a baseline of distant birds
+      const distantCount = birds.filter((b) => b.size <= 4).length;
+      while (distantCount + (birds.length - distantCount) < DISTANT_COUNT && birds.length < DISTANT_COUNT) {
+        birds.push(spawnBird(w, h));
+      }
+
+      // Occasionally spawn a closer bird
+      if (elapsed >= nextCloseAt) {
+        birds.push(spawnBird(w, h, true));
+        nextCloseAt = elapsed + 20 + Math.random() * 30;
+      }
+
+      // Rarely spawn a flock
+      if (elapsed >= nextFlockAt) {
+        birds.push(...spawnFlock(w, h));
+        nextFlockAt = elapsed + 50 + Math.random() * 70;
+      }
+
+      ctx.save();
+      for (let i = birds.length - 1; i >= 0; i--) {
+        const b = birds[i];
+        if (b.delay > 0) {
+          b.delay -= dt;
+          continue;
+        }
+        b.x += b.speed * b.dir * dt;
+        b.y += b.drift * dt;
+        const wingAngle = b.wingPhase + t * b.wingSpeed;
+        drawBird(ctx, b.x, b.y, b.size, wingAngle, b.dir);
+
+        const oob =
+          (b.dir === 1 && b.x > w + 60) || (b.dir === -1 && b.x < -60);
+        if (oob) {
+          birds.splice(i, 1);
+        }
+      }
+      ctx.restore();
 
       const waterH = h - waterY;
 
@@ -81,7 +217,7 @@ const HeroSection = () => {
           Math.sin(y * 0.017 + t * 0.55 + 1.3) * amp * 0.5 +
           Math.sin(y * 0.033 + t * 1.3 + 2.7) * amp * 0.3;
 
-        const vAmp = depth * 6;
+        const vAmp = depth * 8;
         const dy = getWave(y) * vAmp;
 
         const srcY = sy + ((y + dy) / h) * sh;
@@ -89,34 +225,32 @@ const HeroSection = () => {
         ctx.drawImage(img, sx, srcY, sw, srcH, dx, y, w, STRIP_H + 0.5);
       }
 
-      // Visible ripple highlights and shadows
+      // Visible ripple lines across the water surface
       ctx.save();
-      ctx.globalCompositeOperation = "screen";
-      for (let row = 0; row < waterH; row += STRIP_H) {
-        const y = waterY + row;
-        const depth = row / waterH;
-        const slope = (getWave(y + 1) - getWave(y - 1)) * depth;
-        const brightness = slope * 1.2;
+      ctx.lineCap = "round";
 
-        if (brightness > 0.01) {
-          ctx.fillStyle = `rgba(210,230,250,${Math.min(brightness, 0.6)})`;
-          ctx.fillRect(0, y, w, STRIP_H);
-        }
-      }
-      ctx.globalCompositeOperation = "multiply";
-      for (let row = 0; row < waterH; row += STRIP_H) {
-        const y = waterY + row;
-        const depth = row / waterH;
-        const slope = (getWave(y + 1) - getWave(y - 1)) * depth;
-        const darkness = -slope * 0.9;
+      const numRipples = 16;
+      for (let i = 0; i < numRipples; i++) {
+        const progress = (i + 0.5) / numRipples;
+        const depth = progress;
+        const baseY =
+          waterY + progress * waterH + Math.sin(t * 0.3 + i * 0.8) * depth * 8;
 
-        if (darkness > 0.01) {
-          const v = Math.max(1.0 - Math.min(darkness, 0.15), 0);
-          const c = Math.round(v * 255);
-          ctx.fillStyle = `rgb(${c},${c},${Math.min(c + 20, 255)})`;
-          ctx.fillRect(0, y, w, STRIP_H);
+        ctx.beginPath();
+        ctx.moveTo(0, baseY);
+        for (let x = 3; x < w; x += 3) {
+          const yOff =
+            Math.sin(x * 0.005 + t * 0.35 + i * 0.9) * (2 + depth * 3) +
+            Math.sin(x * 0.013 + t * 0.2 + i * 1.6) * (1 + depth * 2) +
+            Math.sin(x * 0.003 + t * 0.12 + i * 0.4) * (1.5 + depth * 2.5);
+          ctx.lineTo(x, baseY + yOff);
         }
+        ctx.globalCompositeOperation = "screen";
+        ctx.strokeStyle = `rgba(210,230,250,${0.02 + depth * 0.07})`;
+        ctx.lineWidth = 0.5 + depth * 0.5;
+        ctx.stroke();
       }
+
       ctx.restore();
 
       animRef.current = requestAnimationFrame(draw);
