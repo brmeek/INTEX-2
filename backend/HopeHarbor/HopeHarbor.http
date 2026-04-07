@@ -1,6 +1,0 @@
-@HopeHarbor_HostAddress = http://localhost:5216
-
-GET {{HopeHarbor_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

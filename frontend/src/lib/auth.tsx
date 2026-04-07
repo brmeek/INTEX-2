@@ -10,7 +10,7 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState | null>(null);
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5216";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5172";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<{ email: string } | null>(null);

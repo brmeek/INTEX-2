@@ -6,7 +6,7 @@ import {
 } from "recharts";
 import { Users, Heart, Home, TrendingUp, GraduationCap, HeartPulse } from "lucide-react";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5216";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5172";
 const COLORS = ["#2B4570", "#3D8B8B", "#E07A5F", "#D4B896", "#8BA58E", "#5B7B9A"];
 
 interface ImpactData {
