@@ -129,20 +129,32 @@ public class DonationsController : ControllerBase
             supporter = new Supporter
             {
                 SupporterName = email.Split('@')[0],
-                SupporterType = "Monetary",
+                SupporterType = "Individual",
                 Email = email,
                 Status = "Active",
                 FirstGiftDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
-                LastGiftDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
-                TotalGiven = request.Amount
+                CreatedAt = DateTime.UtcNow,
+                AcquisitionChannel = "Donor Portal"
             };
             _db.Supporters.Add(supporter);
             await _db.SaveChangesAsync();
         }
         else
         {
-            supporter.LastGiftDate = DateOnly.FromDateTime(DateTime.UtcNow.Date);
-            supporter.TotalGiven = (supporter.TotalGiven ?? 0m) + request.Amount;
+            if (supporter.FirstGiftDate == null)
+            {
+                supporter.FirstGiftDate = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+            }
+
+            if (string.IsNullOrWhiteSpace(supporter.SupporterName))
+            {
+                supporter.SupporterName = email.Split('@')[0];
+            }
+
+            if (string.IsNullOrWhiteSpace(supporter.AcquisitionChannel))
+            {
+                supporter.AcquisitionChannel = "Donor Portal";
+            }
         }
 
         var donation = new Donation
