@@ -2,63 +2,44 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using HopeHarbor.Data;
 using Npgsql;
-using System.Data.Common;
 using System.Net;
-using System.Net.Sockets;
 
-LoadDotEnvIfPresent(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
+var dotEnvPath = FindDotEnvPath();
+if (dotEnvPath != null)
+{
+    LoadDotEnvIfPresent(dotEnvPath);
+    Console.WriteLine($".env loaded from: {dotEnvPath}");
+}
+else
+{
+    Console.WriteLine(".env not found. Using process environment and appsettings.json values.");
+}
 
 var builder = WebApplication.CreateBuilder(args);
-var configuredProvider = builder.Configuration["Database:Provider"]?.Trim() ?? "Postgres";
-var fallbackToSqlite = builder.Configuration.GetValue("Database:FallbackToSqlite", true);
+var (postgresConnectionString, postgresConnectionSource) = ResolvePostgresConnectionString(
+    builder.Configuration,
+    fullEnvKey: "ConnectionStrings__PostgresConnection",
+    prefix: "Postgres",
+    connectionStringKey: "PostgresConnection",
+    fallback: builder.Configuration.GetConnectionString("DefaultConnection"));
 
-var sqliteConnectionString =
-    builder.Configuration.GetConnectionString("SqliteConnection")
-    ?? builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Data Source=hopeharbor.db";
-
-var identityConnectionString =
-    builder.Configuration.GetConnectionString("IdentityConnection")
-    ?? "Data Source=hopeharbor.identity.db";
-
-var envPostgresConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__PostgresConnection");
-var postgresConnectionStringFromParts = BuildPostgresConnectionStringFromParts(builder.Configuration);
-var configuredPostgresConnectionString = builder.Configuration.GetConnectionString("PostgresConnection");
-var configuredDefaultConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-var postgresConnectionString =
-    (string.IsNullOrWhiteSpace(envPostgresConnectionString) ? null : envPostgresConnectionString)
-    ?? postgresConnectionStringFromParts
-    ?? configuredPostgresConnectionString
-    ?? configuredDefaultConnectionString;
-
-var postgresConnectionSource =
-    !string.IsNullOrWhiteSpace(envPostgresConnectionString) ? "env:ConnectionStrings__PostgresConnection"
-    : postgresConnectionStringFromParts != null ? "env:Postgres__*"
-    : configuredPostgresConnectionString != null ? "config:ConnectionStrings:PostgresConnection"
-    : configuredDefaultConnectionString != null ? "config:ConnectionStrings:DefaultConnection"
-    : "none";
-
-var wantsPostgres =
-    configuredProvider.Equals("postgres", StringComparison.OrdinalIgnoreCase)
-    || configuredProvider.Equals("postgresql", StringComparison.OrdinalIgnoreCase);
-
-var usePostgres = wantsPostgres;
-if (wantsPostgres)
+if (string.IsNullOrWhiteSpace(postgresConnectionString))
 {
-    if (string.IsNullOrWhiteSpace(postgresConnectionString))
-    {
-        if (!fallbackToSqlite)
-            throw new InvalidOperationException("Database provider is Postgres but no Postgres connection string was configured.");
+    throw new InvalidOperationException(
+        "Postgres connection string is required. Configure ConnectionStrings__PostgresConnection or Postgres__Host/Port/Database/Username/Password.");
+}
 
-        Console.WriteLine("Postgres provider selected, but no Postgres connection string found. Falling back to SQLite.");
-        usePostgres = false;
-    }
-    else if (fallbackToSqlite && !CanReachPostgresHost(postgresConnectionString))
-    {
-        Console.WriteLine("Postgres provider selected, but the database is unreachable. Falling back to SQLite.");
-        usePostgres = false;
-    }
+var (identityConnectionString, identityConnectionSource) = ResolvePostgresConnectionString(
+    builder.Configuration,
+    fullEnvKey: "ConnectionStrings__IdentityConnection",
+    prefix: "IdentityPostgres",
+    connectionStringKey: "IdentityPostgresConnection",
+    fallback: postgresConnectionString);
+
+if (string.IsNullOrWhiteSpace(identityConnectionString))
+{
+    throw new InvalidOperationException(
+        "Identity Postgres connection string is required. Configure ConnectionStrings__IdentityConnection or IdentityPostgres__Host/Port/Database/Username/Password.");
 }
 
 builder.Services.AddControllers()
@@ -71,23 +52,18 @@ builder.Services.AddControllers()
 builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<HopeHarborContext>(opts =>
-{
-    if (usePostgres)
-    {
-        opts.UseNpgsql(postgresConnectionString!);
-    }
-    else
-    {
-        opts.UseSqlite(sqliteConnectionString);
-    }
-});
+    opts.UseNpgsql(postgresConnectionString));
 
-Console.WriteLine($"Database provider in use: {(usePostgres ? "Postgres" : "SQLite")}");
-if (usePostgres)
-    Console.WriteLine($"Postgres connection source: {postgresConnectionSource}");
+Console.WriteLine("Database provider in use: Postgres");
+Console.WriteLine($"App Postgres connection source: {postgresConnectionSource}");
+Console.WriteLine($"Identity Postgres connection source: {identityConnectionSource}");
+var appPg = new NpgsqlConnectionStringBuilder(postgresConnectionString);
+var identityPg = new NpgsqlConnectionStringBuilder(identityConnectionString);
+Console.WriteLine($"App Postgres target: {appPg.Host}:{appPg.Port}/{appPg.Database}");
+Console.WriteLine($"Identity Postgres target: {identityPg.Host}:{identityPg.Port}/{identityPg.Database}");
 
 builder.Services.AddDbContext<AuthIdentityDbContext>(opts =>
-    opts.UseSqlite(identityConnectionString));
+    opts.UseNpgsql(identityConnectionString));
 
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddRoles<IdentityRole>()
@@ -150,17 +126,25 @@ using (var scope = app.Services.CreateScope())
     }
 
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    if (await userManager.FindByEmailAsync("admin@hopeharbor.org") == null)
+    var admin = await userManager.FindByEmailAsync("admin@hopeharbor.org");
+    if (admin == null)
     {
-        var admin = new ApplicationUser { UserName = "admin@hopeharbor.org", Email = "admin@hopeharbor.org", EmailConfirmed = true };
+        admin = new ApplicationUser { UserName = "admin@hopeharbor.org", Email = "admin@hopeharbor.org", EmailConfirmed = true };
         await userManager.CreateAsync(admin, "HopeHarbor2025!");
+    }
+    if (!await userManager.IsInRoleAsync(admin, "Admin"))
+    {
         await userManager.AddToRoleAsync(admin, "Admin");
     }
 
-    if (await userManager.FindByEmailAsync("donor@hopeharbor.org") == null)
+    var donor = await userManager.FindByEmailAsync("donor@hopeharbor.org");
+    if (donor == null)
     {
-        var donor = new ApplicationUser { UserName = "donor@hopeharbor.org", Email = "donor@hopeharbor.org", EmailConfirmed = true };
+        donor = new ApplicationUser { UserName = "donor@hopeharbor.org", Email = "donor@hopeharbor.org", EmailConfirmed = true };
         await userManager.CreateAsync(donor, "HopeHarborDonor2025!");
+    }
+    if (!await userManager.IsInRoleAsync(donor, "Donor"))
+    {
         await userManager.AddToRoleAsync(donor, "Donor");
     }
 }
@@ -193,40 +177,39 @@ if (Directory.Exists(wwwroot))
 
 app.Run();
 
-static bool CanReachPostgresHost(string connectionString)
+static (string? ConnectionString, string Source) ResolvePostgresConnectionString(
+    IConfiguration configuration,
+    string fullEnvKey,
+    string prefix,
+    string connectionStringKey,
+    string? fallback)
 {
-    try
-    {
-        var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
+    var envConnectionString = Environment.GetEnvironmentVariable(fullEnvKey);
+    var partsConnectionString = BuildPostgresConnectionStringFromParts(configuration, prefix);
+    var configuredConnectionString = configuration.GetConnectionString(connectionStringKey);
 
-        if (!builder.TryGetValue("Host", out var hostObj) || hostObj == null)
-            return false;
+    var connectionString =
+        (string.IsNullOrWhiteSpace(envConnectionString) ? null : envConnectionString)
+        ?? partsConnectionString
+        ?? configuredConnectionString
+        ?? fallback;
 
-        var host = hostObj.ToString();
-        if (string.IsNullOrWhiteSpace(host))
-            return false;
+    var source =
+        !string.IsNullOrWhiteSpace(envConnectionString) ? $"env:{fullEnvKey}"
+        : partsConnectionString != null ? $"env:{prefix}__*"
+        : configuredConnectionString != null ? $"config:ConnectionStrings:{connectionStringKey}"
+        : fallback != null ? "fallback:shared-postgres"
+        : "none";
 
-        var port = 5432;
-        if (builder.TryGetValue("Port", out var portObj) && int.TryParse(portObj?.ToString(), out var parsedPort))
-            port = parsedPort;
-
-        using var client = new TcpClient();
-        var connectTask = client.ConnectAsync(host, port);
-        var completed = connectTask.Wait(TimeSpan.FromSeconds(3));
-        return completed && client.Connected;
-    }
-    catch
-    {
-        return false;
-    }
+    return (connectionString, source);
 }
 
-static string? BuildPostgresConnectionStringFromParts(IConfiguration configuration)
+static string? BuildPostgresConnectionStringFromParts(IConfiguration configuration, string prefix)
 {
-    var host = configuration["Postgres:Host"]?.Trim();
-    var database = configuration["Postgres:Database"]?.Trim();
-    var username = configuration["Postgres:Username"]?.Trim();
-    var password = configuration["Postgres:Password"];
+    var host = configuration[$"{prefix}:Host"]?.Trim();
+    var database = configuration[$"{prefix}:Database"]?.Trim();
+    var username = configuration[$"{prefix}:Username"]?.Trim();
+    var password = configuration[$"{prefix}:Password"];
 
     if (string.IsNullOrWhiteSpace(host)
         || string.IsNullOrWhiteSpace(database)
@@ -245,10 +228,10 @@ static string? BuildPostgresConnectionStringFromParts(IConfiguration configurati
     if (!string.IsNullOrWhiteSpace(password))
         csb.Password = password;
 
-    if (int.TryParse(configuration["Postgres:Port"], out var port))
+    if (int.TryParse(configuration[$"{prefix}:Port"], out var port))
         csb.Port = port;
 
-    if (Enum.TryParse<SslMode>(configuration["Postgres:SslMode"], true, out var sslMode))
+    if (Enum.TryParse<SslMode>(configuration[$"{prefix}:SslMode"], true, out var sslMode))
         csb.SslMode = sslMode;
 
     return csb.ConnectionString;
@@ -288,6 +271,20 @@ static bool IsAllowedDevelopmentOrigin(string origin)
     var is172 = bytes[0] == 172 && bytes[1] is >= 16 and <= 31;
 
     return is10 || is192 || is172;
+}
+
+static string? FindDotEnvPath()
+{
+    var candidates = new[]
+    {
+        Path.Combine(Directory.GetCurrentDirectory(), ".env"),
+        Path.Combine(Directory.GetCurrentDirectory(), "backend", "HopeHarbor", ".env"),
+        Path.Combine(AppContext.BaseDirectory, ".env"),
+        Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".env")),
+        Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".env")),
+    };
+
+    return candidates.FirstOrDefault(File.Exists);
 }
 
 static void LoadDotEnvIfPresent(string dotEnvPath)
