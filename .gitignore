@@ -2,6 +2,7 @@
 .DS_Store
 .vscode/
 .idea/
+.vs/
 
 # Logs
 *.log
@@ -18,6 +19,8 @@ frontend/dist/
 frontend/dist-ssr/
 frontend/build/
 frontend/coverage/
+frontend/.vite/
+frontend/.cache/
 frontend/.next/
 frontend/.vercel/
 frontend/.turbo/
@@ -33,11 +36,18 @@ backend/**/[Rr]elease/
 backend/**/.vs/
 backend/**/*.suo
 backend/**/*.user
+backend/**/*.userosscache
+backend/**/*.rsuser
+backend/**/*.sln.docstates
 backend/**/*.ncb
 backend/**/*.opensdf
 backend/**/*.sdf
 backend/**/*.cache
 backend/**/*.pdb
+backend/**/TestResults/
+backend/HopeHarbor/obj/HopeHarbor.csproj.nuget.dgspec.json
+backend/HopeHarbor/obj/HopeHarbor.csproj.nuget.g.props
+backend/HopeHarbor/obj/project.assets.json
 
 # Local database artifacts
 backend/**/*.db
