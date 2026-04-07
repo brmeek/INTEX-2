@@ -48,6 +48,7 @@ public class ResidentsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create([FromBody] Resident resident)
     {
         _db.Residents.Add(resident);
@@ -56,6 +57,7 @@ public class ResidentsController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Update(int id, [FromBody] Resident resident)
     {
         var existing = await _db.Residents.FindAsync(id);
@@ -67,6 +69,7 @@ public class ResidentsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
         var item = await _db.Residents.FindAsync(id);

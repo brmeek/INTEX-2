@@ -33,6 +33,7 @@ public class PartnersController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create([FromBody] Partner partner)
     {
         _db.Partners.Add(partner);
@@ -41,6 +42,7 @@ public class PartnersController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Update(int id, [FromBody] Partner partner)
     {
         var existing = await _db.Partners.FindAsync(id);
@@ -52,6 +54,7 @@ public class PartnersController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
         var item = await _db.Partners.FindAsync(id);

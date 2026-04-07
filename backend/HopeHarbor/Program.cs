@@ -16,6 +16,10 @@ var sqliteConnectionString =
     ?? builder.Configuration.GetConnectionString("DefaultConnection")
     ?? "Data Source=hopeharbor.db";
 
+var identityConnectionString =
+    builder.Configuration.GetConnectionString("IdentityConnection")
+    ?? "Data Source=hopeharbor.identity.db";
+
 var postgresConnectionString =
     builder.Configuration.GetConnectionString("PostgresConnection")
     ?? builder.Configuration.GetConnectionString("DefaultConnection");
@@ -65,16 +69,22 @@ builder.Services.AddDbContext<HopeHarborContext>(opts =>
 
 Console.WriteLine($"Database provider in use: {(usePostgres ? "Postgres" : "SQLite")}");
 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(opts =>
-    {
-        opts.Password.RequireDigit = true;
-        opts.Password.RequiredLength = 8;
-        opts.Password.RequireNonAlphanumeric = false;
-        opts.Password.RequireUppercase = true;
-        opts.Password.RequireLowercase = true;
-    })
-    .AddEntityFrameworkStores<HopeHarborContext>()
-    .AddDefaultTokenProviders();
+builder.Services.AddDbContext<AuthIdentityDbContext>(opts =>
+    opts.UseSqlite(identityConnectionString));
+
+builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<AuthIdentityDbContext>();
+
+builder.Services.Configure<IdentityOptions>(opts =>
+{
+    opts.Password.RequireDigit = false;
+    opts.Password.RequireLowercase = false;
+    opts.Password.RequireUppercase = false;
+    opts.Password.RequireNonAlphanumeric = false;
+    opts.Password.RequiredUniqueChars = 1;
+    opts.Password.RequiredLength = 14;
+});
 
 builder.Services.ConfigureApplicationCookie(opts =>
 {
@@ -109,14 +119,25 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<HopeHarborContext>();
-    db.Database.EnsureCreated();
+    var appDb = scope.ServiceProvider.GetRequiredService<HopeHarborContext>();
+    appDb.Database.EnsureCreated();
 
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+    var identityDb = scope.ServiceProvider.GetRequiredService<AuthIdentityDbContext>();
+    identityDb.Database.EnsureCreated();
+
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    foreach (var role in new[] { "Admin", "Donor" })
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+            await roleManager.CreateAsync(new IdentityRole(role));
+    }
+
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     if (await userManager.FindByEmailAsync("admin@hopeharbor.org") == null)
     {
-        var admin = new IdentityUser { UserName = "admin@hopeharbor.org", Email = "admin@hopeharbor.org", EmailConfirmed = true };
+        var admin = new ApplicationUser { UserName = "admin@hopeharbor.org", Email = "admin@hopeharbor.org", EmailConfirmed = true };
         await userManager.CreateAsync(admin, "HopeHarbor2025!");
+        await userManager.AddToRoleAsync(admin, "Admin");
     }
 }
 
@@ -138,6 +159,7 @@ if (Directory.Exists(wwwroot))
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapIdentityApi<ApplicationUser>();
 app.MapControllers();
 
 if (Directory.Exists(wwwroot))
