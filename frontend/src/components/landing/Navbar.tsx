@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 const navLinks = [
   { label: "About", href: "/about" },
   { label: "Impact", href: "/impact" },
-  { label: "Get Involved", href: "/donate" },
+  { label: "Get Involved", href: "/donor/login" },
   { label: "Contact", href: "/contact" },
 ];
 
@@ -101,7 +101,7 @@ const Navbar = () => {
                 Staff Portal
               </Button>
             </Link>
-            <Link to="/donate">
+            <Link to="/donor/login">
               <Button
                 size="sm"
                 className="bg-accent text-accent-foreground hover:bg-teal-light rounded-full font-body font-semibold px-6"
@@ -156,7 +156,7 @@ const Navbar = () => {
                   Staff Portal
                 </Button>
               </Link>
-              <Link to="/donate" className="flex-1">
+              <Link to="/donor/login" className="flex-1">
                 <Button
                   size="sm"
                   className="w-full bg-accent text-accent-foreground hover:bg-teal-light font-body font-semibold"

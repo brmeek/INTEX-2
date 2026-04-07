@@ -11,11 +11,12 @@ import CookieConsent from "./components/CookieConsent";
 
 import Index from "./pages/Index";
 import AboutPage from "./pages/AboutPage";
-import DonatePage from "./pages/DonatePage";
 import ContactPage from "./pages/ContactPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import ImpactDashboard from "./pages/ImpactDashboard";
 import LoginPage from "./pages/LoginPage";
+import DonorLoginPage from "./pages/DonorLoginPage";
+import DonorPortalPage from "./pages/DonorPortalPage";
 import NotFound from "./pages/NotFound";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -28,7 +29,7 @@ import ReportsPage from "./pages/admin/ReportsPage";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function ProtectedRoute({ children, requireRole }: { children: React.ReactNode; requireRole?: "Admin" | "Donor" }) {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -39,13 +40,28 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to={requireRole === "Admin" ? "/login" : "/donor/login"} replace />;
+  if (requireRole && !user.roles.includes(requireRole)) return <Navigate to="/portal" replace />;
   return <>{children}</>;
+}
+
+function PortalRedirect() {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted">
+        <div className="animate-spin h-8 w-8 border-4 border-accent border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (!user) return <Navigate to="/donor/login" replace />;
+  if (user.roles.includes("Admin")) return <Navigate to="/admin" replace />;
+  return <Navigate to="/donor" replace />;
 }
 
 const App = () => {
   const [showLoadingScreen, setShowLoadingScreen] = useState(true);
-
   const handleLoadingComplete = useCallback(() => {
     setShowLoadingScreen(false);
   }, []);
@@ -66,20 +82,23 @@ const App = () => {
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/programs" element={<Navigate to="/about" replace />} />
-              <Route path="/donate" element={<DonatePage />} />
+              <Route path="/donate" element={<Navigate to="/donor/login" replace />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/impact" element={<ImpactDashboard />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/donor/login" element={<DonorLoginPage />} />
+              <Route path="/portal" element={<PortalRedirect />} />
+              <Route path="/donor" element={<ProtectedRoute requireRole="Donor"><DonorPortalPage /></ProtectedRoute>} />
 
               {/* Admin (Authenticated) */}
-              <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-              <Route path="/admin/donors" element={<ProtectedRoute><DonorsAdminPage /></ProtectedRoute>} />
-              <Route path="/admin/caseload" element={<ProtectedRoute><CaseloadPage /></ProtectedRoute>} />
-              <Route path="/admin/recordings" element={<ProtectedRoute><ProcessRecordingsPage /></ProtectedRoute>} />
-              <Route path="/admin/visitations" element={<ProtectedRoute><VisitationsPage /></ProtectedRoute>} />
-              <Route path="/admin/partners" element={<ProtectedRoute><PartnersAdminPage /></ProtectedRoute>} />
-              <Route path="/admin/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute requireRole="Admin"><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/admin/donors" element={<ProtectedRoute requireRole="Admin"><DonorsAdminPage /></ProtectedRoute>} />
+              <Route path="/admin/caseload" element={<ProtectedRoute requireRole="Admin"><CaseloadPage /></ProtectedRoute>} />
+              <Route path="/admin/recordings" element={<ProtectedRoute requireRole="Admin"><ProcessRecordingsPage /></ProtectedRoute>} />
+              <Route path="/admin/visitations" element={<ProtectedRoute requireRole="Admin"><VisitationsPage /></ProtectedRoute>} />
+              <Route path="/admin/partners" element={<ProtectedRoute requireRole="Admin"><PartnersAdminPage /></ProtectedRoute>} />
+              <Route path="/admin/reports" element={<ProtectedRoute requireRole="Admin"><ReportsPage /></ProtectedRoute>} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

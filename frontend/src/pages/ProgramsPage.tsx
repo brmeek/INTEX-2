@@ -290,7 +290,7 @@ const ProgramsPage = () => {
             Every dollar funds direct care. Your contribution keeps safe-home
             beds available for the next girl who needs one.
           </p>
-          <Link to="/donate">
+          <Link to="/donor/login">
             <Button
               size="lg"
               className="bg-navy text-white hover:bg-navy-light rounded-full font-body font-semibold px-8 h-12 text-base"

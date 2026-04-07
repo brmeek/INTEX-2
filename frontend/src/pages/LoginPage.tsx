@@ -14,7 +14,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
 
   if (user) {
-    navigate("/admin");
+    navigate("/portal");
     return null;
   }
 
@@ -24,7 +24,7 @@ const LoginPage = () => {
     setLoading(true);
     try {
       await login(email, password);
-      navigate("/admin");
+      navigate("/portal");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed. Please try again.");
     } finally {

@@ -139,6 +139,13 @@ using (var scope = app.Services.CreateScope())
         await userManager.CreateAsync(admin, "HopeHarbor2025!");
         await userManager.AddToRoleAsync(admin, "Admin");
     }
+
+    if (await userManager.FindByEmailAsync("donor@hopeharbor.org") == null)
+    {
+        var donor = new ApplicationUser { UserName = "donor@hopeharbor.org", Email = "donor@hopeharbor.org", EmailConfirmed = true };
+        await userManager.CreateAsync(donor, "HopeHarborDonor2025!");
+        await userManager.AddToRoleAsync(donor, "Donor");
+    }
 }
 
 if (app.Environment.IsDevelopment())

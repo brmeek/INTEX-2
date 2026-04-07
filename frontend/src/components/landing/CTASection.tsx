@@ -18,7 +18,7 @@ const CTASection = () => {
             ahead instead of reacting to emergencies.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/donate">
+            <Link to="/donor/login">
               <Button
                 size="lg"
                 className="bg-navy text-white hover:bg-navy-light rounded-full font-body font-semibold px-8 h-12 text-base"
@@ -27,7 +27,7 @@ const CTASection = () => {
                 <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
             </Link>
-            <Link to="/donate">
+            <Link to="/donor/login">
               <Button
                 variant="outline"
                 size="lg"

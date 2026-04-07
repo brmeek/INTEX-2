@@ -1,9 +1,10 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 
 interface AuthState {
-  user: { email: string } | null;
+  user: { email: string; roles: string[] } | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  registerDonor: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
 }
@@ -23,7 +24,7 @@ async function tryReadJson<T>(res: Response): Promise<T | null> {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [user, setUser] = useState<{ email: string; roles: string[] } | null>(null);
   const [loading, setLoading] = useState(true);
 
   const checkAuth = useCallback(async () => {
@@ -31,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await fetch(`${API_BASE}/api/auth/me`, { credentials: "include" });
       if (res.ok) {
         const data = await res.json();
-        setUser({ email: data.email });
+        setUser({ email: data.email, roles: Array.isArray(data.roles) ? data.roles : [] });
       } else {
         setUser(null);
       }
@@ -57,9 +58,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const err = await tryReadJson<{ message?: string }>(res);
       throw new Error(err?.message || "Login failed");
     }
-    const data = await tryReadJson<{ email?: string }>(res);
+    const data = await tryReadJson<{ email?: string; roles?: string[] }>(res);
     if (!data?.email) throw new Error("Login succeeded but response payload was empty.");
-    setUser({ email: data.email });
+    setUser({ email: data.email, roles: Array.isArray(data.roles) ? data.roles : [] });
+  };
+
+  const registerDonor = async (email: string, password: string) => {
+    const res = await fetch(`${API_BASE}/api/auth/register-donor`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!res.ok) {
+      const err = await tryReadJson<{ message?: string }>(res);
+      throw new Error(err?.message || "Registration failed");
+    }
+    const data = await tryReadJson<{ email?: string; roles?: string[] }>(res);
+    if (!data?.email) throw new Error("Registration succeeded but response payload was empty.");
+    setUser({ email: data.email, roles: Array.isArray(data.roles) ? data.roles : [] });
   };
 
   const logout = async () => {
@@ -68,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, checkAuth }}>
+    <AuthContext.Provider value={{ user, loading, login, registerDonor, logout, checkAuth }}>
       {children}
     </AuthContext.Provider>
   );

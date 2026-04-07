@@ -33,7 +33,7 @@ const HeroSection = () => {
             toward independence.
           </p>
           <div className="flex flex-wrap items-center gap-4">
-            <Link to="/donate">
+            <Link to="/donor/login">
               <Button
                 size="lg"
                 className="bg-accent text-accent-foreground hover:bg-teal-light rounded-full font-body font-semibold px-8 h-12 text-base"
