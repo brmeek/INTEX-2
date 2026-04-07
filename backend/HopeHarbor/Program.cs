@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using HopeHarbor.Data;
+using Npgsql;
 using System.Data.Common;
 using System.Net;
 using System.Net.Sockets;
@@ -20,9 +21,23 @@ var identityConnectionString =
     builder.Configuration.GetConnectionString("IdentityConnection")
     ?? "Data Source=hopeharbor.identity.db";
 
+var envPostgresConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__PostgresConnection");
+var postgresConnectionStringFromParts = BuildPostgresConnectionStringFromParts(builder.Configuration);
+var configuredPostgresConnectionString = builder.Configuration.GetConnectionString("PostgresConnection");
+var configuredDefaultConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
 var postgresConnectionString =
-    builder.Configuration.GetConnectionString("PostgresConnection")
-    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+    (string.IsNullOrWhiteSpace(envPostgresConnectionString) ? null : envPostgresConnectionString)
+    ?? postgresConnectionStringFromParts
+    ?? configuredPostgresConnectionString
+    ?? configuredDefaultConnectionString;
+
+var postgresConnectionSource =
+    !string.IsNullOrWhiteSpace(envPostgresConnectionString) ? "env:ConnectionStrings__PostgresConnection"
+    : postgresConnectionStringFromParts != null ? "env:Postgres__*"
+    : configuredPostgresConnectionString != null ? "config:ConnectionStrings:PostgresConnection"
+    : configuredDefaultConnectionString != null ? "config:ConnectionStrings:DefaultConnection"
+    : "none";
 
 var wantsPostgres =
     configuredProvider.Equals("postgres", StringComparison.OrdinalIgnoreCase)
@@ -68,6 +83,8 @@ builder.Services.AddDbContext<HopeHarborContext>(opts =>
 });
 
 Console.WriteLine($"Database provider in use: {(usePostgres ? "Postgres" : "SQLite")}");
+if (usePostgres)
+    Console.WriteLine($"Postgres connection source: {postgresConnectionSource}");
 
 builder.Services.AddDbContext<AuthIdentityDbContext>(opts =>
     opts.UseSqlite(identityConnectionString));
@@ -202,6 +219,39 @@ static bool CanReachPostgresHost(string connectionString)
     {
         return false;
     }
+}
+
+static string? BuildPostgresConnectionStringFromParts(IConfiguration configuration)
+{
+    var host = configuration["Postgres:Host"]?.Trim();
+    var database = configuration["Postgres:Database"]?.Trim();
+    var username = configuration["Postgres:Username"]?.Trim();
+    var password = configuration["Postgres:Password"];
+
+    if (string.IsNullOrWhiteSpace(host)
+        || string.IsNullOrWhiteSpace(database)
+        || string.IsNullOrWhiteSpace(username))
+    {
+        return null;
+    }
+
+    var csb = new NpgsqlConnectionStringBuilder
+    {
+        Host = host,
+        Database = database,
+        Username = username
+    };
+
+    if (!string.IsNullOrWhiteSpace(password))
+        csb.Password = password;
+
+    if (int.TryParse(configuration["Postgres:Port"], out var port))
+        csb.Port = port;
+
+    if (Enum.TryParse<SslMode>(configuration["Postgres:SslMode"], true, out var sslMode))
+        csb.SslMode = sslMode;
+
+    return csb.ConnectionString;
 }
 
 static bool IsAllowedDevelopmentOrigin(string origin)
