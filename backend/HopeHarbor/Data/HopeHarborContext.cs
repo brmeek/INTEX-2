@@ -1,10 +1,9 @@
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using HopeHarbor.Models;
 
 namespace HopeHarbor.Data;
 
-public class HopeHarborContext : IdentityDbContext
+public class HopeHarborContext : DbContext
 {
     public HopeHarborContext(DbContextOptions<HopeHarborContext> options) : base(options) { }
 

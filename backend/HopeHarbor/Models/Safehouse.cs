@@ -10,11 +10,11 @@ public class Safehouse
     [Column("safehouse_id")]
     public int SafehouseId { get; set; }
 
-    [Column("safehouse_name")]
+    [Column("name")]
     [MaxLength(255)]
     public string? SafehouseName { get; set; }
 
-    [Column("location")]
+    [Column("city")]
     [MaxLength(255)]
     public string? Location { get; set; }
 
@@ -22,7 +22,7 @@ public class Safehouse
     [MaxLength(100)]
     public string? Region { get; set; }
 
-    [Column("capacity")]
+    [Column("capacity_girls")]
     public int? Capacity { get; set; }
 
     [Column("current_occupancy")]
@@ -32,14 +32,14 @@ public class Safehouse
     [MaxLength(50)]
     public string? Status { get; set; }
 
-    [Column("opened_date")]
+    [Column("open_date")]
     public DateOnly? OpenedDate { get; set; }
 
-    [Column("contact_person")]
+    [NotMapped]
     [MaxLength(255)]
     public string? ContactPerson { get; set; }
 
-    [Column("contact_phone")]
+    [NotMapped]
     [MaxLength(50)]
     public string? ContactPhone { get; set; }
 

@@ -10,22 +10,22 @@ public class Resident
     [Column("resident_id")]
     public int ResidentId { get; set; }
 
-    [Column("first_name")]
+    [Column("case_control_no")]
     [MaxLength(100)]
     public string? FirstName { get; set; }
 
-    [Column("last_name")]
+    [Column("internal_code")]
     [MaxLength(100)]
     public string? LastName { get; set; }
 
     [Column("date_of_birth")]
     public DateOnly? DateOfBirth { get; set; }
 
-    [Column("gender")]
+    [Column("sex")]
     [MaxLength(20)]
     public string? Gender { get; set; }
 
-    [Column("admission_date")]
+    [Column("date_of_admission")]
     public DateOnly? AdmissionDate { get; set; }
 
     [Column("case_status")]
@@ -36,26 +36,26 @@ public class Resident
     [MaxLength(100)]
     public string? CaseCategory { get; set; }
 
-    [Column("case_subcategory")]
+    [NotMapped]
     [MaxLength(100)]
     public string? CaseSubcategory { get; set; }
 
-    [Column("has_disability")]
+    [Column("is_pwd")]
     public bool? HasDisability { get; set; }
 
-    [Column("disability_details")]
+    [Column("pwd_type")]
     public string? DisabilityDetails { get; set; }
 
-    [Column("is_4ps_beneficiary")]
+    [Column("family_is_4ps")]
     public bool? Is4PsBeneficiary { get; set; }
 
-    [Column("is_solo_parent_child")]
+    [Column("family_solo_parent")]
     public bool? IsSoloParentChild { get; set; }
 
-    [Column("is_indigenous")]
+    [Column("family_indigenous")]
     public bool? IsIndigenous { get; set; }
 
-    [Column("is_informal_settler")]
+    [Column("family_informal_settler")]
     public bool? IsInformalSettler { get; set; }
 
     [Column("safehouse_id")]
@@ -76,10 +76,10 @@ public class Resident
     [MaxLength(50)]
     public string? ReintegrationStatus { get; set; }
 
-    [Column("reintegration_date")]
+    [Column("date_closed")]
     public DateOnly? ReintegrationDate { get; set; }
 
-    [Column("notes")]
+    [Column("notes_restricted")]
     public string? Notes { get; set; }
 
     public ICollection<EducationRecord>? EducationRecords { get; set; }
