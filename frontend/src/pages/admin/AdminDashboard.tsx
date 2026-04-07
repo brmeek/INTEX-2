@@ -27,7 +27,7 @@ const AdminDashboard = () => {
         { label: "Total Donations", value: `₱${data.totalDonations.toLocaleString()}`, icon: DollarSign, color: "bg-coral text-white" },
         { label: "Donation Count", value: data.donationCount, icon: Heart, color: "bg-navy text-white" },
         { label: "Safehouses", value: data.safehouseCount, icon: Home, color: "bg-accent text-white" },
-        { label: "Total Served", value: data.totalResidents, icon: ClipboardList, color: "bg-navy-light text-white" },
+        { label: "Total Residents Served", value: data.totalResidents, icon: ClipboardList, color: "bg-navy-light text-white" },
       ]
     : [];
 
