@@ -1,4 +1,10 @@
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5216";
+const API_BASE = import.meta.env.VITE_API_URL || "";
+
+async function parseJsonOrUndefined<T>(res: Response): Promise<T | undefined> {
+  const text = await res.text();
+  if (!text) return undefined;
+  return JSON.parse(text) as T;
+}
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -15,7 +21,8 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     throw new Error(text || `Request failed: ${res.status}`);
   }
   if (res.status === 204) return undefined as T;
-  return res.json();
+  const data = await parseJsonOrUndefined<T>(res);
+  return data as T;
 }
 
 export const api = {

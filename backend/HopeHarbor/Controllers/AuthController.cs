@@ -1,65 +1,66 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using HopeHarbor.Data;
+using System.ComponentModel.DataAnnotations;
 
 namespace HopeHarbor.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/auth")]
 public class AuthController : ControllerBase
 {
-    private readonly SignInManager<IdentityUser> _signInManager;
-    private readonly UserManager<IdentityUser> _userManager;
-
-    public AuthController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
+    public sealed class LoginRequest
     {
-        _signInManager = signInManager;
-        _userManager = userManager;
-    }
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
 
-    public record LoginDto(string Email, string Password);
-    public record RegisterDto(string Email, string Password);
+        [Required]
+        public string Password { get; set; } = string.Empty;
+    }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginDto dto)
+    [AllowAnonymous]
+    public async Task<IActionResult> Login(
+        [FromBody] LoginRequest request,
+        SignInManager<ApplicationUser> signInManager,
+        UserManager<ApplicationUser> userManager)
     {
-        var user = await _userManager.FindByEmailAsync(dto.Email);
-        if (user == null)
-            return Unauthorized(new { message = "Invalid credentials" });
+        var user = await userManager.FindByEmailAsync(request.Email);
+        if (user is null)
+            return Unauthorized(new { message = "Invalid email or password." });
 
-        var result = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, lockoutOnFailure: false);
-        if (!result.Succeeded)
-            return Unauthorized(new { message = "Invalid credentials" });
-
-        await _signInManager.SignInAsync(user, isPersistent: false);
-        return Ok(new { message = "Login successful", email = user.Email });
-    }
-
-    [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterDto dto)
-    {
-        var user = new IdentityUser { UserName = dto.Email, Email = dto.Email };
-        var result = await _userManager.CreateAsync(user, dto.Password);
+        var result = await signInManager.PasswordSignInAsync(
+            user.UserName ?? request.Email,
+            request.Password,
+            isPersistent: false,
+            lockoutOnFailure: false);
 
         if (!result.Succeeded)
-            return BadRequest(new { errors = result.Errors.Select(e => e.Description) });
+            return Unauthorized(new { message = "Invalid email or password." });
 
-        await _signInManager.SignInAsync(user, isPersistent: false);
-        return Ok(new { message = "Registration successful", email = user.Email });
+        var roles = await userManager.GetRolesAsync(user);
+        return Ok(new { email = user.Email, roles });
     }
 
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout()
+    [Authorize]
+    public async Task<IActionResult> Logout(SignInManager<ApplicationUser> signInManager)
     {
-        await _signInManager.SignOutAsync();
-        return Ok(new { message = "Logged out" });
+        await signInManager.SignOutAsync();
+        return Ok(new { message = "Logged out." });
     }
 
     [HttpGet("me")]
-    public IActionResult Me()
+    [Authorize]
+    public async Task<IActionResult> Me(UserManager<ApplicationUser> userManager)
     {
-        if (User.Identity?.IsAuthenticated != true)
+        var user = await userManager.GetUserAsync(User);
+        if (user is null)
             return Unauthorized();
 
-        return Ok(new { email = User.Identity.Name });
+        var roles = await userManager.GetRolesAsync(user);
+        return Ok(new { email = user.Email, roles });
     }
 }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using HopeHarbor.Data;
 using System.Data.Common;
+using System.Net;
 using System.Net.Sockets;
 
 LoadDotEnvIfPresent(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
@@ -14,6 +15,10 @@ var sqliteConnectionString =
     builder.Configuration.GetConnectionString("SqliteConnection")
     ?? builder.Configuration.GetConnectionString("DefaultConnection")
     ?? "Data Source=hopeharbor.db";
+
+var identityConnectionString =
+    builder.Configuration.GetConnectionString("IdentityConnection")
+    ?? "Data Source=hopeharbor.identity.db";
 
 var postgresConnectionString =
     builder.Configuration.GetConnectionString("PostgresConnection")
@@ -64,16 +69,22 @@ builder.Services.AddDbContext<HopeHarborContext>(opts =>
 
 Console.WriteLine($"Database provider in use: {(usePostgres ? "Postgres" : "SQLite")}");
 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(opts =>
-    {
-        opts.Password.RequireDigit = true;
-        opts.Password.RequiredLength = 8;
-        opts.Password.RequireNonAlphanumeric = false;
-        opts.Password.RequireUppercase = true;
-        opts.Password.RequireLowercase = true;
-    })
-    .AddEntityFrameworkStores<HopeHarborContext>()
-    .AddDefaultTokenProviders();
+builder.Services.AddDbContext<AuthIdentityDbContext>(opts =>
+    opts.UseSqlite(identityConnectionString));
+
+builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<AuthIdentityDbContext>();
+
+builder.Services.Configure<IdentityOptions>(opts =>
+{
+    opts.Password.RequireDigit = false;
+    opts.Password.RequireLowercase = false;
+    opts.Password.RequireUppercase = false;
+    opts.Password.RequireNonAlphanumeric = false;
+    opts.Password.RequiredUniqueChars = 1;
+    opts.Password.RequiredLength = 14;
+});
 
 builder.Services.ConfigureApplicationCookie(opts =>
 {
@@ -97,12 +108,7 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:5173",
-                "http://127.0.0.1:5173",
-                "http://localhost:8080",
-                "http://127.0.0.1:8080",
-                "https://localhost:5173")
+        policy.SetIsOriginAllowed(IsAllowedDevelopmentOrigin)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -113,14 +119,25 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<HopeHarborContext>();
-    db.Database.EnsureCreated();
+    var appDb = scope.ServiceProvider.GetRequiredService<HopeHarborContext>();
+    appDb.Database.EnsureCreated();
 
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+    var identityDb = scope.ServiceProvider.GetRequiredService<AuthIdentityDbContext>();
+    identityDb.Database.EnsureCreated();
+
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    foreach (var role in new[] { "Admin", "Donor" })
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+            await roleManager.CreateAsync(new IdentityRole(role));
+    }
+
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     if (await userManager.FindByEmailAsync("admin@hopeharbor.org") == null)
     {
-        var admin = new IdentityUser { UserName = "admin@hopeharbor.org", Email = "admin@hopeharbor.org", EmailConfirmed = true };
+        var admin = new ApplicationUser { UserName = "admin@hopeharbor.org", Email = "admin@hopeharbor.org", EmailConfirmed = true };
         await userManager.CreateAsync(admin, "HopeHarbor2025!");
+        await userManager.AddToRoleAsync(admin, "Admin");
     }
 }
 
@@ -142,6 +159,7 @@ if (Directory.Exists(wwwroot))
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapIdentityApi<ApplicationUser>();
 app.MapControllers();
 
 if (Directory.Exists(wwwroot))
@@ -177,6 +195,42 @@ static bool CanReachPostgresHost(string connectionString)
     {
         return false;
     }
+}
+
+static bool IsAllowedDevelopmentOrigin(string origin)
+{
+    if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+        return false;
+
+    if (uri.Scheme == Uri.UriSchemeHttps
+        && uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
+        && uri.Port == 5173)
+    {
+        return true;
+    }
+
+    if (uri.Scheme != Uri.UriSchemeHttp || uri.Port is not 5173 and not 8080)
+        return false;
+
+    if (uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
+        || uri.Host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase)
+        || uri.Host.Equals("::1", StringComparison.OrdinalIgnoreCase))
+    {
+        return true;
+    }
+
+    if (!IPAddress.TryParse(uri.Host, out var ipAddress))
+        return false;
+
+    var bytes = ipAddress.GetAddressBytes();
+    if (bytes.Length != 4)
+        return false;
+
+    var is10 = bytes[0] == 10;
+    var is192 = bytes[0] == 192 && bytes[1] == 168;
+    var is172 = bytes[0] == 172 && bytes[1] is >= 16 and <= 31;
+
+    return is10 || is192 || is172;
 }
 
 static void LoadDotEnvIfPresent(string dotEnvPath)
