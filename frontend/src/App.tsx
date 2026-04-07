@@ -9,7 +9,6 @@ import CookieConsent from "./components/CookieConsent";
 
 import Index from "./pages/Index";
 import AboutPage from "./pages/AboutPage";
-import ProgramsPage from "./pages/ProgramsPage";
 import DonatePage from "./pages/DonatePage";
 import ContactPage from "./pages/ContactPage";
 import PrivacyPage from "./pages/PrivacyPage";
@@ -54,7 +53,7 @@ const App = () => (
             {/* Public */}
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<AboutPage />} />
-            <Route path="/programs" element={<ProgramsPage />} />
+            <Route path="/programs" element={<Navigate to="/about" replace />} />
             <Route path="/donate" element={<DonatePage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
