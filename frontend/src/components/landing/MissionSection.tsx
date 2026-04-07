@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import missionImage from "@/assets/mission-counseling.jpg";
+import missionImage from "@/assets/Phillipines-sisters.jpg";
 
 const MissionSection = () => {
   return (
@@ -42,7 +42,7 @@ const MissionSection = () => {
               <div className="rounded-2xl overflow-hidden shadow-card">
                 <img
                   src={missionImage}
-                  alt="A supportive counseling environment"
+                  alt="Sisters in the Philippines"
                   className="w-full h-full object-cover aspect-[4/3]"
                   loading="lazy"
                   width={800}

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import heroImage from "@/assets/hero-sanctuary.jpg";
+import heroImage from "@/assets/harbor.jpg";
 import { ShieldAlert, ArrowRight } from "lucide-react";
 
 const HeroSection = () => {
@@ -9,7 +9,7 @@ const HeroSection = () => {
       <div className="absolute inset-0">
         <img
           src={heroImage}
-          alt="A warm, peaceful sanctuary"
+          alt="Hope Harbor exterior"
           className="w-full h-full object-cover"
           width={1920}
           height={1080}
