@@ -12,6 +12,16 @@ const AuthContext = createContext<AuthState | null>(null);
 
 const API_BASE = import.meta.env.VITE_API_URL || "";
 
+async function tryReadJson<T>(res: Response): Promise<T | null> {
+  const text = await res.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<{ email: string } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,10 +54,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       body: JSON.stringify({ email, password }),
     });
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.message || "Login failed");
+      const err = await tryReadJson<{ message?: string }>(res);
+      throw new Error(err?.message || "Login failed");
     }
-    const data = await res.json();
+    const data = await tryReadJson<{ email?: string }>(res);
+    if (!data?.email) throw new Error("Login succeeded but response payload was empty.");
     setUser({ email: data.email });
   };
 
