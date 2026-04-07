@@ -1,9 +1,11 @@
+import { useCallback, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import InitialLoadingScreen from "./components/InitialLoadingScreen";
 import ScrollToTop from "./components/ScrollToTop";
 import CookieConsent from "./components/CookieConsent";
 
@@ -41,41 +43,52 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <ScrollToTop />
-          <Routes>
-            {/* Public */}
-            <Route path="/" element={<Index />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/programs" element={<Navigate to="/about" replace />} />
-            <Route path="/donate" element={<DonatePage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="/impact" element={<ImpactDashboard />} />
-            <Route path="/login" element={<LoginPage />} />
+const App = () => {
+  const [showLoadingScreen, setShowLoadingScreen] = useState(true);
 
-            {/* Admin (Authenticated) */}
-            <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-            <Route path="/admin/donors" element={<ProtectedRoute><DonorsAdminPage /></ProtectedRoute>} />
-            <Route path="/admin/caseload" element={<ProtectedRoute><CaseloadPage /></ProtectedRoute>} />
-            <Route path="/admin/recordings" element={<ProtectedRoute><ProcessRecordingsPage /></ProtectedRoute>} />
-            <Route path="/admin/visitations" element={<ProtectedRoute><VisitationsPage /></ProtectedRoute>} />
-            <Route path="/admin/partners" element={<ProtectedRoute><PartnersAdminPage /></ProtectedRoute>} />
-            <Route path="/admin/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+  const handleLoadingComplete = useCallback(() => {
+    setShowLoadingScreen(false);
+  }, []);
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <CookieConsent />
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          {showLoadingScreen && (
+            <InitialLoadingScreen onComplete={handleLoadingComplete} />
+          )}
+          <BrowserRouter>
+            <ScrollToTop />
+            <Routes>
+              {/* Public */}
+              <Route path="/" element={<Index />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/programs" element={<Navigate to="/about" replace />} />
+              <Route path="/donate" element={<DonatePage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/impact" element={<ImpactDashboard />} />
+              <Route path="/login" element={<LoginPage />} />
+
+              {/* Admin (Authenticated) */}
+              <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/admin/donors" element={<ProtectedRoute><DonorsAdminPage /></ProtectedRoute>} />
+              <Route path="/admin/caseload" element={<ProtectedRoute><CaseloadPage /></ProtectedRoute>} />
+              <Route path="/admin/recordings" element={<ProtectedRoute><ProcessRecordingsPage /></ProtectedRoute>} />
+              <Route path="/admin/visitations" element={<ProtectedRoute><VisitationsPage /></ProtectedRoute>} />
+              <Route path="/admin/partners" element={<ProtectedRoute><PartnersAdminPage /></ProtectedRoute>} />
+              <Route path="/admin/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <CookieConsent />
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

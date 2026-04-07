@@ -1,9 +1,10 @@
 import Layout from "@/components/Layout";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import mountainsImage from "@/assets/Phillipines-mountains.jpg";
+import girlsImage from "@/assets/Phillipines-girls.jpg";
 import {
   ArrowRight,
-  Globe,
   Users,
   Shield,
   Heart,
@@ -15,23 +16,23 @@ import {
 const values = [
   {
     icon: Shield,
-    title: "Safety Above All",
-    text: "Every decision we make starts with one question: does this protect the girls in our care?",
+    title: "Safety",
+    text: "Every decision we make begins with protection, stability, and the creation of a secure environment where girls can finally exhale.",
   },
   {
     icon: Heart,
-    title: "Dignity in Recovery",
-    text: "Healing is not linear. We meet each resident where she is and walk alongside her at her own pace.",
+    title: "Healing",
+    text: "Recovery takes time. We provide trauma-informed care that meets each girl where she is and supports lasting emotional restoration.",
   },
   {
-    icon: Globe,
-    title: "Local Partnership",
-    text: "We partner with trusted in-country organizations and individuals who understand the culture and context.",
+    icon: BookOpen,
+    title: "Growth",
+    text: "Healing opens the door to learning, confidence, and new opportunity through education, life skills, and personal development.",
   },
   {
     icon: Users,
-    title: "Radical Transparency",
-    text: "Donors deserve to know exactly how their money is used and what outcomes it makes possible.",
+    title: "Reintegration",
+    text: "Our goal is not dependency but restoration, helping each girl return to community life with support, dignity, and a path forward.",
   },
 ];
 
@@ -111,40 +112,52 @@ const AboutPage = () => {
         </div>
       </section>
 
-      <section className="py-24 md:py-32 bg-background">
-        <div className="container">
-          <div className="grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] gap-16 lg:gap-20 items-start">
-            <div className="max-w-3xl">
-              <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground leading-tight mb-8">
-                How we got here
-              </h2>
-              <div className="space-y-5 font-body text-muted-foreground leading-relaxed text-lg">
-                <p>
-                  In early 2023, our founders attended a presentation by
-                  Lighthouse Sanctuary, a US-based nonprofit that operates safe
-                  homes for girls who are survivors of sexual abuse and sex
-                  trafficking in the Philippines. The work was extraordinary,
-                  and the need was clearly far larger than any single
-                  organization could meet.
-                </p>
-                <p>
-                  Lighthouse Sanctuary generously shared anonymized operational
-                  data, including caseload records, counseling documentation,
-                  home visitation reports, and annual accomplishment templates,
-                  to help us understand what running this kind of organization
-                  actually looks like day to day.
-                </p>
-                <p>
-                  Armed with that knowledge, we set out to build Hope Harbor: a
-                  new organization using the same proven model, designed from
-                  the ground up with modern technology to help limited staff
-                  manage cases, retain donors, and protect the privacy of
-                  everyone involved.
-                </p>
+      <section className="relative py-24 md:py-32 overflow-hidden">
+        <div className="absolute inset-0">
+          <img
+            src={mountainsImage}
+            alt=""
+            aria-hidden="true"
+            className="w-full h-full object-cover brightness-110 saturate-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-navy/50 via-navy/30 to-navy/45" />
+        </div>
+
+        <div className="container relative">
+          <div className="grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] gap-8 lg:gap-10 items-start">
+            <div className="rounded-3xl bg-background/95 p-8 md:p-10 shadow-elevated backdrop-blur-sm border border-white/30">
+              <div className="max-w-3xl">
+                <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground leading-tight mb-8">
+                  How we got here
+                </h2>
+                <div className="space-y-5 font-body text-muted-foreground leading-relaxed text-lg">
+                  <p>
+                    In early 2023, our founders attended a presentation by
+                    Lighthouse Sanctuary, a US-based nonprofit that operates safe
+                    homes for girls who are survivors of sexual abuse and sex
+                    trafficking in the Philippines. The work was extraordinary,
+                    and the need was clearly far larger than any single
+                    organization could meet.
+                  </p>
+                  <p>
+                    Lighthouse Sanctuary generously shared anonymized operational
+                    data, including caseload records, counseling documentation,
+                    home visitation reports, and annual accomplishment templates,
+                    to help us understand what running this kind of organization
+                    actually looks like day to day.
+                  </p>
+                  <p>
+                    Armed with that knowledge, we set out to build Hope Harbor: a
+                    new organization using the same proven model, designed from
+                    the ground up with modern technology to help limited staff
+                    manage cases, retain donors, and protect the privacy of
+                    everyone involved.
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="rounded-2xl bg-warm-cream p-8 md:p-10 shadow-soft lg:mt-10">
+            <div className="rounded-3xl bg-background/95 p-8 md:p-10 shadow-elevated backdrop-blur-sm border border-white/30">
               <div className="space-y-0">
                 {timeline.map((item, i) => (
                   <div key={item.year} className="flex gap-5">
@@ -175,41 +188,54 @@ const AboutPage = () => {
 
       <section className="py-24 md:py-32 bg-warm-cream">
         <div className="container">
-          <div className="max-w-2xl mb-16">
-            <p className="font-body text-accent text-sm font-semibold tracking-widest uppercase mb-4">
+          <div className="mb-16 rounded-3xl bg-navy p-8 md:p-10 shadow-elevated">
+            <p className="font-body text-teal-light text-sm font-semibold tracking-widest uppercase mb-4">
               Our Values
             </p>
-            <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground leading-tight">
+            <h2 className="font-heading text-3xl md:text-4xl font-bold text-white leading-tight">
               What guides every decision
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            {values.map((value) => (
-              <div
-                key={value.title}
-                className="bg-white rounded-2xl p-8 shadow-soft"
-              >
-                <value.icon className="h-6 w-6 text-accent mb-4" />
-                <h3 className="font-heading text-xl font-bold text-foreground mb-3">
-                  {value.title}
-                </h3>
-                <p className="font-body text-sm text-muted-foreground leading-relaxed">
-                  {value.text}
-                </p>
-              </div>
-            ))}
+          <div className="grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] gap-8 lg:gap-10 items-start">
+            <div className="rounded-3xl overflow-hidden shadow-elevated bg-white">
+              <img
+                src={girlsImage}
+                alt="Girls in the Philippines"
+                className="w-full h-full object-cover min-h-[420px] lg:min-h-[760px]"
+                loading="lazy"
+                width={900}
+                height={1200}
+              />
+            </div>
+
+            <div className="space-y-6">
+              {values.map((value) => (
+                <div
+                  key={value.title}
+                  className="bg-white rounded-2xl p-8 shadow-soft"
+                >
+                  <value.icon className="h-6 w-6 text-accent mb-4" />
+                  <h3 className="font-heading text-xl font-bold text-foreground mb-3">
+                    {value.title}
+                  </h3>
+                  <p className="font-body text-sm text-muted-foreground leading-relaxed">
+                    {value.text}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       <section className="py-24 md:py-32 bg-secondary">
         <div className="container">
-          <div className="max-w-2xl mb-16">
-            <p className="font-body text-accent text-sm font-semibold tracking-widest uppercase mb-4">
+          <div className="mb-16 rounded-3xl bg-navy p-8 md:p-10 shadow-elevated">
+            <p className="font-body text-teal-light text-sm font-semibold tracking-widest uppercase mb-4">
               Core Programs
             </p>
-            <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground leading-tight">
+            <h2 className="font-heading text-3xl md:text-4xl font-bold text-white leading-tight">
               Three interconnected pillars of care
             </h2>
           </div>
@@ -218,25 +244,27 @@ const AboutPage = () => {
             {programs.map((program) => (
               <div
                 key={program.title}
-                className="bg-background rounded-2xl p-8 lg:p-10 shadow-soft"
+                className="bg-background rounded-2xl shadow-soft"
               >
-                <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-6">
-                  <program.icon className="h-6 w-6 text-accent" />
+                <div className="p-8 lg:p-10">
+                  <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-6">
+                    <program.icon className="h-6 w-6 text-accent" />
+                  </div>
+                  <h3 className="font-heading text-2xl font-bold text-foreground mb-4">
+                    {program.title}
+                  </h3>
+                  <p className="font-body text-muted-foreground leading-relaxed mb-4">
+                    {program.text}
+                  </p>
+                  <ul className="space-y-2 font-body text-sm text-muted-foreground">
+                    {program.points.map((point) => (
+                      <li key={point} className="flex items-start gap-2">
+                        <span className="w-1 h-1 rounded-full bg-accent mt-2 shrink-0" />
+                        {point}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <h3 className="font-heading text-2xl font-bold text-foreground mb-4">
-                  {program.title}
-                </h3>
-                <p className="font-body text-muted-foreground leading-relaxed mb-4">
-                  {program.text}
-                </p>
-                <ul className="space-y-2 font-body text-sm text-muted-foreground">
-                  {program.points.map((point) => (
-                    <li key={point} className="flex items-start gap-2">
-                      <span className="w-1 h-1 rounded-full bg-accent mt-2 shrink-0" />
-                      {point}
-                    </li>
-                  ))}
-                </ul>
               </div>
             ))}
           </div>
