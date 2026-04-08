@@ -1,8 +1,13 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { getDonorPortalPath } from "@/lib/portalRoutes";
 
 const CTASection = () => {
+  const { authSession } = useAuth();
+  const donorPortalPath = getDonorPortalPath(authSession);
+
   return (
     <section className="py-24 md:py-32 bg-warm-cream">
       <div className="container">
@@ -18,7 +23,7 @@ const CTASection = () => {
             ahead instead of reacting to emergencies.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/donor/login">
+            <Link to={donorPortalPath}>
               <Button
                 size="lg"
                 className="bg-navy text-white hover:bg-navy-light rounded-full font-body font-semibold px-8 h-12 text-base"
@@ -27,7 +32,7 @@ const CTASection = () => {
                 <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
             </Link>
-            <Link to="/donor/login">
+            <Link to={donorPortalPath}>
               <Button
                 variant="outline"
                 size="lg"

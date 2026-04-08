@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/harbor.jpg";
 import { ShieldAlert, ArrowRight } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { getDonorPortalPath } from "@/lib/portalRoutes";
 
 const WATER_START = 0.42;
 const STRIP_H = 2;
@@ -97,6 +99,8 @@ function drawBird(
 const HeroSection = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
+  const { authSession } = useAuth();
+  const donorPortalPath = getDonorPortalPath(authSession);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -313,7 +317,7 @@ const HeroSection = () => {
             toward independence.
           </p>
           <div className="flex flex-wrap items-center gap-4">
-            <Link to="/donor/login">
+            <Link to={donorPortalPath}>
               <Button
                 size="lg"
                 className="bg-accent text-accent-foreground hover:bg-teal-light rounded-full font-body font-semibold px-8 h-12 text-base"

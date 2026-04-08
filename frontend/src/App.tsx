@@ -47,7 +47,9 @@ function ProtectedRoute({ children, requireRole }: { children: React.ReactNode; 
   }
 
   if (!authSession?.isAuthenticated) return <Navigate to={requireRole === "Admin" ? "/login" : "/donor/login"} replace />;
-  if (requireRole && !authSession.roles.includes(requireRole)) return <Navigate to="/portal" replace />;
+  if (requireRole && !authSession.roles.includes(requireRole)) {
+    return <Navigate to={requireRole === "Admin" ? "/login" : "/donor/login"} replace />;
+  }
   return <>{children}</>;
 }
 

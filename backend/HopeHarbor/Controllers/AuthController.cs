@@ -120,9 +120,7 @@ public class AuthController : ControllerBase
         if (user is null)
             return Unauthorized();
 
-        var roles = User.Claims
-            .Where(c => c.Type == ClaimTypes.Role)
-            .Select(c => c.Value)
+        var roles = (await userManager.GetRolesAsync(user))
             .Distinct()
             .OrderBy(r => r)
             .ToArray();

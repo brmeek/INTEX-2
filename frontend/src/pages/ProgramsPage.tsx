@@ -1,6 +1,8 @@
 import Layout from "@/components/Layout";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+import { getDonorPortalPath } from "@/lib/portalRoutes";
 import {
   ArrowRight,
   Home,
@@ -44,6 +46,9 @@ const lifecycle = [
 ];
 
 const ProgramsPage = () => {
+  const { authSession } = useAuth();
+  const donorPortalPath = getDonorPortalPath(authSession);
+
   return (
     <Layout>
       {/* Header */}
@@ -290,7 +295,7 @@ const ProgramsPage = () => {
             Every dollar funds direct care. Your contribution keeps safe-home
             beds available for the next girl who needs one.
           </p>
-          <Link to="/donor/login">
+          <Link to={donorPortalPath}>
             <Button
               size="lg"
               className="bg-navy text-white hover:bg-navy-light rounded-full font-body font-semibold px-8 h-12 text-base"

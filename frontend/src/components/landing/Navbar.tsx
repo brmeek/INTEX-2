@@ -4,19 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, Anchor } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
-
-const navLinks = [
-  { label: "About", href: "/about" },
-  { label: "Impact", href: "/impact" },
-  { label: "Get Involved", href: "/donor/login" },
-  { label: "Contact", href: "/contact" },
-];
+import { getDonorPortalPath, getStaffPortalPath } from "@/lib/portalRoutes";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { authSession, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -29,6 +23,14 @@ const Navbar = () => {
   }, [location.pathname]);
 
   const isHome = location.pathname === "/";
+  const donorPortalPath = getDonorPortalPath(authSession);
+  const staffPortalPath = getStaffPortalPath(authSession);
+  const navLinks = [
+    { label: "About", href: "/about" },
+    { label: "Impact", href: "/impact" },
+    { label: "Get Involved", href: donorPortalPath },
+    { label: "Contact", href: "/contact" },
+  ];
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
@@ -89,7 +91,7 @@ const Navbar = () => {
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
-            <Link to="/login">
+            <Link to={staffPortalPath}>
               <Button
                 variant="ghost"
                 size="sm"
@@ -103,7 +105,7 @@ const Navbar = () => {
                 Staff Portal
               </Button>
             </Link>
-            <Link to="/donor/login">
+            <Link to={donorPortalPath}>
               <Button
                 size="sm"
                 className="bg-accent text-accent-foreground hover:bg-teal-light rounded-full font-body font-semibold px-6"
@@ -160,12 +162,12 @@ const Navbar = () => {
               </Link>
             ))}
             <div className="pt-3 border-t border-border mt-3 grid grid-cols-2 gap-3">
-              <Link to="/login" className="flex-1">
+              <Link to={staffPortalPath} className="flex-1">
                 <Button variant="outline" size="sm" className="w-full font-body">
                   Staff Portal
                 </Button>
               </Link>
-              <Link to="/donor/login" className="flex-1">
+              <Link to={donorPortalPath} className="flex-1">
                 <Button
                   size="sm"
                   className="w-full bg-accent text-accent-foreground hover:bg-teal-light font-body font-semibold"

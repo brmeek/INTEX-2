@@ -12,9 +12,9 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { isAuthenticated, refreshAuthSession } = useAuth();
+  const { authSession, isAuthenticated, refreshAuthSession } = useAuth();
 
-  if (isAuthenticated) return <Navigate to="/portal" replace />;
+  if (isAuthenticated && authSession?.roles.includes("Admin")) return <Navigate to="/admin" replace />;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +68,9 @@ const LoginPage = () => {
                 Welcome back
               </h2>
               <p className="font-body text-muted-foreground mb-8">
-                Sign in to continue to the staff dashboard.
+                {isAuthenticated
+                  ? "Your current account does not have staff access. Sign in with staff credentials to continue."
+                  : "Sign in to continue to the staff dashboard."}
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-5">
