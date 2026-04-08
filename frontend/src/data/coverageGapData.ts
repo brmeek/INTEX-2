@@ -1,4 +1,10 @@
-import { PROVINCE_DATA, REGION_COORDINATES, type ProvinceData } from "./traffickingData";
+import {
+  PROVINCE_DATA,
+  REGION_COORDINATES,
+  REGION_TO_ZONE,
+  ALL_PROVINCES,
+  type ProvinceData,
+} from "./traffickingData";
 
 export interface CoverageGap {
   region: string;
@@ -9,6 +15,8 @@ export interface CoverageGap {
   totalIncidents: number;
   totalPopulation: number;
   provinces: ProvinceData[];
+  uncoveredProvinceCount: number;
+  totalProvinceCount: number;
   estimatedCostUsd: number;
   priorityTier: "critical" | "high" | "moderate";
 }
@@ -28,25 +36,39 @@ function priorityTier(avgRisk: number, avgGap: number): CoverageGap["priorityTie
   return "moderate";
 }
 
-export function computeCoverageGaps(coveredRegions: Set<string>): CoverageGap[] {
-  const regionMap = new Map<string, ProvinceData[]>();
+/**
+ * Accepts a set of covered **province names** (not zones).
+ * Groups uncovered PROVINCE_DATA entries by zone to produce gap summaries.
+ */
+export function computeCoverageGaps(coveredProvinces: Set<string>): CoverageGap[] {
+  const zoneMap = new Map<string, ProvinceData[]>();
   for (const p of PROVINCE_DATA) {
-    if (coveredRegions.has(p.region)) continue;
-    const list = regionMap.get(p.region) ?? [];
+    if (coveredProvinces.has(p.name)) continue;
+    const zone = REGION_TO_ZONE[p.region] ?? p.region;
+    const list = zoneMap.get(zone) ?? [];
     list.push(p);
-    regionMap.set(p.region, list);
+    zoneMap.set(zone, list);
+  }
+
+  const zoneProvinceCounts = new Map<string, { total: number; uncovered: number }>();
+  for (const prov of ALL_PROVINCES) {
+    const entry = zoneProvinceCounts.get(prov.zone) ?? { total: 0, uncovered: 0 };
+    entry.total++;
+    if (!coveredProvinces.has(prov.name)) entry.uncovered++;
+    zoneProvinceCounts.set(prov.zone, entry);
   }
 
   const gaps: CoverageGap[] = [];
-  for (const [region, provinces] of regionMap) {
-    const coords = REGION_COORDINATES[region] ?? { lat: 12.5, lng: 122 };
+  for (const [zone, provinces] of zoneMap) {
+    const coords = REGION_COORDINATES[zone] ?? { lat: 12.5, lng: 122 };
     const avgRiskScore = Math.round(provinces.reduce((s, p) => s + p.riskScore, 0) / provinces.length);
     const avgServiceGap = Math.round(provinces.reduce((s, p) => s + p.serviceGaps, 0) / provinces.length);
     const totalIncidents = provinces.reduce((s, p) => s + p.reportedIncidents, 0);
     const totalPopulation = provinces.reduce((s, p) => s + p.population, 0);
+    const counts = zoneProvinceCounts.get(zone) ?? { total: 0, uncovered: 0 };
 
     gaps.push({
-      region,
+      region: zone,
       lat: coords.lat,
       lng: coords.lng,
       avgRiskScore,
@@ -54,6 +76,8 @@ export function computeCoverageGaps(coveredRegions: Set<string>): CoverageGap[] 
       totalIncidents,
       totalPopulation,
       provinces,
+      uncoveredProvinceCount: counts.uncovered,
+      totalProvinceCount: counts.total,
       estimatedCostUsd: estimateCost(totalPopulation),
       priorityTier: priorityTier(avgRiskScore, avgServiceGap),
     });

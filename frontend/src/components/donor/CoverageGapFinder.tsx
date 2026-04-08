@@ -10,6 +10,7 @@ import {
   TIER_LABELS,
   type CoverageGap,
 } from "@/data/coverageGapData";
+import { ALL_PROVINCES, mapSafehousesToProvinces } from "@/data/traffickingData";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -63,7 +64,7 @@ function SponsorModal({ gap, onClose, onDonate, donating }: SponsorModalProps) {
         </h3>
         <p className="font-body text-sm text-muted-foreground mb-4">
           Help expand safehouse coverage to protect {gap.totalPopulation.toLocaleString()} people
-          across {gap.provinces.length} province{gap.provinces.length > 1 ? "s" : ""}.
+          across {gap.uncoveredProvinceCount} uncovered province{gap.uncoveredProvinceCount !== 1 ? "s" : ""} in {gap.region}.
         </p>
 
         <div className="grid grid-cols-2 gap-2 mb-3">
@@ -129,12 +130,14 @@ export default function CoverageGapFinder() {
       .finally(() => setLoading(false));
   }, []);
 
-  const coveredRegions = useMemo(
-    () => new Set(safehouses.map((s) => s.region?.trim()).filter(Boolean) as string[]),
+  const coveredProvinces = useMemo(
+    () => mapSafehousesToProvinces(safehouses),
     [safehouses]
   );
 
-  const gaps = useMemo(() => computeCoverageGaps(coveredRegions), [coveredRegions]);
+  const uncoveredCount = ALL_PROVINCES.length - coveredProvinces.size;
+
+  const gaps = useMemo(() => computeCoverageGaps(coveredProvinces), [coveredProvinces]);
 
   const handleDonate = async (amount: number, region: string) => {
     setDonating(true);
@@ -183,7 +186,7 @@ export default function CoverageGapFinder() {
           <div className="text-left">
             <h2 className="font-heading text-lg font-bold text-foreground">Coverage Gap Finder</h2>
             <p className="font-body text-xs text-muted-foreground">
-              {gaps.length} region{gaps.length !== 1 ? "s" : ""} with high need but no nearby safehouse
+              {uncoveredCount} of {ALL_PROVINCES.length} provinces without a nearby safehouse
             </p>
           </div>
         </div>
@@ -195,9 +198,9 @@ export default function CoverageGapFinder() {
           {/* Explainer */}
           <div className="bg-secondary/60 rounded-xl p-5 border border-border">
             <p className="font-body text-sm text-foreground mb-3">
-              This map highlights regions across the Philippines where survivors of trafficking and abuse
+              This map highlights zones across the Philippines with provinces where survivors of trafficking and abuse
               have <span className="font-semibold">no nearby safehouse</span> to turn to. Each circle represents
-              a high-need area — the larger and redder the circle, the more urgent the need.
+              a high-need zone — the larger and redder the circle, the more urgent the need.
             </p>
             <div className="grid sm:grid-cols-3 gap-3 mb-3">
               <div className="bg-white rounded-lg p-3 border border-border">
@@ -220,7 +223,7 @@ export default function CoverageGapFinder() {
               </div>
             </div>
             <p className="font-body text-xs text-muted-foreground">
-              Click any circle on the map or a card below to sponsor that region directly.
+              Click any circle on the map or a card below to sponsor that zone directly.
             </p>
           </div>
 
@@ -303,7 +306,7 @@ export default function CoverageGapFinder() {
                 </div>
                 <div className="flex items-center justify-between">
                   <p className="font-body text-xs text-muted-foreground">
-                    {g.provinces.length} province{g.provinces.length > 1 ? "s" : ""} &middot; {g.totalIncidents.toLocaleString()} incidents
+                    {g.uncoveredProvinceCount} of {g.totalProvinceCount} provinces uncovered &middot; {g.totalIncidents.toLocaleString()} incidents
                   </p>
                   <span className="font-body text-xs text-accent font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
                     Sponsor &rarr;
@@ -315,7 +318,7 @@ export default function CoverageGapFinder() {
 
           {gaps.length > 4 && (
             <p className="font-body text-xs text-center text-muted-foreground">
-              + {gaps.length - 4} more region{gaps.length - 4 > 1 ? "s" : ""} need coverage
+              + {gaps.length - 4} more zone{gaps.length - 4 > 1 ? "s" : ""} need coverage
             </p>
           )}
         </div>
