@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import oceanImage from "@/assets/Phillipines-ocean.jpg";
 import povertyImage from "@/assets/Phillipines-poverty.jpg";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+import { getDonorPortalPath } from "@/lib/portalRoutes";
 import {
   BarChart,
   Bar,
@@ -16,7 +20,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { Users, Heart, Home, TrendingUp } from "lucide-react";
+import { Users, Heart, Home, TrendingUp, ArrowRight } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_URL || "";
 const COLORS = ["#2B4570", "#3D8B8B", "#E07A5F", "#D4B896", "#8BA58E", "#5B7B9A"];
@@ -37,6 +41,8 @@ interface ImpactData {
 const ImpactDashboard = () => {
   const [data, setData] = useState<ImpactData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { authSession } = useAuth();
+  const donorPortalPath = getDonorPortalPath(authSession);
 
   useEffect(() => {
     fetch(`${API_BASE}/api/reports/impact`)
@@ -271,6 +277,38 @@ const ImpactDashboard = () => {
                   </div>
                 </div>
               </div>
+
+              <section className="py-16 md:py-20 bg-warm-cream rounded-3xl">
+                <div className="container text-center">
+                  <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-6">
+                    Turn these numbers into action.
+                  </h2>
+                  <p className="font-body text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed">
+                    The need behind this data is urgent. You can support safe homes directly or learn more about
+                    the mission behind the work.
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-4">
+                    <Link to={donorPortalPath}>
+                      <Button
+                        size="lg"
+                        className="bg-navy text-white hover:bg-navy-light rounded-full font-body font-semibold px-8 h-12 text-base"
+                      >
+                        Donate
+                        <ArrowRight className="ml-1 h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <Link to="/about">
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="rounded-full font-body font-semibold px-8 h-12 text-base border-navy/20 text-navy hover:bg-navy hover:text-white"
+                      >
+                        About Us
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </section>
             </div>
           ) : (
             <p className="text-center text-muted-foreground">
