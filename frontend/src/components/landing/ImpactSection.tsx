@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const API_BASE = import.meta.env.VITE_API_URL || "";
 
@@ -81,6 +84,18 @@ const ImpactSection = () => {
               </p>
             </div>
           ))}
+        </div>
+
+        <div className="mt-10 flex justify-center">
+          <Link to="/impact">
+            <Button
+              size="lg"
+              className="bg-accent text-accent-foreground hover:bg-teal-light rounded-full font-body font-semibold px-8 h-12 text-base"
+            >
+              Explore the Full Impact Page
+              <ArrowRight className="ml-1 h-4 w-4" />
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
