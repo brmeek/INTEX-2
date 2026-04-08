@@ -14,14 +14,14 @@ const DonorLoginPage = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const { isAuthenticated, refreshAuthSession } = useAuth();
+  const { authSession, isAuthenticated, refreshAuthSession } = useAuth();
 
   const submitLabel = useMemo(() => {
     if (loading) return mode === "login" ? "Signing in..." : "Creating account...";
     return mode === "login" ? "Sign In to Continue" : "Create Donor Account";
   }, [loading, mode]);
 
-  if (isAuthenticated) return <Navigate to="/portal" replace />;
+  if (isAuthenticated && authSession?.roles.includes("Donor")) return <Navigate to="/donor" replace />;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,7 +110,9 @@ const DonorLoginPage = () => {
               </h2>
               <p className="font-body text-muted-foreground mb-8">
                 {mode === "login"
-                  ? "Sign in to continue to your donor dashboard."
+                  ? isAuthenticated
+                    ? "Your current account does not have donor access. Sign in with donor credentials to continue."
+                    : "Sign in to continue to your donor dashboard."
                   : "Create a secure account to donate and keep a history of your gifts."}
               </p>
 

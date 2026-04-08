@@ -1,6 +1,8 @@
 import Layout from "@/components/Layout";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+import { getDonorPortalPath } from "@/lib/portalRoutes";
 import mountainsImage from "@/assets/Phillipines-mountains.jpg";
 import girlsImage from "@/assets/Phillipines-girls.jpg";
 import foundersImage from "@/assets/founders-philippines.png";
@@ -113,6 +115,9 @@ const founderProfiles = [
 ];
 
 const AboutPage = () => {
+  const { authSession } = useAuth();
+  const donorPortalPath = getDonorPortalPath(authSession);
+
   return (
     <Layout>
       <section className="pt-32 pb-20 md:pt-40 md:pb-28 bg-navy text-white">
@@ -361,7 +366,7 @@ const AboutPage = () => {
             you want to learn more about the work.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/donor/login">
+            <Link to={donorPortalPath}>
               <Button
                 size="lg"
                 className="bg-navy text-white hover:bg-navy-light rounded-full font-body font-semibold px-8 h-12 text-base"

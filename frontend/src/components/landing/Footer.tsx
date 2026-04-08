@@ -1,7 +1,13 @@
 import { Link } from "react-router-dom";
 import { Anchor } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { getDonorPortalPath, getStaffPortalPath } from "@/lib/portalRoutes";
 
 const Footer = () => {
+  const { authSession } = useAuth();
+  const donorPortalPath = getDonorPortalPath(authSession);
+  const staffPortalPath = getStaffPortalPath(authSession);
+
   return (
     <footer className="bg-navy text-white">
       <div className="container py-16">
@@ -25,7 +31,7 @@ const Footer = () => {
               <Link to="/about" className="block font-body text-sm text-white/70 hover:text-white transition-colors">
                 About Us
               </Link>
-              <Link to="/donor/login" className="block font-body text-sm text-white/70 hover:text-white transition-colors">
+              <Link to={donorPortalPath} className="block font-body text-sm text-white/70 hover:text-white transition-colors">
                 Donate
               </Link>
               <Link to="/contact" className="block font-body text-sm text-white/70 hover:text-white transition-colors">
@@ -47,7 +53,7 @@ const Footer = () => {
               <Link to="/cookies" className="block font-body text-sm text-white/70 hover:text-white transition-colors">
                 Cookie Policy
               </Link>
-              <Link to="/login" className="block font-body text-sm text-white/70 hover:text-white transition-colors">
+              <Link to={staffPortalPath} className="block font-body text-sm text-white/70 hover:text-white transition-colors">
                 Staff Portal
               </Link>
             </nav>

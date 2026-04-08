@@ -40,11 +40,14 @@ public static class AuthIdentityGenerator
                 throw new Exception("Unable to create admin user.");
         }
 
-        if (!await userManager.IsInRoleAsync(admin, AuthRoles.Admin))
+        foreach (var roleName in new[] { AuthRoles.Admin, AuthRoles.Donor })
         {
-            var addRoleResult = await userManager.AddToRoleAsync(admin, AuthRoles.Admin);
+            if (await userManager.IsInRoleAsync(admin, roleName))
+                continue;
+
+            var addRoleResult = await userManager.AddToRoleAsync(admin, roleName);
             if (!addRoleResult.Succeeded)
-                throw new Exception("Unable to assign admin role.");
+                throw new Exception($"Unable to assign {roleName} role.");
         }
     }
 }

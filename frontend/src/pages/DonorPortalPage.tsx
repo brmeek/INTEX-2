@@ -30,7 +30,6 @@ const DonorPortalPage = () => {
   const [summary, setSummary] = useState<DonorSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
 
-  const isAdmin = useMemo(() => authSession?.roles.includes("Admin"), [authSession?.roles]);
   const donorDisplayName = useMemo(() => {
     if (!authSession?.email) return "Donor";
     const localPart = authSession.email.split("@")[0] ?? "";
@@ -74,7 +73,6 @@ const DonorPortalPage = () => {
   }, [loadSummary]);
 
   if (!isAuthenticated) return <Navigate to="/donor/login" replace />;
-  if (isAdmin) return <Navigate to="/admin" replace />;
 
   const handleDonate = async () => {
     if (!donationAmount || donationAmount <= 0) return;
