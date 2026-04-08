@@ -16,7 +16,7 @@ export interface CoverageGap {
 const COST_PER_CAPACITY_SLOT = 850;
 const BASE_SAFEHOUSE_CAPACITY = 20;
 
-function estimateCost(avgRisk: number, population: number): number {
+function estimateCost(population: number): number {
   const scale = population > 2_000_000 ? 1.4 : population > 1_000_000 ? 1.2 : 1.0;
   return Math.round(BASE_SAFEHOUSE_CAPACITY * COST_PER_CAPACITY_SLOT * scale);
 }
@@ -54,7 +54,7 @@ export function computeCoverageGaps(coveredRegions: Set<string>): CoverageGap[] 
       totalIncidents,
       totalPopulation,
       provinces,
-      estimatedCostUsd: estimateCost(avgRiskScore, totalPopulation),
+      estimatedCostUsd: estimateCost(totalPopulation),
       priorityTier: priorityTier(avgRiskScore, avgServiceGap),
     });
   }
