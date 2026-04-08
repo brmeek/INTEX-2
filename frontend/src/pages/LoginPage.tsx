@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Anchor, Eye, EyeOff, ArrowRight, ShieldCheck } from "lucide-react";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/context/AuthContext";
+import { loginUser } from "@/lib/authApi";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -10,20 +11,18 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login, user } = useAuth();
+  const { isAuthenticated, refreshAuthSession } = useAuth();
   const navigate = useNavigate();
 
-  if (user) {
-    navigate("/portal");
-    return null;
-  }
+  if (isAuthenticated) return <Navigate to="/portal" replace />;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      await login(email, password);
+      await loginUser(email, password, true);
+      await refreshAuthSession();
       navigate("/portal");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed. Please try again.");

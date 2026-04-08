@@ -4,7 +4,7 @@ import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider, useAuth } from "@/lib/auth";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 import InitialLoadingScreen from "./components/InitialLoadingScreen";
 import ScrollToTop from "./components/ScrollToTop";
 import CookieConsent from "./components/CookieConsent";
@@ -17,6 +17,8 @@ import ImpactDashboard from "./pages/ImpactDashboard";
 import LoginPage from "./pages/LoginPage";
 import DonorLoginPage from "./pages/DonorLoginPage";
 import DonorPortalPage from "./pages/DonorPortalPage";
+import RegisterPage from "./pages/RegisterPage";
+import LogoutPage from "./pages/LogoutPage";
 import NotFound from "./pages/NotFound";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -30,9 +32,9 @@ import ReportsPage from "./pages/admin/ReportsPage";
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children, requireRole }: { children: React.ReactNode; requireRole?: "Admin" | "Donor" }) {
-  const { user, loading } = useAuth();
+  const { authSession, isLoading } = useAuth();
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted">
         <div className="animate-spin h-8 w-8 border-4 border-accent border-t-transparent rounded-full" />
@@ -40,14 +42,14 @@ function ProtectedRoute({ children, requireRole }: { children: React.ReactNode; 
     );
   }
 
-  if (!user) return <Navigate to={requireRole === "Admin" ? "/login" : "/donor/login"} replace />;
-  if (requireRole && !user.roles.includes(requireRole)) return <Navigate to="/portal" replace />;
+  if (!authSession?.isAuthenticated) return <Navigate to={requireRole === "Admin" ? "/login" : "/donor/login"} replace />;
+  if (requireRole && !authSession.roles.includes(requireRole)) return <Navigate to="/portal" replace />;
   return <>{children}</>;
 }
 
 function PortalRedirect() {
-  const { user, loading } = useAuth();
-  if (loading) {
+  const { authSession, isLoading } = useAuth();
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted">
         <div className="animate-spin h-8 w-8 border-4 border-accent border-t-transparent rounded-full" />
@@ -55,8 +57,8 @@ function PortalRedirect() {
     );
   }
 
-  if (!user) return <Navigate to="/donor/login" replace />;
-  if (user.roles.includes("Admin")) return <Navigate to="/admin" replace />;
+  if (!authSession?.isAuthenticated) return <Navigate to="/donor/login" replace />;
+  if (authSession.roles.includes("Admin")) return <Navigate to="/admin" replace />;
   return <Navigate to="/donor" replace />;
 }
 
@@ -87,6 +89,8 @@ const App = () => {
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/impact" element={<ImpactDashboard />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/logout" element={<LogoutPage />} />
               <Route path="/donor/login" element={<DonorLoginPage />} />
               <Route path="/portal" element={<PortalRedirect />} />
               <Route path="/donor" element={<ProtectedRoute requireRole="Donor"><DonorPortalPage /></ProtectedRoute>} />

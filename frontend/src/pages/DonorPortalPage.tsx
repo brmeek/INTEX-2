@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Anchor, ArrowRight, BarChart3, Heart, LineChart, LogOut, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/context/AuthContext";
+import { logoutUser } from "@/lib/authApi";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
@@ -19,7 +20,7 @@ interface DonorSummary {
 }
 
 const DonorPortalPage = () => {
-  const { user, logout } = useAuth();
+  const { authSession, isAuthenticated, refreshAuthSession } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedAmount, setSelectedAmount] = useState<number | null>(100);
@@ -29,17 +30,17 @@ const DonorPortalPage = () => {
   const [summary, setSummary] = useState<DonorSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
 
-  const isAdmin = useMemo(() => user?.roles.includes("Admin"), [user?.roles]);
+  const isAdmin = useMemo(() => authSession?.roles.includes("Admin"), [authSession?.roles]);
   const donorDisplayName = useMemo(() => {
-    if (!user?.email) return "Donor";
-    const localPart = user.email.split("@")[0] ?? "";
+    if (!authSession?.email) return "Donor";
+    const localPart = authSession.email.split("@")[0] ?? "";
     if (!localPart) return "Donor";
     return localPart
       .split(/[._-]+/)
       .filter(Boolean)
       .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
       .join(" ");
-  }, [user?.email]);
+  }, [authSession?.email]);
   const donationAmount = selectedAmount ?? (customAmount ? Number(customAmount) : null);
   const organizationTotal = summary?.organizationTotalThisYear ?? 0;
   const donorTotal = summary?.donorTotalThisYear ?? 0;
@@ -50,18 +51,9 @@ const DonorPortalPage = () => {
   const totalDash = `${(totalProgressPercent / 100) * circleCircumference} ${circleCircumference}`;
   const donorDash = `${(donorProgressPercent / 100) * circleCircumference} ${circleCircumference}`;
 
-  if (!user) {
-    navigate("/donor/login");
-    return null;
-  }
-
-  if (isAdmin) {
-    navigate("/admin");
-    return null;
-  }
-
   const handleLogout = async () => {
-    await logout();
+    await logoutUser();
+    await refreshAuthSession();
     navigate("/donor/login");
   };
 
@@ -80,6 +72,9 @@ const DonorPortalPage = () => {
   useEffect(() => {
     loadSummary();
   }, [loadSummary]);
+
+  if (!isAuthenticated) return <Navigate to="/donor/login" replace />;
+  if (isAdmin) return <Navigate to="/admin" replace />;
 
   const handleDonate = async () => {
     if (!donationAmount || donationAmount <= 0) return;

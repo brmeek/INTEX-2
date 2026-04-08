@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/context/AuthContext";
+import { logoutUser } from "@/lib/authApi";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -35,13 +36,14 @@ interface AdminLayoutProps {
 }
 
 const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
-  const { user, logout } = useAuth();
+  const { authSession, refreshAuthSession } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
-    await logout();
+    await logoutUser();
+    await refreshAuthSession();
     navigate("/login");
   };
 
@@ -76,7 +78,7 @@ const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
         </nav>
 
         <div className="p-4 border-t border-white/10">
-          <p className="font-body text-xs text-white/40 truncate mb-2">{user?.email}</p>
+          <p className="font-body text-xs text-white/40 truncate mb-2">{authSession?.email}</p>
           <button
             onClick={handleLogout}
             className="flex items-center gap-2 text-white/60 hover:text-white text-sm font-body transition-colors w-full"

@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Anchor, ArrowRight, Eye, EyeOff, HeartHandshake, TrendingUp } from "lucide-react";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/context/AuthContext";
+import { loginUser, registerUser } from "@/lib/authApi";
 
 const DonorLoginPage = () => {
   const [mode, setMode] = useState<"login" | "create">("login");
@@ -11,7 +12,7 @@ const DonorLoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login, registerDonor, user } = useAuth();
+  const { isAuthenticated, refreshAuthSession } = useAuth();
   const navigate = useNavigate();
 
   const submitLabel = useMemo(() => {
@@ -19,10 +20,7 @@ const DonorLoginPage = () => {
     return mode === "login" ? "Sign In to Donate" : "Create Donor Account";
   }, [loading, mode]);
 
-  if (user) {
-    navigate("/portal");
-    return null;
-  }
+  if (isAuthenticated) return <Navigate to="/portal" replace />;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,11 +28,13 @@ const DonorLoginPage = () => {
     setLoading(true);
     try {
       if (mode === "login") {
-        await login(email, password);
+        await loginUser(email, password, true);
+        await refreshAuthSession();
+        navigate("/portal");
       } else {
-        await registerDonor(email, password);
+        await registerUser(email, password);
+        navigate("/login");
       }
-      navigate("/portal");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed. Please try again.");
     } finally {
