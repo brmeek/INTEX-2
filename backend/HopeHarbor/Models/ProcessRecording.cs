@@ -27,11 +27,11 @@ public class ProcessRecording
     [MaxLength(50)]
     public string? SessionType { get; set; }
 
-    [Column("emotional_state")]
+    [Column("emotional_state_observed")]
     [MaxLength(100)]
     public string? EmotionalState { get; set; }
 
-    [Column("narrative_summary")]
+    [Column("session_narrative")]
     public string? NarrativeSummary { get; set; }
 
     [Column("interventions_applied")]
@@ -40,6 +40,6 @@ public class ProcessRecording
     [Column("follow_up_actions")]
     public string? FollowUpActions { get; set; }
 
-    [Column("created_at")]
+    [NotMapped]
     public DateTime? CreatedAt { get; set; }
 }
