@@ -214,7 +214,8 @@ public sealed class ChatbotService : IChatbotService
                         "Answer using only the provided context. If context is missing, clearly say you do not know and suggest the contact page. " +
                         "Prioritize matching the user's intent to the right page (for example contact, privacy, impact, login, or donation). " +
                         "Keep answers concise and practical. Never fabricate policies, legal details, or numbers. " +
-                        "Do not include raw URL paths like /contact in your response text."
+                        "Do not include raw URL paths like /contact in your response text. " +
+                        "Do not say phrases like 'at the URL'. Reference page names only (for example, 'contact page')."
                 },
                 new
                 {

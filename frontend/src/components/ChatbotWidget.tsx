@@ -30,6 +30,8 @@ const routeLinks: Array<{ route: string; label: string }> = [
   { route: "/donor/login", label: "donor login page" },
 ];
 
+const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const ChatbotWidget = () => {
   const location = useLocation();
   const { hasConsented } = useCookieConsent();
@@ -38,7 +40,6 @@ const ChatbotWidget = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [citations, setCitations] = useState<ChatCitation[]>([]);
   const [lastSubmittedAt, setLastSubmittedAt] = useState(0);
 
   const shouldHide = useMemo(
@@ -69,7 +70,6 @@ const ChatbotWidget = () => {
       const response = await chatApi.ask(trimmed, nextMessages.slice(-8));
 
       setMessages((prev) => [...prev, { role: "assistant", content: response.answer }]);
-      setCitations(response.citations ?? []);
     } catch {
       setError("I couldn't answer right now. Please try again or use our contact page.");
     } finally {
@@ -83,12 +83,21 @@ const ChatbotWidget = () => {
   };
 
   const renderAssistantContent = (content: string) => {
-    const pattern = new RegExp(`(${routeLinks.map((item) => item.route.replace("/", "\\/")).join("|")})`, "g");
+    const linkTargets = routeLinks.flatMap((item) => [
+      { token: item.route, route: item.route, label: item.label, isPhrase: false },
+      { token: item.label, route: item.route, label: item.label, isPhrase: true },
+    ]);
+    const tokenPattern = linkTargets
+      .map((item) => (item.isPhrase ? `\\b${escapeRegex(item.token)}\\b` : escapeRegex(item.token)))
+      .sort((a, b) => b.length - a.length)
+      .join("|");
+    const pattern = new RegExp(`(${tokenPattern})`, "gi");
     const parts = content.split(pattern);
+
     if (parts.length === 1) return content;
 
     return parts.map((part, index) => {
-      const match = routeLinks.find((item) => item.route === part);
+      const match = linkTargets.find((item) => item.token.toLowerCase() === part.toLowerCase());
       if (!match) return <span key={`assistant-text-${index}`}>{part}</span>;
 
       return (
@@ -164,23 +173,6 @@ const ChatbotWidget = () => {
           </div>
 
           <div className="border-t border-border px-4 py-3">
-            {citations.length > 0 && (
-              <p className="mb-2 font-body text-[11px] text-muted-foreground">
-                Sources:{" "}
-                {citations.map((item, idx) => (
-                  <span key={`${item.title}-${idx}`}>
-                    {idx > 0 ? ", " : ""}
-                    {item.url ? (
-                      <a href={item.url} className="text-accent hover:underline">
-                        {item.title}
-                      </a>
-                    ) : (
-                      item.title
-                    )}
-                  </span>
-                ))}
-              </p>
-            )}
             <form onSubmit={onSubmit} className="flex items-center gap-2">
               <input
                 value={input}
