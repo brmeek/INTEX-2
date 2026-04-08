@@ -21,12 +21,16 @@ frontend/build/
 frontend/coverage/
 frontend/.vite/
 frontend/.cache/
+frontend/.npm-cache/
 frontend/.next/
 frontend/.vercel/
 frontend/.turbo/
 frontend/.pnp
 frontend/.pnp.js
 frontend/out/
+
+# Local tool caches
+.dotnet-cli/
 
 # Backend (.NET)
 backend/**/[Bb]in/

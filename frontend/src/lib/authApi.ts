@@ -24,16 +24,14 @@ export async function registerUser(email: string, password: string): Promise<voi
 export async function loginUser(
   email: string,
   password: string,
-  rememberMe: boolean,
-  twoFactorCode?: string,
-  twoFactorRecoveryCode?: string
+  rememberMe: boolean
 ): Promise<void> {
   const searchParams = new URLSearchParams({ useCookies: rememberMe ? "true" : "false" });
   const response = await fetch(`${apiBaseUrl}/api/auth/login?${searchParams}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify({ email, password, twoFactorCode, twoFactorRecoveryCode }),
+    body: JSON.stringify({ email, password }),
   });
   if (!response.ok) throw new Error("Unable to log in.");
 }

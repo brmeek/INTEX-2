@@ -3,9 +3,11 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Mail, Phone, MapPin, ArrowRight } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { api } from "@/lib/api";
 
 const ContactPage = () => {
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -13,14 +15,35 @@ const ContactPage = () => {
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Message sent",
-      description:
-        "Thank you for reaching out. We'll respond within 2 business days.",
-    });
-    setFormData({ name: "", email: "", subject: "", message: "" });
+
+    setIsSubmitting(true);
+
+    try {
+      await api.post("/api/contact", formData);
+      toast({
+        title: "Message sent",
+        description:
+          "Thank you for reaching out. We'll respond within 2 business days.",
+      });
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (error) {
+      const fallbackMessage =
+        "We couldn't send your message right now. Please try again later.";
+      const errorMessage =
+        error instanceof Error && !error.message.trim().startsWith("{")
+          ? error.message
+          : fallbackMessage;
+
+      toast({
+        title: "Message failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -98,11 +121,11 @@ const ContactPage = () => {
                     className="w-full px-4 py-3 rounded-xl border border-border bg-secondary font-body text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
                   >
                     <option value="">Select a topic</option>
-                    <option value="donation">Donation Inquiry</option>
-                    <option value="partnership">Partnership Opportunity</option>
-                    <option value="volunteer">Volunteering</option>
-                    <option value="media">Media / Press</option>
-                    <option value="general">General Question</option>
+                    <option value="Donation Inquiry">Donation Inquiry</option>
+                    <option value="Partnership Opportunity">Partnership Opportunity</option>
+                    <option value="Volunteering">Volunteering</option>
+                    <option value="Media / Press">Media / Press</option>
+                    <option value="General Question">General Question</option>
                   </select>
                 </div>
 
@@ -124,10 +147,11 @@ const ContactPage = () => {
 
                 <Button
                   type="submit"
+                  disabled={isSubmitting}
                   size="lg"
                   className="w-full bg-navy text-white hover:bg-navy-light rounded-xl font-body font-semibold h-12 text-base mt-2"
                 >
-                  Send Message
+                  {isSubmitting ? "Sending..." : "Send Message"}
                   <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </form>
