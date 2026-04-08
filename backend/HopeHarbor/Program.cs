@@ -13,16 +13,24 @@ if (dotEnvPath != null)
 }
 else
 {
-    Console.WriteLine(".env not found. Using process environment and appsettings.json values.");
+    Console.WriteLine(".env not found. Using process environment values.");
 }
 
 var builder = WebApplication.CreateBuilder(args);
+// Always resolve DB connections from environment variables (.env / process env).
+// Do not read connection strings from appsettings to avoid accidental bad host fallbacks.
+var allowConfiguredConnectionStrings = false;
+Console.WriteLine($"ConnectionStrings from appsettings enabled: {allowConfiguredConnectionStrings}");
+
+// IMPORTANT: Production must use env-only database settings.
+// Do not reintroduce appsettings fallback for Postgres in non-development environments.
 var (postgresConnectionString, postgresConnectionSource) = ResolvePostgresConnectionString(
     builder.Configuration,
     fullEnvKey: "ConnectionStrings__PostgresConnection",
     prefix: "Postgres",
     connectionStringKey: "PostgresConnection",
-    fallback: builder.Configuration.GetConnectionString("DefaultConnection"));
+    fallback: null,
+    allowConfiguredConnectionString: allowConfiguredConnectionStrings);
 
 if (string.IsNullOrWhiteSpace(postgresConnectionString))
 {
@@ -35,7 +43,8 @@ var (identityConnectionString, identityConnectionSource) = ResolvePostgresConnec
     fullEnvKey: "ConnectionStrings__IdentityConnection",
     prefix: "IdentityPostgres",
     connectionStringKey: "IdentityConnection",
-    fallback: postgresConnectionString);
+    fallback: postgresConnectionString,
+    allowConfiguredConnectionString: allowConfiguredConnectionStrings);
 
 if (string.IsNullOrWhiteSpace(identityConnectionString))
 {
@@ -158,11 +167,14 @@ static (string? ConnectionString, string Source) ResolvePostgresConnectionString
     string fullEnvKey,
     string prefix,
     string connectionStringKey,
-    string? fallback)
+    string? fallback,
+    bool allowConfiguredConnectionString)
 {
     var envConnectionString = Environment.GetEnvironmentVariable(fullEnvKey);
-    var partsConnectionString = BuildPostgresConnectionStringFromParts(configuration, prefix);
-    var configuredConnectionString = configuration.GetConnectionString(connectionStringKey);
+    var partsConnectionString = BuildPostgresConnectionStringFromParts(prefix);
+    var configuredConnectionString = allowConfiguredConnectionString
+        ? configuration.GetConnectionString(connectionStringKey)
+        : null;
 
     var connectionString =
         (string.IsNullOrWhiteSpace(envConnectionString) ? null : envConnectionString)
@@ -180,12 +192,13 @@ static (string? ConnectionString, string Source) ResolvePostgresConnectionString
     return (connectionString, source);
 }
 
-static string? BuildPostgresConnectionStringFromParts(IConfiguration configuration, string prefix)
+static string? BuildPostgresConnectionStringFromParts(string prefix)
 {
-    var host = configuration[$"{prefix}:Host"]?.Trim();
-    var database = configuration[$"{prefix}:Database"]?.Trim();
-    var username = configuration[$"{prefix}:Username"]?.Trim();
-    var password = configuration[$"{prefix}:Password"];
+    // Env-only parsing by design: values are expected in Postgres__* / IdentityPostgres__*.
+    var host = GetEnvironmentValue($"{prefix}__Host")?.Trim();
+    var database = GetEnvironmentValue($"{prefix}__Database")?.Trim();
+    var username = GetEnvironmentValue($"{prefix}__Username")?.Trim();
+    var password = GetEnvironmentValue($"{prefix}__Password");
 
     if (string.IsNullOrWhiteSpace(host)
         || string.IsNullOrWhiteSpace(database)
@@ -204,13 +217,19 @@ static string? BuildPostgresConnectionStringFromParts(IConfiguration configurati
     if (!string.IsNullOrWhiteSpace(password))
         csb.Password = password;
 
-    if (int.TryParse(configuration[$"{prefix}:Port"], out var port))
+    if (int.TryParse(GetEnvironmentValue($"{prefix}__Port"), out var port))
         csb.Port = port;
 
-    if (Enum.TryParse<SslMode>(configuration[$"{prefix}:SslMode"], true, out var sslMode))
+    if (Enum.TryParse<SslMode>(GetEnvironmentValue($"{prefix}__SslMode"), true, out var sslMode))
         csb.SslMode = sslMode;
 
     return csb.ConnectionString;
+}
+
+static string? GetEnvironmentValue(string key)
+{
+    return Environment.GetEnvironmentVariable(key)
+           ?? Environment.GetEnvironmentVariable(key.Replace("__", ":"));
 }
 
 static bool IsAllowedDevelopmentOrigin(string origin)
