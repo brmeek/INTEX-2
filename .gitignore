@@ -46,6 +46,7 @@ backend/**/*.cache
 backend/**/*.pdb
 backend/**/TestResults/
 backend/HopeHarbor/obj/HopeHarbor.csproj.nuget.dgspec.json
+backend/HopeHarbor/obj/HopeHarbor.csproj.nuget.g.targets
 backend/HopeHarbor/obj/HopeHarbor.csproj.nuget.g.props
 backend/HopeHarbor/obj/project.assets.json
 
