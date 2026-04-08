@@ -118,17 +118,8 @@ const CONFIDENCE_STYLES: Record<string, string> = {
 };
 
 const DAYS_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const DAYS_FULL  = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 // ─── Mock Data ─────────────────────────────────────────────────────────
-
-function getCurrentWeekMonday(): string {
-  const d = new Date();
-  const day = d.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  d.setDate(d.getDate() + diff);
-  return toLocalIso(d);
-}
 
 function mockDate(offset: number): string {
   const d = new Date();
@@ -136,10 +127,6 @@ function mockDate(offset: number): string {
   const diff = day === 0 ? -6 : 1 - day;
   d.setDate(d.getDate() + diff + offset);
   return toLocalIso(d);
-}
-
-function getTodayDayName(): string {
-  return DAYS_FULL[(new Date().getDay() + 6) % 7];
 }
 
 function getWeekDates(mondayIso: string): string[] {
@@ -177,7 +164,7 @@ const MOCK_HISTORY: HistoryItem[] = [
   { predictionId: 8,  platform: "TikTok",    postType: "Event Promo",    mediaType: "Video",    sentimentTone: "Celebratory", contentTopic: "Event",           hasCallToAction: true,  callToActionType: "Share",       isBoosted: false, boostBudgetPhp: 0,    featuresResidentStory: false, campaignName: "Annual Gala 2026",  predictedReferrals: 35.2, predictedDonationValuePhp: 22880, predictionConfidence: "Low",    scoredAtUtc: new Date(Date.now() - 86400000 * 12).toISOString() },
 ];
 
-const MOCK_ANALYTICS = {
+const MOCK_ANALYTICS: HistoryData["analytics"] = {
   platformBreakdown: [
     { platform: "Facebook",  count: 14, avgReferrals: 72.4 },
     { platform: "TikTok",    count: 8,  avgReferrals: 61.8 },
@@ -931,7 +918,7 @@ function TipRow({ tip }: { tip: string }) {
 
 function AnalyticsTab() {
   const [history, setHistory] = useState<HistoryItem[]>(MOCK_HISTORY);
-  const [analytics, setAnalytics] = useState(MOCK_ANALYTICS);
+  const [analytics, setAnalytics] = useState<HistoryData["analytics"]>(MOCK_ANALYTICS);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
