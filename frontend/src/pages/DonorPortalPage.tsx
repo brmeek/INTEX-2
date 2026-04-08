@@ -7,6 +7,7 @@ import { logoutUser } from "@/lib/authApi";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
+import CoverageGapFinder from "@/components/donor/CoverageGapFinder";
 
 const donationAmounts = [25, 50, 100, 250, 500];
 const annualOkrTarget = 5000;
@@ -276,6 +277,8 @@ const DonorPortalPage = () => {
             )}
           </div>
         </section>
+
+        <CoverageGapFinder />
 
         <section className="bg-secondary border border-border rounded-xl p-4 flex items-start gap-3">
           <ShieldCheck className="h-4 w-4 text-accent mt-0.5" />
