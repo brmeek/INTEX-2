@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HopeHarbor.Data;
 using HopeHarbor.Models;
+using HopeHarbor.Services;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 
@@ -13,6 +14,19 @@ namespace HopeHarbor.Controllers;
 [Authorize]
 public class DonationsController : ControllerBase
 {
+    public sealed class InKindValueEstimateRequest
+    {
+        [Required]
+        public string ItemCategory { get; set; } = "Supplies";
+
+        [Range(1, 100000)]
+        public int Quantity { get; set; } = 1;
+
+        public string UnitOfMeasure { get; set; } = "pcs";
+        public string IntendedUse { get; set; } = "Education";
+        public string ReceivedCondition { get; set; } = "Good";
+    }
+
     public sealed class DonorSummaryResponse
     {
         public int Year { get; set; }
@@ -32,7 +46,13 @@ public class DonationsController : ControllerBase
     }
 
     private readonly HopeHarborContext _db;
-    public DonationsController(HopeHarborContext db) => _db = db;
+    private readonly IInKindDonationValuationService _inKindDonationValuationService;
+
+    public DonationsController(HopeHarborContext db, IInKindDonationValuationService inKindDonationValuationService)
+    {
+        _db = db;
+        _inKindDonationValuationService = inKindDonationValuationService;
+    }
 
     [HttpGet]
     public async Task<IActionResult> GetAll(
@@ -111,6 +131,27 @@ public class DonationsController : ControllerBase
         _db.Donations.Add(donation);
         await _db.SaveChangesAsync();
         return CreatedAtAction(nameof(Get), new { id = donation.DonationId }, donation);
+    }
+
+    [HttpPost("in-kind/estimate")]
+    [Authorize(Policy = AuthPolicies.ManageCatalog)]
+    public IActionResult EstimateInKindValue([FromBody] InKindValueEstimateRequest request)
+    {
+        var estimate = _inKindDonationValuationService.Estimate(new InKindDonationValueInput
+        {
+            ItemCategory = request.ItemCategory,
+            Quantity = request.Quantity,
+            UnitOfMeasure = request.UnitOfMeasure,
+            IntendedUse = request.IntendedUse,
+            ReceivedCondition = request.ReceivedCondition
+        });
+
+        return Ok(new
+        {
+            estimatedUnitValuePhp = estimate.EstimatedUnitValuePhp,
+            estimatedTotalValuePhp = estimate.EstimatedTotalValuePhp,
+            modelVersion = estimate.ModelVersion
+        });
     }
 
     [HttpPost("self-serve")]

@@ -13,11 +13,16 @@ public class ReportsController : ControllerBase
 {
     private readonly HopeHarborContext _db;
     private readonly ISocialMediaConversionScoringService _socialMediaConversionScoringService;
+    private readonly ISafehouseEducationForecastingService _safehouseEducationForecastingService;
 
-    public ReportsController(HopeHarborContext db, ISocialMediaConversionScoringService socialMediaConversionScoringService)
+    public ReportsController(
+        HopeHarborContext db,
+        ISocialMediaConversionScoringService socialMediaConversionScoringService,
+        ISafehouseEducationForecastingService safehouseEducationForecastingService)
     {
         _db = db;
         _socialMediaConversionScoringService = socialMediaConversionScoringService;
+        _safehouseEducationForecastingService = safehouseEducationForecastingService;
     }
 
     [HttpGet("dashboard")]
@@ -53,6 +58,27 @@ public class ReportsController : ControllerBase
             .Take(5)
             .Include(p => p.Resident)
             .ToListAsync();
+        var safehouseEducationForecasts = await _db.SafehouseEducationForecasts
+            .Include(f => f.Safehouse)
+            .OrderByDescending(f => f.AlertFlag)
+            .ThenBy(f => f.SafehouseId)
+            .Select(f => new
+            {
+                f.SafehouseId,
+                safehouseName = f.Safehouse != null ? f.Safehouse.SafehouseName : null,
+                region = f.Safehouse != null ? f.Safehouse.Region : null,
+                f.ForecastForMonth,
+                f.PredictedEducationScore,
+                f.LatestObservedScore,
+                f.PreviousObservedScore,
+                f.TrajectorySlope,
+                f.HistoryMonthsUsed,
+                f.AlertFlag,
+                f.AlertReason,
+                f.ScoredAtUtc
+            })
+            .ToListAsync();
+        var safehouseForecastEvaluation = await _safehouseEducationForecastingService.EvaluateAsync(_db);
 
         return Ok(new
         {
@@ -63,7 +89,21 @@ public class ReportsController : ControllerBase
             safehouseCount,
             recentDonations,
             atRiskDonors,
-            upcomingConferences
+            upcomingConferences,
+            safehouseEducationForecasts,
+            safehouseForecastEvaluation
+        });
+    }
+
+    [HttpPost("safehouse-education/refresh")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> RefreshSafehouseEducationForecasts(CancellationToken cancellationToken)
+    {
+        var scoredCount = await _safehouseEducationForecastingService.ScoreAllAsync(_db, cancellationToken);
+        return Ok(new
+        {
+            message = "Safehouse education forecasts refreshed.",
+            scoredCount
         });
     }
 

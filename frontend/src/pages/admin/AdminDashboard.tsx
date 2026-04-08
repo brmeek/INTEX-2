@@ -12,15 +12,49 @@ interface DashboardData {
   recentDonations: { donationId: number; donationType: string; amount: number | null; donationDate: string; supporter?: { supporterName: string } }[];
   atRiskDonors: { supporterId: number; supporterName: string | null; riskTier: "High" | "Medium" | "Low"; churnProbability: number; scoredAtUtc: string }[];
   upcomingConferences: { planId: number; planCategory: string; caseConferenceDate: string; resident?: { firstName: string; lastName: string } }[];
+  safehouseEducationForecasts: {
+    safehouseId: number;
+    safehouseName: string | null;
+    region: string | null;
+    forecastForMonth: string;
+    predictedEducationScore: number;
+    latestObservedScore: number;
+    previousObservedScore: number | null;
+    trajectorySlope: number | null;
+    historyMonthsUsed: number;
+    alertFlag: boolean;
+    alertReason: string;
+    scoredAtUtc: string;
+  }[];
+  safehouseForecastEvaluation: {
+    mae: number;
+    rmse: number;
+    observationCount: number;
+    safehouseCount: number;
+  };
 }
 
 const AdminDashboard = () => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshingForecasts, setRefreshingForecasts] = useState(false);
 
   useEffect(() => {
     api.get<DashboardData>("/api/reports/dashboard").then(setData).catch(() => {}).finally(() => setLoading(false));
   }, []);
+
+  const refreshSafehouseForecasts = async () => {
+    setRefreshingForecasts(true);
+    try {
+      await api.post("/api/reports/safehouse-education/refresh", {});
+      const updated = await api.get<DashboardData>("/api/reports/dashboard");
+      setData(updated);
+    } catch {
+      // Keep dashboard usable even if refresh fails.
+    } finally {
+      setRefreshingForecasts(false);
+    }
+  };
 
   const stats = data
     ? [
@@ -130,6 +164,62 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <h3 className="font-heading text-lg font-bold text-foreground">Safehouse Education Forecast (Next Month)</h3>
+              <button
+                onClick={refreshSafehouseForecasts}
+                disabled={refreshingForecasts}
+                className="px-3 py-2 rounded-lg border border-border bg-secondary text-xs font-semibold text-foreground hover:bg-muted disabled:opacity-60"
+              >
+                {refreshingForecasts ? "Refreshing..." : "Refresh Forecasts"}
+              </button>
+            </div>
+
+            <div className="mb-4 rounded-lg border border-border bg-muted/40 px-3 py-2">
+              <p className="font-body text-xs text-muted-foreground">
+                Backtest quality: MAE <span className="font-semibold text-foreground">{data.safehouseForecastEvaluation.mae.toFixed(2)}</span> points,
+                RMSE <span className="font-semibold text-foreground">{data.safehouseForecastEvaluation.rmse.toFixed(2)}</span> points
+                {" "}across {data.safehouseForecastEvaluation.observationCount} historical month-ahead forecasts
+                (from {data.safehouseForecastEvaluation.safehouseCount} safehouses).
+              </p>
+            </div>
+
+            {data.safehouseEducationForecasts.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No safehouse forecasts available yet.</p>
+            ) : (
+              <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {data.safehouseEducationForecasts.map((f) => (
+                  <div key={f.safehouseId} className="rounded-xl border border-border p-4 bg-secondary/30">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-body text-sm font-semibold text-foreground">{f.safehouseName || `Safehouse ${f.safehouseId}`}</p>
+                        <p className="font-body text-xs text-muted-foreground">{f.region || "Unknown region"} · Forecast month: {f.forecastForMonth}</p>
+                      </div>
+                      <span className={`text-[10px] font-semibold px-2 py-1 rounded-full ${f.alertFlag ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"}`}>
+                        {f.alertFlag ? "Alert" : "On Track"}
+                      </span>
+                    </div>
+
+                    <div className="mt-3 space-y-1">
+                      <p className="font-body text-sm">
+                        Predicted education score:{" "}
+                        <span className="font-semibold">{f.predictedEducationScore.toFixed(2)}%</span>
+                      </p>
+                      <p className="font-body text-xs text-muted-foreground">
+                        Latest observed: {f.latestObservedScore.toFixed(2)}%
+                        {typeof f.previousObservedScore === "number" ? ` · Previous: ${f.previousObservedScore.toFixed(2)}%` : ""}
+                      </p>
+                      <p className="font-body text-xs text-muted-foreground">
+                        Alert reason: {f.alertFlag ? f.alertReason : "None"}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       ) : (

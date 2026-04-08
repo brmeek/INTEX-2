@@ -81,6 +81,8 @@ builder.Services.AddDbContext<AuthIdentityDbContext>(opts =>
 builder.Services.AddScoped<IDonorChurnScoringService, DonorChurnScoringService>();
 builder.Services.AddScoped<IResidentReintegrationScoringService, ResidentReintegrationScoringService>();
 builder.Services.AddScoped<ISocialMediaConversionScoringService, SocialMediaConversionScoringService>();
+builder.Services.AddScoped<ISafehouseEducationForecastingService, SafehouseEducationForecastingService>();
+builder.Services.AddScoped<IInKindDonationValuationService, InKindDonationValuationService>();
 
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddRoles<IdentityRole>()
@@ -135,6 +137,7 @@ using (var scope = app.Services.CreateScope())
     await EnsureDonorChurnScoresTableAsync(appDb);
     await EnsureResidentReadinessScoresTableAsync(appDb);
     await EnsureSocialMediaConversionPredictionsTableAsync(appDb);
+    await EnsureSafehouseEducationForecastsTableAsync(appDb);
 
     var identityDb = scope.ServiceProvider.GetRequiredService<AuthIdentityDbContext>();
     identityDb.Database.EnsureCreated();
@@ -173,10 +176,12 @@ _ = Task.Run(async () =>
         var startupDb = startupScope.ServiceProvider.GetRequiredService<HopeHarborContext>();
         var donorChurnScoringService = startupScope.ServiceProvider.GetRequiredService<IDonorChurnScoringService>();
         var residentReintegrationScoringService = startupScope.ServiceProvider.GetRequiredService<IResidentReintegrationScoringService>();
+        var safehouseEducationForecastingService = startupScope.ServiceProvider.GetRequiredService<ISafehouseEducationForecastingService>();
 
         var donorCount = await donorChurnScoringService.ScoreAllAsync(startupDb);
         var residentCount = await residentReintegrationScoringService.ScoreAllAsync(startupDb);
-        Console.WriteLine($"Startup scoring complete. Donors scored: {donorCount}, residents scored: {residentCount}");
+        var safehouseCount = await safehouseEducationForecastingService.ScoreAllAsync(startupDb);
+        Console.WriteLine($"Startup scoring complete. Donors scored: {donorCount}, residents scored: {residentCount}, safehouses scored: {safehouseCount}");
     }
     catch (Exception ex)
     {
@@ -414,6 +419,32 @@ static async Task EnsureSocialMediaConversionPredictionsTableAsync(HopeHarborCon
 
         CREATE INDEX IF NOT EXISTS ix_social_media_conversion_predictions_scored_at
             ON social_media_conversion_predictions(scored_at_utc DESC);
+    """;
+
+    await db.Database.ExecuteSqlRawAsync(sql);
+}
+
+static async Task EnsureSafehouseEducationForecastsTableAsync(HopeHarborContext db)
+{
+    var sql = """
+        CREATE TABLE IF NOT EXISTS safehouse_education_forecasts (
+            safehouse_id INT PRIMARY KEY REFERENCES safehouses(safehouse_id) ON DELETE CASCADE,
+            forecast_for_month DATE NOT NULL,
+            predicted_education_score NUMERIC(6,2) NOT NULL,
+            latest_observed_score NUMERIC(6,2) NOT NULL,
+            previous_observed_score NUMERIC(6,2) NULL,
+            trajectory_slope NUMERIC(8,4) NULL,
+            history_months_used INT NOT NULL,
+            alert_flag BOOLEAN NOT NULL,
+            alert_reason VARCHAR(120) NOT NULL,
+            scored_at_utc TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+            model_version VARCHAR(100) NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS ix_safehouse_education_forecasts_alert
+            ON safehouse_education_forecasts(alert_flag);
+        CREATE INDEX IF NOT EXISTS ix_safehouse_education_forecasts_score
+            ON safehouse_education_forecasts(predicted_education_score);
     """;
 
     await db.Database.ExecuteSqlRawAsync(sql);

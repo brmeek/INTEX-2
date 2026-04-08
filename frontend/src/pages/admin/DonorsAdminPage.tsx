@@ -32,6 +32,12 @@ interface Donation {
   supporter?: { supporterName: string };
 }
 
+interface InKindEstimateResult {
+  estimatedUnitValuePhp: number;
+  estimatedTotalValuePhp: number;
+  modelVersion: string;
+}
+
 const DonorsAdminPage = () => {
   const { toast } = useToast();
   const [tab, setTab] = useState<"supporters" | "donations">("supporters");
@@ -46,6 +52,15 @@ const DonorsAdminPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<Supporter | null>(null);
   const [form, setForm] = useState({ supporterName: "", supporterType: "Monetary", email: "", phone: "", status: "Active", region: "", notes: "" });
+  const [inKindEstimateForm, setInKindEstimateForm] = useState({
+    itemCategory: "Supplies",
+    quantity: "1",
+    unitOfMeasure: "pcs",
+    intendedUse: "Education",
+    receivedCondition: "Good",
+  });
+  const [inKindEstimate, setInKindEstimate] = useState<InKindEstimateResult | null>(null);
+  const [estimatingInKind, setEstimatingInKind] = useState(false);
 
   const loadSupporters = async (p = 1) => {
     setLoading(true);
@@ -73,6 +88,36 @@ const DonorsAdminPage = () => {
     if (tab === "supporters") loadSupporters();
     else loadDonations();
   }, [tab]);
+
+  useEffect(() => {
+    if (tab !== "donations") return;
+
+    const quantity = Number(inKindEstimateForm.quantity || "0");
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      setInKindEstimate(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setEstimatingInKind(true);
+      try {
+        const estimate = await api.post<InKindEstimateResult>("/api/donations/in-kind/estimate", {
+          itemCategory: inKindEstimateForm.itemCategory,
+          quantity,
+          unitOfMeasure: inKindEstimateForm.unitOfMeasure,
+          intendedUse: inKindEstimateForm.intendedUse,
+          receivedCondition: inKindEstimateForm.receivedCondition,
+        });
+        setInKindEstimate(estimate);
+      } catch {
+        setInKindEstimate(null);
+      } finally {
+        setEstimatingInKind(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [tab, inKindEstimateForm]);
 
   const handleSave = async () => {
     try {
@@ -162,6 +207,43 @@ const DonorsAdminPage = () => {
             <div className="flex gap-2">
               <Button onClick={handleSave} size="sm" className="bg-navy text-white hover:bg-navy-light font-body">Save</Button>
               <Button onClick={() => setShowForm(false)} variant="ghost" size="sm" className="font-body">Cancel</Button>
+            </div>
+          </div>
+        )}
+
+        {tab === "donations" && (
+          <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+            <h3 className="font-heading text-lg font-bold text-foreground mb-1">In-Kind Donation Value Estimator</h3>
+            <p className="font-body text-xs text-muted-foreground mb-4">
+              Pipeline 5: estimate in-kind donation value instantly during intake.
+            </p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
+              <select className={inputClass} value={inKindEstimateForm.itemCategory} onChange={(e) => setInKindEstimateForm((f) => ({ ...f, itemCategory: e.target.value }))}>
+                <option>Food</option><option>Supplies</option><option>Clothing</option><option>SchoolMaterials</option><option>Hygiene</option><option>Furniture</option><option>Medical</option>
+              </select>
+              <input className={inputClass} type="number" min={1} placeholder="Quantity" value={inKindEstimateForm.quantity} onChange={(e) => setInKindEstimateForm((f) => ({ ...f, quantity: e.target.value }))} />
+              <select className={inputClass} value={inKindEstimateForm.unitOfMeasure} onChange={(e) => setInKindEstimateForm((f) => ({ ...f, unitOfMeasure: e.target.value }))}>
+                <option>pcs</option><option>boxes</option><option>kg</option><option>sets</option><option>packs</option>
+              </select>
+              <select className={inputClass} value={inKindEstimateForm.intendedUse} onChange={(e) => setInKindEstimateForm((f) => ({ ...f, intendedUse: e.target.value }))}>
+                <option>Meals</option><option>Education</option><option>Shelter</option><option>Hygiene</option><option>Health</option>
+              </select>
+              <select className={inputClass} value={inKindEstimateForm.receivedCondition} onChange={(e) => setInKindEstimateForm((f) => ({ ...f, receivedCondition: e.target.value }))}>
+                <option>New</option><option>Good</option><option>Fair</option>
+              </select>
+            </div>
+            <div className="font-body text-sm">
+              {estimatingInKind ? (
+                <p className="text-muted-foreground">Estimating...</p>
+              ) : inKindEstimate ? (
+                <div className="space-y-1">
+                  <p>Estimated unit value: <span className="font-semibold">₱{inKindEstimate.estimatedUnitValuePhp.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                  <p>Estimated total value: <span className="font-semibold">₱{inKindEstimate.estimatedTotalValuePhp.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                  <p className="text-xs text-muted-foreground">Model: {inKindEstimate.modelVersion}</p>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">Enter item details to estimate value.</p>
+              )}
             </div>
           </div>
         )}
