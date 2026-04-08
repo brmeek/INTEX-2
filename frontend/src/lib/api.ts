@@ -1,4 +1,20 @@
+import { getPortalRedirectPath } from "@/lib/portalRoutes";
+
 const API_BASE = import.meta.env.VITE_API_URL || "";
+
+function getUnauthorizedRedirectPath(): string {
+  const pathname = window.location.pathname.toLowerCase();
+
+  if (pathname.startsWith("/admin")) {
+    return getPortalRedirectPath("admin");
+  }
+
+  if (pathname.startsWith("/donor")) {
+    return getPortalRedirectPath("donor");
+  }
+
+  return getPortalRedirectPath();
+}
 
 async function parseJsonOrUndefined<T>(res: Response): Promise<T | undefined> {
   const text = await res.text();
@@ -13,7 +29,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     ...options,
   });
   if (res.status === 401) {
-    window.location.href = "/portal";
+    window.location.href = getUnauthorizedRedirectPath();
     throw new Error("Unauthorized");
   }
   if (!res.ok) {

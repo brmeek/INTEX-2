@@ -5,6 +5,7 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { loginUser, registerUser } from "@/lib/authApi";
+import { getPortalRedirectPath } from "@/lib/portalRoutes";
 
 const DonorLoginPage = () => {
   const [mode, setMode] = useState<"login" | "create">("login");
@@ -33,7 +34,7 @@ const DonorLoginPage = () => {
       if (mode === "login") {
         await loginUser(email, password, true);
         await refreshAuthSession();
-        window.location.assign("/portal");
+        window.location.assign(getPortalRedirectPath("donor"));
       } else {
         await registerUser(email, password);
         setMode("login");

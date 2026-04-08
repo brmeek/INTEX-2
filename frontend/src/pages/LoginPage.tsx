@@ -5,6 +5,7 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { loginUser } from "@/lib/authApi";
+import { getPortalRedirectPath } from "@/lib/portalRoutes";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -24,7 +25,7 @@ const LoginPage = () => {
     try {
       await loginUser(email, password, true);
       await refreshAuthSession();
-      window.location.assign("/portal");
+      window.location.assign(getPortalRedirectPath("admin"));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed. Please try again.");
     } finally {

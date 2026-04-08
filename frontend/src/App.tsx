@@ -1,11 +1,12 @@
 import { useCallback, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate, useSearchParams } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { CookieConsentProvider } from "@/context/CookieConsentContext";
+import { getPortalLandingPath, type PortalTarget } from "@/lib/portalRoutes";
 import InitialLoadingScreen from "./components/InitialLoadingScreen";
 import ScrollToTop from "./components/ScrollToTop";
 import CookieConsentBanner from "./components/CookieConsentBanner";
@@ -56,6 +57,7 @@ function ProtectedRoute({ children, requireRole }: { children: React.ReactNode; 
 
 function PortalRedirect() {
   const { authSession, isLoading } = useAuth();
+  const [searchParams] = useSearchParams();
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted">
@@ -64,9 +66,11 @@ function PortalRedirect() {
     );
   }
 
-  if (!authSession?.isAuthenticated) return <Navigate to="/donor/login" replace />;
-  if (authSession.roles.includes("Admin")) return <Navigate to="/admin" replace />;
-  return <Navigate to="/donor" replace />;
+  const targetParam = searchParams.get("target");
+  const preferredTarget: PortalTarget | undefined =
+    targetParam === "admin" || targetParam === "donor" ? targetParam : undefined;
+
+  return <Navigate to={getPortalLandingPath(authSession, preferredTarget)} replace />;
 }
 
 const App = () => {
