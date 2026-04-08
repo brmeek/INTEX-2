@@ -40,7 +40,16 @@ const AdminDashboard = () => {
   const [refreshingForecasts, setRefreshingForecasts] = useState(false);
 
   useEffect(() => {
-    api.get<DashboardData>("/api/reports/dashboard").then(setData).catch(() => {}).finally(() => setLoading(false));
+    api.get<DashboardData>("/api/reports/dashboard").then((d) => {
+      setData({
+        ...d,
+        recentDonations: d.recentDonations ?? [],
+        atRiskDonors: d.atRiskDonors ?? [],
+        upcomingConferences: d.upcomingConferences ?? [],
+        safehouseEducationForecasts: d.safehouseEducationForecasts ?? [],
+        safehouseForecastEvaluation: d.safehouseForecastEvaluation ?? { mae: 0, rmse: 0, observationCount: 0, safehouseCount: 0 },
+      });
+    }).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
   const refreshSafehouseForecasts = async () => {

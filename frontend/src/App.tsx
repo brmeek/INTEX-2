@@ -34,6 +34,7 @@ import ProcessRecordingsPage from "./pages/admin/ProcessRecordingsPage";
 import VisitationsPage from "./pages/admin/VisitationsPage";
 import PartnersAdminPage from "./pages/admin/PartnersAdminPage";
 import ReportsPage from "./pages/admin/ReportsPage";
+import TraffickingMapPage from "./pages/admin/TraffickingMapPage";
 
 const queryClient = new QueryClient();
 
@@ -117,6 +118,7 @@ const App = () => {
               <Route path="/admin/visitations" element={<ProtectedRoute requireRole="Admin"><VisitationsPage /></ProtectedRoute>} />
               <Route path="/admin/partners" element={<ProtectedRoute requireRole="Admin"><PartnersAdminPage /></ProtectedRoute>} />
               <Route path="/admin/reports" element={<ProtectedRoute requireRole="Admin"><ReportsPage /></ProtectedRoute>} />
+              <Route path="/admin/trafficking-map" element={<ProtectedRoute requireRole="Admin"><TraffickingMapPage /></ProtectedRoute>} />
 
               <Route path="*" element={<NotFound />} />
               </Routes>
