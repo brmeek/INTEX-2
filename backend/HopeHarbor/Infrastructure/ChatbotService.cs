@@ -44,6 +44,15 @@ public sealed class ChatbotService : IChatbotService
         "total donated",
         "total donations",
         "exact donation amount",
+        "safehouse location",
+        "safehouse locations",
+        "safehouse address",
+        "safe house address",
+        "where are your safehouses located",
+        "where is the safehouse",
+        "exact safehouse location",
+        "visit the safehouse",
+        "safehouse coordinates",
     ];
     private static readonly string[] DonationAmountSignals =
     [
@@ -120,6 +129,7 @@ public sealed class ChatbotService : IChatbotService
         ["login"] = ["login", "log", "signin", "sign", "access", "account", "portal"],
         ["register"] = ["register", "signup", "create", "account", "join"],
         ["about"] = ["about", "mission", "program", "programs", "services", "organization"],
+        ["safehouse"] = ["safehouse", "safehouses", "safe house", "shelter", "house location", "address", "where are they"],
     };
     private readonly HttpClient _httpClient;
     private readonly ILogger<ChatbotService> _logger;
@@ -214,6 +224,7 @@ public sealed class ChatbotService : IChatbotService
                         "Answer using only the provided context. If context is missing, clearly say you do not know and suggest the contact page. " +
                         "Prioritize matching the user's intent to the right page (for example contact, privacy, impact, login, or donation). " +
                         "Keep answers concise and practical. Never fabricate policies, legal details, or numbers. " +
+                        "Never provide specific safehouse locations, addresses, or any private identifying information. " +
                         "Do not include raw URL paths like /contact in your response text. " +
                         "Do not say phrases like 'at the URL'. Reference page names only (for example, 'contact page')."
                 },
@@ -350,8 +361,13 @@ public sealed class ChatbotService : IChatbotService
                              || normalized.Contains("donors", StringComparison.Ordinal);
         var asksForDonationAmounts = normalized.Contains("donat", StringComparison.Ordinal)
                                      && DonationAmountSignals.Any(signal => normalized.Contains(signal, StringComparison.Ordinal));
+        var asksForSafehouseLocation = ContainsAnyTerm(normalized, IntentTermGroups["safehouse"])
+                                       && (normalized.Contains("where", StringComparison.Ordinal)
+                                           || normalized.Contains("location", StringComparison.Ordinal)
+                                           || normalized.Contains("address", StringComparison.Ordinal)
+                                           || normalized.Contains("visit", StringComparison.Ordinal));
 
-        return asksAboutPeople && asksForDonationAmounts;
+        return (asksAboutPeople && asksForDonationAmounts) || asksForSafehouseLocation;
     }
 
     private static bool IsOutOfScopeQuestion(string message)
@@ -428,6 +444,14 @@ public sealed class ChatbotService : IChatbotService
             && url.Contains("/about", StringComparison.Ordinal))
         {
             return 8;
+        }
+
+        if ((normalizedMessage.Contains("hope harbor", StringComparison.Ordinal)
+             || normalizedMessage.Contains("what is", StringComparison.Ordinal)
+             || normalizedMessage.Contains("who are you", StringComparison.Ordinal))
+            && url.Contains("/about", StringComparison.Ordinal))
+        {
+            return 12;
         }
 
         return 0;

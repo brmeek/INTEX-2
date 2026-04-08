@@ -1,62 +1,134 @@
 [
   {
-    "title": "How to donate",
-    "url": "/donor/login",
-    "tags": ["donation", "give", "monthly", "one-time", "portal"],
-    "content": "Donors can sign in through the donor portal and submit one-time or monthly gifts. The portal supports preset donation amounts and custom contributions so supporters can choose what fits their budget."
-  },
-  {
-    "title": "How to contact the team",
-    "url": "/contact",
-    "tags": ["contact", "team", "email", "phone", "help", "support"],
-    "content": "For direct help, users should use the contact page. It is the best place to send questions that need a response from the team."
-  },
-  {
-    "title": "About and programs page",
+    "title": "What is Hope Harbor",
     "url": "/about",
-    "tags": ["about", "programs", "services", "mission"],
-    "content": "The About page explains the organization's mission and programs. It is the main place to learn what services and support areas are highlighted on the website."
+    "tags": ["hope harbor", "what is", "who are you", "organization", "nonprofit", "mission"],
+    "content": "Hope Harbor is a nonprofit-focused website experience for a class project. It highlights support services, child safety priorities, program impact, and donor transparency."
   },
   {
-    "title": "Where donations go",
-    "url": "/",
-    "tags": ["funds", "allocation", "transparency", "programs"],
-    "content": "Donation spending is allocated to direct program areas that support safe housing, counseling, education support, and related care services. The transparency section emphasizes that funds are tied to real program outcomes."
+    "title": "Organization mission and services",
+    "url": "/about",
+    "tags": ["mission", "what do you do", "services", "programs", "children"],
+    "content": "The organization supports vulnerable children through safe housing, care services, and long-term reintegration support. The About page is the best place to understand mission and programs."
+  },
+  {
+    "title": "Where the organization operates",
+    "url": "/about",
+    "tags": ["where located", "where operate", "location", "region", "service area"],
+    "content": "The website shares public information about where the organization operates at a high level. For safety reasons, specific shelter and safehouse locations are not publicly shared."
+  },
+  {
+    "title": "How long Hope Harbor has operated",
+    "url": "/about",
+    "tags": ["how long", "history", "founded", "years"],
+    "content": "Organization background and timeline details are provided on the About page when publicly available."
+  },
+  {
+    "title": "Registered nonprofit and compliance",
+    "url": "/about",
+    "tags": ["registered nonprofit", "charity", "legal", "compliance"],
+    "content": "Questions about nonprofit status and formal registration should be answered using public organization information and direct contact support when a formal confirmation is required."
   },
   {
     "title": "Transparency and accountability",
     "url": "/impact",
-    "tags": ["audit", "report", "financial", "accountability"],
-    "content": "The organization communicates trust through annual financial reporting, independent audits, and regular updates to donors. This helps supporters understand the impact of their contributions."
+    "tags": ["transparent", "donation properly", "audit", "reporting", "accountability"],
+    "content": "The organization communicates trust through financial reporting, accountability practices, and impact updates. Donors can review public impact information and contact the team for additional clarification."
+  },
+  {
+    "title": "About children served",
+    "url": "/about",
+    "tags": ["children", "youth", "age groups", "types of abuse", "referrals"],
+    "content": "Public information may describe broad service populations and support pathways. Private case details, identities, or sensitive trauma specifics are not publicly disclosed."
+  },
+  {
+    "title": "Children counts and outcomes",
+    "url": "/impact",
+    "tags": ["how many children", "currently helping", "outcomes", "after safehouse"],
+    "content": "When public metrics are available, the site can share high-level impact outcomes. Individual child records, real-time internal counts, and identifiable case details are not shared."
+  },
+  {
+    "title": "What a safehouse is",
+    "url": "/about",
+    "tags": ["safehouse", "how does it work", "shelter", "care model"],
+    "content": "A safehouse is a protected care setting designed to provide immediate safety and support services. Operational details shared publicly stay high-level to protect children and staff."
+  },
+  {
+    "title": "Safehouse location privacy",
+    "url": "/privacy",
+    "tags": ["safehouse location", "address", "where safehouses are", "visit safehouse"],
+    "content": "Specific safehouse locations are not publicly disclosed for safety and privacy reasons."
+  },
+  {
+    "title": "Safehouse expansion and capacity",
+    "url": "/about",
+    "tags": ["expand", "build more safehouses", "capacity", "how many safehouses"],
+    "content": "Expansion conversations generally focus on growing safe, sustainable support capacity for children while maintaining confidentiality and security."
+  },
+  {
+    "title": "How to donate",
+    "url": "/donor/login",
+    "tags": ["donate", "give", "recurring", "monthly", "one-time"],
+    "content": "Donors can use the donor flow to make contributions, including recurring options when enabled. Donation paths are available through the donor login page."
+  },
+  {
+    "title": "Donation methods and tax questions",
+    "url": "/contact",
+    "tags": ["payment methods", "tax deductible", "receipt", "donation questions"],
+    "content": "Donation logistics and tax-related questions should be confirmed through the contact page so donors receive the most accurate and current guidance."
+  },
+  {
+    "title": "Where donations go",
+    "url": "/impact",
+    "tags": ["what donation pays for", "goes directly", "allocation", "funding"],
+    "content": "Public impact and transparency content explains how support is directed toward care, safety, and program operations. For detailed allocation questions, donors can contact the team."
+  },
+  {
+    "title": "Sponsorship and directed giving",
+    "url": "/contact",
+    "tags": ["sponsor child", "specific child", "specific project", "specific safehouse"],
+    "content": "Requests for specific child sponsorship or location-specific funding must follow safety and policy rules. Visitors should use the contact page for approved giving options."
+  },
+  {
+    "title": "Donor updates and communication",
+    "url": "/contact",
+    "tags": ["updates", "report back", "how donation used", "follow up"],
+    "content": "Donors who want updates can use the contact page to ask about communication options and reporting practices."
+  },
+  {
+    "title": "Corporate and organizational giving",
+    "url": "/contact",
+    "tags": ["company donation", "organization donation", "corporate partner"],
+    "content": "Companies and organizations can inquire about giving and partnerships through the contact page."
+  },
+  {
+    "title": "Volunteering and involvement",
+    "url": "/contact",
+    "tags": ["volunteer", "get involved", "help beyond donating"],
+    "content": "People who want to support beyond donating can use the contact page to ask about approved involvement opportunities."
+  },
+  {
+    "title": "Site visits and safehouse visits",
+    "url": "/privacy",
+    "tags": ["visit safehouse", "in person visit", "tour"],
+    "content": "Safehouse visits are restricted for safety and privacy reasons. Any approved engagement process should be coordinated directly through official channels."
+  },
+  {
+    "title": "Partnerships and advocacy",
+    "url": "/contact",
+    "tags": ["partner organizations", "government partner", "spread the word", "share mission"],
+    "content": "Partnership and awareness opportunities can be discussed through the contact page."
+  },
+  {
+    "title": "Contact page guidance",
+    "url": "/contact",
+    "tags": ["contact", "team", "email", "phone", "support", "help"],
+    "content": "For direct help, use the contact page. It is the best route for detailed, policy-specific, or case-specific questions."
   },
   {
     "title": "Privacy and safety commitment",
     "url": "/privacy",
-    "tags": ["privacy", "security", "survivors", "safety"],
-    "content": "Resident safety is prioritized with privacy-first practices. Identifying resident information is not publicly shared, and systems are designed around protecting minors and survivors."
-  },
-  {
-    "title": "Cookie policy page",
-    "url": "/cookies",
-    "tags": ["cookies", "tracking", "consent", "policy"],
-    "content": "The cookie policy page explains how cookie consent works on the site and what cookies are used for website functionality and user experience."
-  },
-  {
-    "title": "Admin and donor portal access",
-    "url": "/portal",
-    "tags": ["portal", "admin", "donor", "access", "account", "security"],
-    "content": "Users can access protected areas through portal routes and login pages. Admin and donor pages require authentication and are separate from public website pages."
-  },
-  {
-    "title": "Account login and registration pages",
-    "url": "/login",
-    "tags": ["login", "register", "sign in", "sign up", "account"],
-    "content": "The website includes login and registration flows for account access. Donors also have a dedicated donor login page."
-  },
-  {
-    "title": "When exact details are needed",
-    "url": "/contact",
-    "tags": ["contact", "question", "details", "follow-up"],
-    "content": "If a visitor needs exact details or information not shown publicly on the website, they should use the contact page for direct support."
+    "tags": ["privacy", "security", "survivors", "safety", "private info"],
+    "content": "Resident safety is prioritized through privacy-first practices. Identifying resident information and secure location details are not publicly shared."
   }
 ]
