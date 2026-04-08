@@ -33,6 +33,21 @@ interface DonorImpactForecastResponse {
   modelVersion: string;
 }
 
+interface DonorRecentDonation {
+  donationId: number;
+  donationType: string;
+  donationDate: string | null;
+  amount: number;
+  isRecurring: boolean;
+  channelSource: string;
+  campaignName: string;
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return "Unable to load recent donations.";
+}
+
 const DonorPortalPage = () => {
   const { authSession, isAuthenticated, refreshAuthSession } = useAuth();
   const navigate = useNavigate();
@@ -43,6 +58,9 @@ const DonorPortalPage = () => {
   const [donating, setDonating] = useState(false);
   const [summary, setSummary] = useState<DonorSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
+  const [recentDonations, setRecentDonations] = useState<DonorRecentDonation[]>([]);
+  const [recentDonationsLoading, setRecentDonationsLoading] = useState(true);
+  const [recentDonationsError, setRecentDonationsError] = useState<string | null>(null);
   const [impactForecast, setImpactForecast] = useState<DonorImpactForecastResponse | null>(null);
   const [impactLoading, setImpactLoading] = useState(false);
   const [hypotheticalAmount, setHypotheticalAmount] = useState("");
@@ -126,6 +144,29 @@ const DonorPortalPage = () => {
     }
   }, []);
 
+  const loadRecentDonations = useCallback(async (showErrorToast = false) => {
+    setRecentDonationsLoading(true);
+    setRecentDonationsError(null);
+    try {
+      console.info("[DonorPortal] Loading recent donations from /api/donations/self-serve/recent?take=10");
+      const data = await api.get<DonorRecentDonation[]>("/api/donations/self-serve/recent?take=10");
+      setRecentDonations(data);
+    } catch (error) {
+      const message = getErrorMessage(error);
+      setRecentDonationsError(message);
+      setRecentDonations([]);
+      if (showErrorToast) {
+        toast({
+          title: "Recent Donations Error",
+          description: message,
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setRecentDonationsLoading(false);
+    }
+  }, [toast]);
+
   const loadImpactForecast = useCallback(
     async (amount: number, recurring: boolean) => {
       if (!amount || amount <= 0) {
@@ -153,8 +194,10 @@ const DonorPortalPage = () => {
   );
 
   useEffect(() => {
+    if (!isAuthenticated || !authSession?.email) return;
     loadSummary();
-  }, [loadSummary]);
+    loadRecentDonations();
+  }, [authSession?.email, isAuthenticated, loadSummary, loadRecentDonations]);
 
   useEffect(() => {
     if (!forecastAmount || forecastAmount <= 0) {
@@ -184,6 +227,7 @@ const DonorPortalPage = () => {
         description: `Thank you! Your ${isMonthly ? "monthly" : "one-time"} gift of $${donationAmount} was saved.`,
       });
       await loadSummary();
+      await loadRecentDonations(true);
       setCustomAmount("");
       setSelectedAmount(100);
     } catch (err) {
@@ -229,9 +273,24 @@ const DonorPortalPage = () => {
 
         <section className="grid md:grid-cols-3 gap-4">
           {[
-            { title: "This Year", value: "$2,400", icon: Heart, note: "Total contributed" },
-            { title: "Monthly Streak", value: "8 months", icon: LineChart, note: "Consistent giving" },
-            { title: "Programs Funded", value: "3", icon: BarChart3, note: "Safe homes, counseling, education" },
+            {
+              title: "This Year",
+              value: summaryLoading ? "Loading..." : `$${(summary?.donorTotalThisYear ?? 0).toLocaleString()}`,
+              icon: Heart,
+              note: "Total contributed by you",
+            },
+            {
+              title: "Donations This Year",
+              value: summaryLoading ? "Loading..." : `${(summary?.donationCountThisYear ?? 0).toLocaleString()}`,
+              icon: LineChart,
+              note: "Recorded donations this year",
+            },
+            {
+              title: "Lifetime Giving",
+              value: summaryLoading ? "Loading..." : `$${(summary?.lifetimeTotal ?? 0).toLocaleString()}`,
+              icon: BarChart3,
+              note: "All-time amount contributed",
+            },
           ].map((item) => (
             <div key={item.title} className="bg-white border border-border rounded-xl p-5 shadow-soft">
               <item.icon className="h-5 w-5 text-accent mb-3" />
@@ -240,6 +299,63 @@ const DonorPortalPage = () => {
               <p className="font-body text-xs text-muted-foreground mt-1">{item.note}</p>
             </div>
           ))}
+        </section>
+
+        <section className="bg-white border border-border rounded-2xl p-6 shadow-soft">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <h2 className="font-heading text-xl font-bold text-foreground">Recent donations</h2>
+            <div className="flex items-center gap-3">
+              <p className="font-body text-xs text-muted-foreground">Latest 10 contributions</p>
+              <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => loadRecentDonations(true)}>
+                Refresh
+              </Button>
+            </div>
+          </div>
+          {recentDonationsLoading ? (
+            <p className="font-body text-sm text-muted-foreground">Loading recent donations...</p>
+          ) : recentDonationsError ? (
+            <div className="space-y-2">
+              <p className="font-body text-sm text-destructive">
+                Failed to load recent donations: {recentDonationsError}
+              </p>
+              <p className="font-body text-xs text-muted-foreground">
+                Check browser network for `GET /api/donations/self-serve/recent?take=10`.
+              </p>
+            </div>
+          ) : recentDonations.length === 0 ? (
+            <p className="font-body text-sm text-muted-foreground">No donations recorded yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border bg-muted/50">
+                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Date</th>
+                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Type</th>
+                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Amount</th>
+                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Frequency</th>
+                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Channel</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentDonations.map((donation) => (
+                    <tr key={donation.donationId} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                      <td className="px-4 py-3 font-body text-sm">
+                        {donation.donationDate ?? "-"}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-xs font-body px-2 py-1 rounded-full bg-secondary">{donation.donationType}</span>
+                      </td>
+                      <td className="px-4 py-3 font-body text-sm font-semibold text-foreground">${donation.amount.toLocaleString()}</td>
+                      <td className="px-4 py-3 font-body text-sm text-muted-foreground">
+                        {donation.isRecurring ? "Monthly" : "One-Time"}
+                      </td>
+                      <td className="px-4 py-3 font-body text-sm text-muted-foreground">{donation.channelSource}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
 
         <section className="grid lg:grid-cols-2 gap-6">

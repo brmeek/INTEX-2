@@ -28,6 +28,7 @@ import LogoutPage from "./pages/LogoutPage";
 import NotFound from "./pages/NotFound";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import UsersAdminPage from "./pages/admin/UsersAdminPage";
 import DonorsAdminPage from "./pages/admin/DonorsAdminPage";
 import CaseloadPage from "./pages/admin/CaseloadPage";
 import ProcessRecordingsPage from "./pages/admin/ProcessRecordingsPage";
@@ -35,6 +36,7 @@ import VisitationsPage from "./pages/admin/VisitationsPage";
 import PartnersAdminPage from "./pages/admin/PartnersAdminPage";
 import ReportsPage from "./pages/admin/ReportsPage";
 import TraffickingMapPage from "./pages/admin/TraffickingMapPage";
+import PostingCalendarPage from "./pages/admin/PostingCalendarPage";
 
 const queryClient = new QueryClient();
 
@@ -116,6 +118,7 @@ const App = () => {
 
               {/* Admin (Authenticated) */}
               <Route path="/admin" element={<ProtectedRoute requireRole="Admin"><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/admin/users" element={<ProtectedRoute requireRole="Admin"><UsersAdminPage /></ProtectedRoute>} />
               <Route path="/admin/donors" element={<ProtectedRoute requireRole="Admin"><DonorsAdminPage /></ProtectedRoute>} />
               <Route path="/admin/caseload" element={<ProtectedRoute requireRole="Admin"><CaseloadPage /></ProtectedRoute>} />
               <Route path="/admin/recordings" element={<ProtectedRoute requireRole="Admin"><ProcessRecordingsPage /></ProtectedRoute>} />
@@ -123,6 +126,7 @@ const App = () => {
               <Route path="/admin/partners" element={<ProtectedRoute requireRole="Admin"><PartnersAdminPage /></ProtectedRoute>} />
               <Route path="/admin/reports" element={<ProtectedRoute requireRole="Admin"><ReportsPage /></ProtectedRoute>} />
               <Route path="/admin/trafficking-map" element={<ProtectedRoute requireRole="Admin"><TraffickingMapPage /></ProtectedRoute>} />
+              <Route path="/admin/posting-calendar" element={<ProtectedRoute requireRole="Admin"><PostingCalendarPage /></ProtectedRoute>} />
 
               <Route path="*" element={<NotFound />} />
               </Routes>

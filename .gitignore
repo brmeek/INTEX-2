@@ -65,3 +65,5 @@ backend/**/appsettings.Production.json
 
 # NuGet package folder (if present at repo root)
 packages/
+
+/backend/artifacts/
