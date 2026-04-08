@@ -9,6 +9,7 @@ import { CookieConsentProvider } from "@/context/CookieConsentContext";
 import InitialLoadingScreen from "./components/InitialLoadingScreen";
 import ScrollToTop from "./components/ScrollToTop";
 import CookieConsentBanner from "./components/CookieConsentBanner";
+import QuickExitButton from "./components/QuickExitButton";
 
 import Index from "./pages/Index";
 import AboutPage from "./pages/AboutPage";
@@ -112,6 +113,7 @@ const App = () => {
 
               <Route path="*" element={<NotFound />} />
               </Routes>
+              <QuickExitButton />
               <CookieConsentBanner />
             </BrowserRouter>
           </TooltipProvider>

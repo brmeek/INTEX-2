@@ -336,7 +336,7 @@ const HeroSection = () => {
       </div>
 
       <button
-        className="absolute bottom-6 right-6 flex items-center gap-2 px-4 py-2.5 rounded-full bg-red-600 text-white text-xs font-body font-semibold shadow-elevated hover:bg-red-700 transition-colors"
+        className="hidden absolute bottom-6 right-6 flex items-center gap-2 px-4 py-2.5 rounded-full bg-red-600 text-white text-xs font-body font-semibold shadow-elevated hover:bg-red-700 transition-colors"
         onClick={() => {
           window.location.replace("https://google.com");
         }}
