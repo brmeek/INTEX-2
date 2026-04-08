@@ -25,6 +25,16 @@ interface Resident {
   reintegrationStatus: string | null;
   referralSource: string | null;
   safehouse?: { safehouseName: string };
+  readinessScore?: number | null;
+  readinessTier?: "High Readiness" | "Needs Monitoring" | "At Risk" | null;
+  trendLabel?: "Improving" | "Stable" | "Early Decline" | "Declining" | "Insufficient History" | null;
+  monthOverMonthChange?: number | null;
+  firstVsLatestChange?: number | null;
+  initialVsLatestChange?: number | null;
+  trajectorySlope?: number | null;
+  historyMonthsUsed?: number | null;
+  topConcernFeature?: string | null;
+  readinessScoredAtUtc?: string | null;
 }
 
 const CaseloadPage = () => {
@@ -36,6 +46,7 @@ const CaseloadPage = () => {
   const [statusFilter, setStatusFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [loading, setLoading] = useState(true);
+  const [refreshingReadiness, setRefreshingReadiness] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<Resident | null>(null);
   const [form, setForm] = useState({
@@ -90,6 +101,22 @@ const CaseloadPage = () => {
     }
   };
 
+  const handleRefreshReadiness = async () => {
+    setRefreshingReadiness(true);
+    try {
+      const result = await api.post<{ scoredCount: number }>("/api/residents/readiness/refresh", {});
+      toast({
+        title: "Readiness refreshed",
+        description: `Updated readiness scores for ${result.scoredCount} residents.`,
+      });
+      await load(page);
+    } catch (e) {
+      toast({ title: "Error", description: String(e), variant: "destructive" });
+    } finally {
+      setRefreshingReadiness(false);
+    }
+  };
+
   const openEdit = (r: Resident) => {
     setEditItem(r);
     setForm({
@@ -104,6 +131,19 @@ const CaseloadPage = () => {
   };
 
   const inputClass = "w-full px-3 py-2 rounded-lg border border-border bg-secondary font-body text-sm focus:outline-none focus:ring-2 focus:ring-accent";
+  const getReadinessPillClass = (tier?: string | null) => {
+    if (tier === "High Readiness") return "bg-emerald-100 text-emerald-700";
+    if (tier === "Needs Monitoring") return "bg-amber-100 text-amber-700";
+    if (tier === "At Risk") return "bg-red-100 text-red-700";
+    return "bg-muted text-muted-foreground";
+  };
+  const getTrendPillClass = (trend?: string | null) => {
+    if (trend === "Improving") return "bg-emerald-100 text-emerald-700";
+    if (trend === "Stable") return "bg-blue-100 text-blue-700";
+    if (trend === "Early Decline") return "bg-amber-100 text-amber-700";
+    if (trend === "Declining") return "bg-red-100 text-red-700";
+    return "bg-muted text-muted-foreground";
+  };
 
   return (
     <AdminLayout title="Caseload Inventory" subtitle="Manage resident profiles and case records">
@@ -124,6 +164,15 @@ const CaseloadPage = () => {
           </select>
           <Button onClick={() => { setEditItem(null); setForm({ firstName: "", lastName: "", gender: "Female", caseStatus: "Active", caseCategory: "Trafficked", caseSubcategory: "", admissionDate: "", safehouseId: "", assignedSocialWorker: "", referralSource: "", hasDisability: false, is4PsBeneficiary: false, isSoloParentChild: false, isIndigenous: false, isInformalSettler: false }); setShowForm(true); }} size="sm" className="bg-accent text-white hover:bg-teal-light font-body gap-1">
             <Plus className="h-4 w-4" /> Add Resident
+          </Button>
+          <Button
+            onClick={handleRefreshReadiness}
+            disabled={refreshingReadiness}
+            size="sm"
+            variant="secondary"
+            className="font-body"
+          >
+            {refreshingReadiness ? "Refreshing..." : "Refresh Readiness Scores"}
           </Button>
         </div>
 
@@ -173,6 +222,8 @@ const CaseloadPage = () => {
                 <table className="w-full">
                   <thead><tr className="border-b border-border bg-muted/50">
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Name</th>
+                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Readiness</th>
+                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Trend</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Category</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Safehouse</th>
@@ -183,7 +234,34 @@ const CaseloadPage = () => {
                   <tbody>
                     {residents.map((r) => (
                       <tr key={r.residentId} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                        <td className="px-4 py-3 font-body text-sm font-medium">{r.firstName} {r.lastName}</td>
+                        <td className="px-4 py-3 font-body text-sm font-medium">
+                          <div className="flex items-center gap-2">
+                            <span>{r.firstName} {r.lastName}</span>
+                            {r.readinessTier && (
+                              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${getReadinessPillClass(r.readinessTier)}`}>
+                                {r.readinessTier}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          {r.readinessScore != null ? (
+                            <span className={`text-xs font-body px-2 py-1 rounded-full ${getReadinessPillClass(r.readinessTier)}`}>
+                              {(r.readinessScore * 100).toFixed(2)}%
+                            </span>
+                          ) : (
+                            <span className="text-xs font-body text-muted-foreground">Not scored</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          {r.trendLabel ? (
+                            <span className={`text-xs font-body px-2 py-1 rounded-full ${getTrendPillClass(r.trendLabel)}`}>
+                              {r.trendLabel}
+                            </span>
+                          ) : (
+                            <span className="text-xs font-body text-muted-foreground">—</span>
+                          )}
+                        </td>
                         <td className="px-4 py-3"><span className={`text-xs font-body px-2 py-1 rounded-full ${r.caseStatus === "Active" ? "bg-teal/10 text-teal" : r.caseStatus === "Reintegrated" ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"}`}>{r.caseStatus}</span></td>
                         <td className="px-4 py-3 font-body text-sm text-muted-foreground">{r.caseCategory}</td>
                         <td className="px-4 py-3 font-body text-sm text-muted-foreground">{r.safehouse?.safehouseName || r.safehouseId || "—"}</td>

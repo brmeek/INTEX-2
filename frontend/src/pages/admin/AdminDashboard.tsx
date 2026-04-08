@@ -10,6 +10,7 @@ interface DashboardData {
   donationCount: number;
   safehouseCount: number;
   recentDonations: { donationId: number; donationType: string; amount: number | null; donationDate: string; supporter?: { supporterName: string } }[];
+  atRiskDonors: { supporterId: number; supporterName: string | null; riskTier: "High" | "Medium" | "Low"; churnProbability: number; scoredAtUtc: string }[];
   upcomingConferences: { planId: number; planCategory: string; caseConferenceDate: string; resident?: { firstName: string; lastName: string } }[];
 }
 
@@ -71,6 +72,35 @@ const AdminDashboard = () => {
                           ₱{d.amount.toLocaleString()}
                         </span>
                       )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+              <h3 className="font-heading text-lg font-bold text-foreground mb-4">At-Risk Donors</h3>
+              {data.atRiskDonors.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No at-risk donors flagged.</p>
+              ) : (
+                <div className="space-y-3">
+                  {data.atRiskDonors.map((d) => (
+                    <div key={d.supporterId} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                      <div>
+                        <p className="font-body text-sm font-medium text-foreground">{d.supporterName || "Unknown donor"}</p>
+                        <p className="font-body text-xs text-muted-foreground">Churn probability: {(d.churnProbability * 100).toFixed(2)}%</p>
+                      </div>
+                      <span
+                        className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                          d.riskTier === "High"
+                            ? "bg-red-100 text-red-700"
+                            : d.riskTier === "Medium"
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-emerald-100 text-emerald-700"
+                        }`}
+                      >
+                        {d.riskTier} Risk
+                      </span>
                     </div>
                   ))}
                 </div>

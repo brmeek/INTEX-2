@@ -14,6 +14,10 @@ interface Supporter {
   status: string;
   totalGiven: number | null;
   region: string;
+  churnProbability?: number | null;
+  churnPredicted?: boolean | null;
+  riskTier?: "High" | "Medium" | "Low" | null;
+  churnScoredAtUtc?: string | null;
 }
 
 interface Donation {
@@ -106,6 +110,12 @@ const DonorsAdminPage = () => {
   };
 
   const inputClass = "w-full px-3 py-2 rounded-lg border border-border bg-secondary font-body text-sm focus:outline-none focus:ring-2 focus:ring-accent";
+  const getRiskPillClass = (riskTier?: string | null) => {
+    if (riskTier === "High") return "bg-red-100 text-red-700";
+    if (riskTier === "Medium") return "bg-amber-100 text-amber-700";
+    if (riskTier === "Low") return "bg-emerald-100 text-emerald-700";
+    return "bg-muted text-muted-foreground";
+  };
 
   return (
     <AdminLayout title="Donors & Contributions" subtitle="Manage supporters and track donations">
@@ -166,6 +176,7 @@ const DonorsAdminPage = () => {
                 <table className="w-full">
                   <thead><tr className="border-b border-border bg-muted/50">
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Name</th>
+                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Risk</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Type</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
@@ -175,7 +186,25 @@ const DonorsAdminPage = () => {
                   <tbody>
                     {supporters.map((s) => (
                       <tr key={s.supporterId} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                        <td className="px-4 py-3 font-body text-sm font-medium">{s.supporterName}</td>
+                        <td className="px-4 py-3 font-body text-sm font-medium">
+                          <div className="flex items-center gap-2">
+                            <span>{s.supporterName}</span>
+                            {s.churnPredicted && (
+                              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${getRiskPillClass(s.riskTier)}`}>
+                                {s.riskTier} Risk
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          {s.riskTier ? (
+                            <span className={`text-xs font-body px-2 py-1 rounded-full ${getRiskPillClass(s.riskTier)}`}>
+                              {s.riskTier} ({((s.churnProbability ?? 0) * 100).toFixed(2)}%)
+                            </span>
+                          ) : (
+                            <span className="text-xs font-body text-muted-foreground">Not scored</span>
+                          )}
+                        </td>
                         <td className="px-4 py-3"><span className="text-xs font-body px-2 py-1 rounded-full bg-secondary">{s.supporterType}</span></td>
                         <td className="px-4 py-3 font-body text-sm text-muted-foreground">{s.email}</td>
                         <td className="px-4 py-3"><span className={`text-xs font-body px-2 py-1 rounded-full ${s.status === "Active" ? "bg-teal/10 text-teal" : "bg-muted text-muted-foreground"}`}>{s.status}</span></td>

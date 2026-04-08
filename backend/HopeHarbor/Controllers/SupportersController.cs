@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HopeHarbor.Data;
 using HopeHarbor.Models;
+using HopeHarbor.Services;
 
 namespace HopeHarbor.Controllers;
 
@@ -12,7 +13,13 @@ namespace HopeHarbor.Controllers;
 public class SupportersController : ControllerBase
 {
     private readonly HopeHarborContext _db;
-    public SupportersController(HopeHarborContext db) => _db = db;
+    private readonly IDonorChurnScoringService _donorChurnScoringService;
+
+    public SupportersController(HopeHarborContext db, IDonorChurnScoringService donorChurnScoringService)
+    {
+        _db = db;
+        _donorChurnScoringService = donorChurnScoringService;
+    }
 
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] string? status, [FromQuery] string? type, [FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
@@ -23,8 +30,45 @@ public class SupportersController : ControllerBase
         if (!string.IsNullOrEmpty(search)) q = q.Where(s => s.SupporterName != null && s.SupporterName.Contains(search));
 
         var total = await q.CountAsync();
-        var items = await q.OrderByDescending(s => s.SupporterId).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
-        return Ok(new { items, total, page, pageSize });
+        var items = await q
+            .OrderByDescending(s => s.SupporterId)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var supporterIds = items.Select(i => i.SupporterId).ToArray();
+        var churnBySupporterId = await _db.DonorChurnScores
+            .Where(s => supporterIds.Contains(s.SupporterId))
+            .ToDictionaryAsync(s => s.SupporterId);
+
+        var totalsBySupporterId = await _db.Donations
+            .Where(d => d.SupporterId != null && supporterIds.Contains(d.SupporterId.Value))
+            .GroupBy(d => d.SupporterId!.Value)
+            .Select(g => new { SupporterId = g.Key, Total = g.Sum(d => d.Amount ?? d.EstimatedValue ?? 0m) })
+            .ToDictionaryAsync(x => x.SupporterId, x => x.Total);
+
+        var output = items.Select(s =>
+        {
+            churnBySupporterId.TryGetValue(s.SupporterId, out var churn);
+            totalsBySupporterId.TryGetValue(s.SupporterId, out var totalGiven);
+
+            return new
+            {
+                s.SupporterId,
+                s.SupporterName,
+                s.SupporterType,
+                s.Email,
+                s.Phone,
+                s.Status,
+                s.Region,
+                TotalGiven = totalGiven,
+                ChurnProbability = churn?.ChurnProbability,
+                ChurnPredicted = churn?.ChurnPredicted,
+                RiskTier = churn?.RiskTier,
+                ChurnScoredAtUtc = churn?.ScoredAtUtc
+            };
+        });
+        return Ok(new { items = output, total, page, pageSize });
     }
 
     [HttpGet("{id}")]
@@ -64,5 +108,18 @@ public class SupportersController : ControllerBase
         _db.Supporters.Remove(item);
         await _db.SaveChangesAsync();
         return NoContent();
+    }
+
+    [HttpPost("churn/refresh")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> RefreshChurnScores(CancellationToken cancellationToken)
+    {
+        var scoredCount = await _donorChurnScoringService.ScoreAllAsync(_db, cancellationToken);
+        return Ok(new
+        {
+            message = "Donor churn scores refreshed.",
+            scoredCount,
+            scoredAtUtc = DateTime.UtcNow
+        });
     }
 }

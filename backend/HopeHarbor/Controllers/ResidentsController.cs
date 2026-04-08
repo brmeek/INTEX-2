@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HopeHarbor.Data;
 using HopeHarbor.Models;
+using HopeHarbor.Services;
 
 namespace HopeHarbor.Controllers;
 
@@ -12,7 +13,13 @@ namespace HopeHarbor.Controllers;
 public class ResidentsController : ControllerBase
 {
     private readonly HopeHarborContext _db;
-    public ResidentsController(HopeHarborContext db) => _db = db;
+    private readonly IResidentReintegrationScoringService _residentReintegrationScoringService;
+
+    public ResidentsController(HopeHarborContext db, IResidentReintegrationScoringService residentReintegrationScoringService)
+    {
+        _db = db;
+        _residentReintegrationScoringService = residentReintegrationScoringService;
+    }
 
     [HttpGet]
     public async Task<IActionResult> GetAll(
@@ -28,8 +35,55 @@ public class ResidentsController : ControllerBase
             q = q.Where(r => (r.FirstName != null && r.FirstName.Contains(search)) || (r.LastName != null && r.LastName.Contains(search)));
 
         var total = await q.CountAsync();
-        var items = await q.OrderByDescending(r => r.AdmissionDate).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
-        return Ok(new { items, total, page, pageSize });
+        var items = await q
+            .OrderByDescending(r => r.AdmissionDate)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var residentIds = items.Select(r => r.ResidentId).ToArray();
+        var readinessByResidentId = await _db.ResidentReintegrationScores
+            .Where(s => residentIds.Contains(s.ResidentId))
+            .ToDictionaryAsync(s => s.ResidentId);
+
+        var output = items.Select(r =>
+        {
+            readinessByResidentId.TryGetValue(r.ResidentId, out var readiness);
+            return new
+            {
+                r.ResidentId,
+                r.FirstName,
+                r.LastName,
+                r.DateOfBirth,
+                r.Gender,
+                r.AdmissionDate,
+                r.CaseStatus,
+                r.CaseCategory,
+                r.CaseSubcategory,
+                r.HasDisability,
+                r.Is4PsBeneficiary,
+                r.IsSoloParentChild,
+                r.IsIndigenous,
+                r.IsInformalSettler,
+                r.SafehouseId,
+                r.AssignedSocialWorker,
+                r.ReintegrationStatus,
+                r.ReferralSource,
+                r.Safehouse,
+                ReadinessScore = readiness?.ReadinessScore,
+                ReadinessTier = readiness?.ReadinessTier,
+                TrendLabel = readiness?.TrendLabel,
+                MonthOverMonthChange = readiness?.MonthOverMonthChange,
+                FirstVsLatestChange = readiness?.FirstVsLatestChange,
+                InitialVsLatestChange = readiness?.InitialVsLatestChange,
+                TrajectorySlope = readiness?.TrajectorySlope,
+                HistoryMonthsUsed = readiness?.HistoryMonthsUsed,
+                TopConcernFeature = readiness?.TopConcernFeature,
+                ReadinessScoredAtUtc = readiness?.ScoredAtUtc
+            };
+        });
+
+        return Ok(new { items = output, total, page, pageSize });
     }
 
     [HttpGet("{id}")]
@@ -77,5 +131,33 @@ public class ResidentsController : ControllerBase
         _db.Residents.Remove(item);
         await _db.SaveChangesAsync();
         return NoContent();
+    }
+
+    [HttpPost("readiness/refresh")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> RefreshAllReadinessScores(CancellationToken cancellationToken)
+    {
+        var scoredCount = await _residentReintegrationScoringService.ScoreAllAsync(_db, cancellationToken);
+        return Ok(new
+        {
+            message = "Resident reintegration readiness scores refreshed.",
+            scoredCount,
+            scoredAtUtc = DateTime.UtcNow
+        });
+    }
+
+    [HttpPost("{id}/readiness/refresh")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> RefreshResidentReadinessScore(int id, CancellationToken cancellationToken)
+    {
+        var scored = await _residentReintegrationScoringService.ScoreResidentAsync(_db, id, cancellationToken);
+        if (!scored) return NotFound();
+
+        return Ok(new
+        {
+            message = "Resident reintegration readiness score refreshed.",
+            residentId = id,
+            scoredAtUtc = DateTime.UtcNow
+        });
     }
 }
