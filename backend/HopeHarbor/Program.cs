@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using HopeHarbor.Data;
+using HopeHarbor.Infrastructure;
 using Npgsql;
 using System.Net;
 
@@ -106,6 +107,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+
 using (var scope = app.Services.CreateScope())
 {
     var appDb = scope.ServiceProvider.GetRequiredService<HopeHarborContext>();
@@ -124,6 +130,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseSecurityHeaders(app.Environment);
 app.UseCors();
 
 var wwwroot = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
