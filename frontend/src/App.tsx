@@ -28,6 +28,7 @@ import LogoutPage from "./pages/LogoutPage";
 import NotFound from "./pages/NotFound";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import UsersAdminPage from "./pages/admin/UsersAdminPage";
 import DonorsAdminPage from "./pages/admin/DonorsAdminPage";
 import CaseloadPage from "./pages/admin/CaseloadPage";
 import ProcessRecordingsPage from "./pages/admin/ProcessRecordingsPage";
@@ -116,6 +117,7 @@ const App = () => {
 
               {/* Admin (Authenticated) */}
               <Route path="/admin" element={<ProtectedRoute requireRole="Admin"><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/admin/users" element={<ProtectedRoute requireRole="Admin"><UsersAdminPage /></ProtectedRoute>} />
               <Route path="/admin/donors" element={<ProtectedRoute requireRole="Admin"><DonorsAdminPage /></ProtectedRoute>} />
               <Route path="/admin/caseload" element={<ProtectedRoute requireRole="Admin"><CaseloadPage /></ProtectedRoute>} />
               <Route path="/admin/recordings" element={<ProtectedRoute requireRole="Admin"><ProcessRecordingsPage /></ProtectedRoute>} />

@@ -17,11 +17,13 @@ import {
   X,
   ChevronLeft,
   Map,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const sidebarLinks = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { label: "Users", href: "/admin/users", icon: Shield },
   { label: "Donors", href: "/admin/donors", icon: Heart },
   { label: "Caseload", href: "/admin/caseload", icon: ClipboardList },
   { label: "Process Recording", href: "/admin/recordings", icon: FileText },

@@ -1,6 +1,6 @@
 import { getPortalRedirectPath } from "@/lib/portalRoutes";
 
-const API_BASE = import.meta.env.VITE_API_URL || "";
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? "";
 
 function getUnauthorizedRedirectPath(): string {
   const pathname = window.location.pathname.toLowerCase();
@@ -19,11 +19,20 @@ function getUnauthorizedRedirectPath(): string {
 async function parseJsonOrUndefined<T>(res: Response): Promise<T | undefined> {
   const text = await res.text();
   if (!text) return undefined;
-  return JSON.parse(text) as T;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    const contentType = res.headers.get("content-type") ?? "unknown";
+    const snippet = text.slice(0, 120).replace(/\s+/g, " ");
+    throw new Error(
+      `Expected JSON but received ${contentType} (status ${res.status}). Response starts with: ${snippet}`
+    );
+  }
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const requestUrl = `${API_BASE}${path}`;
+  const res = await fetch(requestUrl, {
     credentials: "include",
     headers: { "Content-Type": "application/json", ...options?.headers },
     ...options,
@@ -34,7 +43,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   }
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || `Request failed: ${res.status}`);
+    throw new Error(text || `Request failed: ${res.status} (${requestUrl})`);
   }
   if (res.status === 204) return undefined as T;
   const data = await parseJsonOrUndefined<T>(res);

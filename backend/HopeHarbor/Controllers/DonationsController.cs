@@ -56,6 +56,17 @@ public class DonationsController : ControllerBase
         public bool IsRecurring { get; set; }
     }
 
+    public sealed class DonorRecentDonationResponse
+    {
+        public int DonationId { get; set; }
+        public string DonationType { get; set; } = string.Empty;
+        public DateOnly? DonationDate { get; set; }
+        public decimal Amount { get; set; }
+        public bool IsRecurring { get; set; }
+        public string ChannelSource { get; set; } = string.Empty;
+        public string CampaignName { get; set; } = string.Empty;
+    }
+
     private readonly HopeHarborContext _db;
     private readonly IInKindDonationValuationService _inKindDonationValuationService;
     private readonly IDonorImpactForecastingService _donorImpactForecastingService;
@@ -102,8 +113,13 @@ public class DonationsController : ControllerBase
         if (string.IsNullOrWhiteSpace(email))
             return Unauthorized(new { message = "Could not determine authenticated donor email." });
 
-        var supporter = await _db.Supporters.FirstOrDefaultAsync(s => s.Email == email);
-        if (supporter is null)
+        var normalizedEmail = email.Trim().ToLowerInvariant();
+        var supporterIds = await _db.Supporters
+            .Where(s => s.Email != null && s.Email.ToLower() == normalizedEmail)
+            .Select(s => s.SupporterId)
+            .ToListAsync();
+
+        if (supporterIds.Count == 0)
         {
             return Ok(new DonorSummaryResponse
             {
@@ -116,7 +132,7 @@ public class DonationsController : ControllerBase
         }
 
         var currentYear = DateTime.UtcNow.Year;
-        var donations = _db.Donations.Where(d => d.SupporterId == supporter.SupporterId);
+        var donations = _db.Donations.Where(d => d.SupporterId != null && supporterIds.Contains(d.SupporterId.Value));
 
         var donorTotalThisYear = await donations
             .Where(d => d.DonationDate.HasValue && d.DonationDate.Value.Year == currentYear)
@@ -138,6 +154,45 @@ public class DonationsController : ControllerBase
             LifetimeTotal = lifetimeTotal,
             DonationCountThisYear = donationCountThisYear
         });
+    }
+
+    [HttpGet("self-serve/recent")]
+    [Authorize(Roles = AuthRoles.Donor + "," + AuthRoles.Admin)]
+    public async Task<IActionResult> GetSelfServeRecentDonations([FromQuery] int take = 10)
+    {
+        var email = User.FindFirstValue(ClaimTypes.Email)
+            ?? User.Identity?.Name;
+        if (string.IsNullOrWhiteSpace(email))
+            return Unauthorized(new { message = "Could not determine authenticated donor email." });
+
+        var normalizedEmail = email.Trim().ToLowerInvariant();
+        var supporterIds = await _db.Supporters
+            .Where(s => s.Email != null && s.Email.ToLower() == normalizedEmail)
+            .Select(s => s.SupporterId)
+            .ToListAsync();
+
+        if (supporterIds.Count == 0)
+            return Ok(Array.Empty<DonorRecentDonationResponse>());
+
+        take = Math.Clamp(take, 1, 50);
+        var donations = await _db.Donations
+            .Where(d => d.SupporterId != null && supporterIds.Contains(d.SupporterId.Value))
+            .OrderByDescending(d => d.DonationDate)
+            .ThenByDescending(d => d.DonationId)
+            .Take(take)
+            .Select(d => new DonorRecentDonationResponse
+            {
+                DonationId = d.DonationId,
+                DonationType = d.DonationType ?? "Monetary",
+                DonationDate = d.DonationDate,
+                Amount = d.Amount ?? d.EstimatedValue ?? 0m,
+                IsRecurring = d.IsRecurring ?? false,
+                ChannelSource = d.ChannelSource ?? "Donor Portal",
+                CampaignName = d.CampaignName ?? "Donor Portal"
+            })
+            .ToListAsync();
+
+        return Ok(donations);
     }
 
     [HttpPost]
@@ -180,14 +235,19 @@ public class DonationsController : ControllerBase
         if (string.IsNullOrWhiteSpace(email))
             return Unauthorized(new { message = "Could not determine authenticated donor email." });
 
-        var supporter = await _db.Supporters.FirstOrDefaultAsync(s => s.Email == email);
+        var normalizedEmail = email.Trim();
+        var normalizedEmailLower = normalizedEmail.ToLowerInvariant();
+        var supporter = await _db.Supporters
+            .Where(s => s.Email != null && s.Email.ToLower() == normalizedEmailLower)
+            .OrderBy(s => s.SupporterId)
+            .FirstOrDefaultAsync();
         if (supporter is null)
         {
             supporter = new Supporter
             {
-                SupporterName = email.Split('@')[0],
+                SupporterName = normalizedEmail.Split('@')[0],
                 SupporterType = "Individual",
-                Email = email,
+                Email = normalizedEmail,
                 Status = "Active",
                 FirstGiftDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
                 CreatedAt = DateTime.UtcNow,
@@ -205,7 +265,7 @@ public class DonationsController : ControllerBase
 
             if (string.IsNullOrWhiteSpace(supporter.SupporterName))
             {
-                supporter.SupporterName = email.Split('@')[0];
+                supporter.SupporterName = normalizedEmail.Split('@')[0];
             }
 
             if (string.IsNullOrWhiteSpace(supporter.AcquisitionChannel))
@@ -225,7 +285,7 @@ public class DonationsController : ControllerBase
             CurrencyCode = "USD",
             Amount = request.Amount,
             EstimatedValue = request.Amount,
-            Notes = $"Donor self-serve gift from {email}"
+            Notes = $"Donor self-serve gift from {normalizedEmail}"
         };
 
         _db.Donations.Add(donation);
