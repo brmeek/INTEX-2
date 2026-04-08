@@ -5,13 +5,15 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { CookieConsentProvider } from "@/context/CookieConsentContext";
 import InitialLoadingScreen from "./components/InitialLoadingScreen";
 import ScrollToTop from "./components/ScrollToTop";
-import CookieConsent from "./components/CookieConsent";
+import CookieConsentBanner from "./components/CookieConsentBanner";
 
 import Index from "./pages/Index";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
+import CookiePolicyPage from "./pages/CookiePolicyPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import ImpactDashboard from "./pages/ImpactDashboard";
 import LoginPage from "./pages/LoginPage";
@@ -71,16 +73,17 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          {showLoadingScreen && (
-            <InitialLoadingScreen onComplete={handleLoadingComplete} />
-          )}
-          <BrowserRouter>
-            <ScrollToTop />
-            <Routes>
+      <CookieConsentProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            {showLoadingScreen && (
+              <InitialLoadingScreen onComplete={handleLoadingComplete} />
+            )}
+            <BrowserRouter>
+              <ScrollToTop />
+              <Routes>
               {/* Public */}
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<AboutPage />} />
@@ -88,6 +91,7 @@ const App = () => {
               <Route path="/donate" element={<Navigate to="/donor/login" replace />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/cookies" element={<CookiePolicyPage />} />
               <Route path="/impact" element={<ImpactDashboard />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
@@ -107,11 +111,12 @@ const App = () => {
               <Route path="/admin/reports" element={<ProtectedRoute requireRole="Admin"><ReportsPage /></ProtectedRoute>} />
 
               <Route path="*" element={<NotFound />} />
-            </Routes>
-            <CookieConsent />
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
+              </Routes>
+              <CookieConsentBanner />
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </CookieConsentProvider>
     </QueryClientProvider>
   );
 };

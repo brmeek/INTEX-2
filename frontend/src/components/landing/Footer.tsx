@@ -44,6 +44,9 @@ const Footer = () => {
               <Link to="/privacy" className="block font-body text-sm text-white/70 hover:text-white transition-colors">
                 Privacy Policy
               </Link>
+              <Link to="/cookies" className="block font-body text-sm text-white/70 hover:text-white transition-colors">
+                Cookie Policy
+              </Link>
               <Link to="/login" className="block font-body text-sm text-white/70 hover:text-white transition-colors">
                 Staff Portal
               </Link>
