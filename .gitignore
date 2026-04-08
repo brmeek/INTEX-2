@@ -31,6 +31,8 @@ frontend/out/
 
 # Local tool caches
 .dotnet-cli/
+.dotnet-home/
+.dotnet/
 
 # Backend (.NET)
 backend/**/[Bb]in/

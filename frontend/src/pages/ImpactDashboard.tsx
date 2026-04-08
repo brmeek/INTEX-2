@@ -32,6 +32,12 @@ interface ImpactData {
   safehouseCount: number;
   totalDonations: number;
   donorCount: number;
+  selectedYear: number | null;
+  selectedYearKey: string;
+  availableDonationYears: number[];
+  donorCountThisYear: number;
+  donationCountThisYear: number;
+  totalDonatedThisYear: number;
   avgEducationProgress: number;
   avgHealthScore: number;
   donationsByType: { type: string; count: number; total: number }[];
@@ -41,16 +47,27 @@ interface ImpactData {
 const ImpactDashboard = () => {
   const [data, setData] = useState<ImpactData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedYear, setSelectedYear] = useState<string>(String(new Date().getFullYear()));
   const { authSession } = useAuth();
   const donorPortalPath = getDonorPortalPath(authSession);
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/reports/impact`)
+    setLoading(true);
+    fetch(`${API_BASE}/api/reports/impact?year=${selectedYear}`)
       .then((r) => r.json())
-      .then(setData)
+      .then((response: ImpactData) => {
+        setData(response);
+        if (response.selectedYearKey !== selectedYear) {
+          setSelectedYear(response.selectedYearKey);
+        }
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [selectedYear]);
+
+  const selectedPeriodLabel = data?.selectedYearKey === "all"
+    ? "All Time"
+    : data?.selectedYear?.toString() ?? selectedYear;
 
   const monthlyData =
     data?.donationsByMonth.map((d) => ({
@@ -195,8 +212,64 @@ const ImpactDashboard = () => {
 
                 <div className="relative container space-y-6">
                   <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-6">
+                      <div>
+                        <h3 className="font-heading text-lg font-bold text-foreground">
+                          Donation Impact
+                        </h3>
+                        <p className="font-body text-sm text-muted-foreground mt-1">
+                          Year-specific giving activity and value.
+                        </p>
+                      </div>
+                      {data.availableDonationYears.length > 0 && (
+                        <label className="flex flex-col gap-1 font-body text-sm text-muted-foreground">
+                          <span className="font-medium text-foreground">Year</span>
+                          <select
+                            value={selectedYear}
+                            onChange={(e) => setSelectedYear(e.target.value)}
+                            className="px-3 py-2 rounded-lg border border-border bg-white text-foreground"
+                          >
+                          <option value="all">All Time</option>
+                          {data.availableDonationYears.map((yearOption) => (
+                            <option key={yearOption} value={yearOption}>
+                              {yearOption}
+                            </option>
+                          ))}
+                          </select>
+                        </label>
+                      )}
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-4">
+                      {[
+                        {
+                          label: `Donors in ${selectedPeriodLabel}`,
+                          value: data.donorCountThisYear.toLocaleString(),
+                        },
+                        {
+                          label: `Donations in ${selectedPeriodLabel}`,
+                          value: data.donationCountThisYear.toLocaleString(),
+                        },
+                        {
+                          label: `Total Donated in ${selectedPeriodLabel}`,
+                          value: `₱${Math.round(data.totalDonatedThisYear).toLocaleString()}`,
+                        },
+                      ].map((metric) => (
+                        <div key={metric.label} className="rounded-xl bg-secondary p-5 border border-border">
+                          <p className="font-body text-xs font-semibold tracking-widest uppercase text-accent mb-3">
+                            {metric.label}
+                          </p>
+                          <p className="font-heading text-3xl md:text-4xl font-bold text-navy">
+                            {metric.value}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
                     <h3 className="font-heading text-lg font-bold text-foreground mb-4">
-                      Contributions Over Time
+                      Contributions Over Time ({selectedPeriodLabel})
                     </h3>
                     <ResponsiveContainer width="100%" height={300}>
                       <LineChart data={monthlyData}>
@@ -223,7 +296,7 @@ const ImpactDashboard = () => {
                   <div className="grid lg:grid-cols-2 gap-6">
                     <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
                       <h3 className="font-heading text-lg font-bold text-foreground mb-4">
-                        Contributions by Type
+                        Contributions by Type ({selectedPeriodLabel})
                       </h3>
                       <ResponsiveContainer width="100%" height={250}>
                         <PieChart>
@@ -248,7 +321,7 @@ const ImpactDashboard = () => {
 
                     <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
                       <h3 className="font-heading text-lg font-bold text-foreground mb-4">
-                        Total Value by Contribution Type
+                        Total Value by Contribution Type ({selectedPeriodLabel})
                       </h3>
                       <ResponsiveContainer width="100%" height={250}>
                         <BarChart data={data.donationsByType}>

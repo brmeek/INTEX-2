@@ -8,6 +8,8 @@ import {
   PROVINCE_DATA,
   CITY_COORDINATES,
   REGION_COORDINATES,
+  ALL_PROVINCES,
+  mapSafehousesToProvinces,
   getRiskColor,
   getRiskLabel,
   type ProvinceData,
@@ -187,15 +189,30 @@ const TraffickingMapPage = () => {
       .filter((s) => s.lat && s.lng);
   }, [safehouses]);
 
+  const coveredProvinces = useMemo(
+    () => mapSafehousesToProvinces(safehouses),
+    [safehouses]
+  );
+
   const coverageAnalysis = useMemo(() => {
-    const coveredRegions = new Set(safehouses.map((s) => s.region?.trim()).filter(Boolean));
-    const allRegions = new Set(PROVINCE_DATA.map((p) => p.region));
-    const uncovered = [...allRegions].filter((r) => !coveredRegions.has(r));
+    const total = ALL_PROVINCES.length;
+    const coveredCount = coveredProvinces.size;
+    const uncoveredCount = total - coveredCount;
+
+    const uncoveredByZone = new Map<string, string[]>();
+    for (const p of ALL_PROVINCES) {
+      if (coveredProvinces.has(p.name)) continue;
+      const list = uncoveredByZone.get(p.zone) ?? [];
+      list.push(p.name);
+      uncoveredByZone.set(p.zone, list);
+    }
+
     const highRiskUncovered = PROVINCE_DATA.filter(
-      (p) => p.riskScore >= 65 && !coveredRegions.has(p.region)
+      (p) => p.riskScore >= 65 && !coveredProvinces.has(p.name)
     );
-    return { coveredRegions, uncovered, highRiskUncovered, total: allRegions.size };
-  }, [safehouses]);
+
+    return { coveredCount, uncoveredCount, uncoveredByZone, highRiskUncovered, total };
+  }, [coveredProvinces]);
 
   const stats = useMemo(() => {
     const totalIncidents = PROVINCE_DATA.reduce((s, p) => s + p.reportedIncidents, 0);
@@ -205,12 +222,7 @@ const TraffickingMapPage = () => {
     return { totalIncidents, avgRisk, avgGap, criticalCount };
   }, []);
 
-  const coveredRegions = useMemo(
-    () => new Set(safehouses.map((s) => s.region?.trim()).filter(Boolean) as string[]),
-    [safehouses]
-  );
-
-  const gaps = useMemo(() => computeCoverageGaps(coveredRegions), [coveredRegions]);
+  const gaps = useMemo(() => computeCoverageGaps(coveredProvinces), [coveredProvinces]);
 
   const gapKpis = useMemo(() => {
     const critical = gaps.filter((g) => g.priorityTier === "critical").length;
@@ -262,9 +274,9 @@ const TraffickingMapPage = () => {
             <StatCard label="Avg Service Gap" value={stats.avgGap} sub="out of 100" />
             <StatCard label="Critical Provinces" value={stats.criticalCount} sub="risk ≥ 80" />
             <StatCard
-              label="Coverage Gaps"
-              value={coverageAnalysis.uncovered.length}
-              sub={`of ${coverageAnalysis.total} regions`}
+              label="Provinces Without Safehouses"
+              value={coverageAnalysis.uncoveredCount}
+              sub={`of ${coverageAnalysis.total} provinces`}
             />
           </div>
 
@@ -478,46 +490,55 @@ const TraffickingMapPage = () => {
             <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
               <h3 className="font-heading text-lg font-bold text-foreground mb-1">Coverage Analysis</h3>
               <p className="font-body text-xs text-muted-foreground mb-4">
-                Regions with vs. without safehouse presence
+                Provinces with vs. without safehouse presence ({coverageAnalysis.total} total across 3 zones)
               </p>
               <div className="space-y-3">
                 <div>
                   <div className="flex justify-between mb-1">
-                    <span className="font-body text-sm text-foreground">Regions with safehouses</span>
+                    <span className="font-body text-sm text-foreground">Provinces with safehouses</span>
                     <span className="font-body text-sm font-semibold text-teal">
-                      {coverageAnalysis.coveredRegions.size}
+                      {coverageAnalysis.coveredCount}
                     </span>
                   </div>
                   <div className="h-3 w-full rounded-full bg-muted">
                     <div
                       className="h-full rounded-full bg-teal"
-                      style={{ width: `${(coverageAnalysis.coveredRegions.size / coverageAnalysis.total) * 100}%` }}
+                      style={{ width: `${(coverageAnalysis.coveredCount / coverageAnalysis.total) * 100}%` }}
                     />
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between mb-1">
-                    <span className="font-body text-sm text-foreground">Regions without coverage</span>
+                    <span className="font-body text-sm text-foreground">Provinces without coverage</span>
                     <span className="font-body text-sm font-semibold text-coral">
-                      {coverageAnalysis.uncovered.length}
+                      {coverageAnalysis.uncoveredCount}
                     </span>
                   </div>
                   <div className="h-3 w-full rounded-full bg-muted">
                     <div
                       className="h-full rounded-full bg-coral"
-                      style={{ width: `${(coverageAnalysis.uncovered.length / coverageAnalysis.total) * 100}%` }}
+                      style={{ width: `${(coverageAnalysis.uncoveredCount / coverageAnalysis.total) * 100}%` }}
                     />
                   </div>
                 </div>
               </div>
-              {coverageAnalysis.uncovered.length > 0 && (
+              {coverageAnalysis.uncoveredCount > 0 && (
                 <div className="mt-4">
-                  <p className="font-body text-xs text-muted-foreground mb-2">Uncovered regions:</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {coverageAnalysis.uncovered.map((r) => (
-                      <span key={r} className="px-2 py-1 rounded-md bg-coral/10 text-coral font-body text-xs font-medium">
-                        {r}
-                      </span>
+                  <p className="font-body text-xs text-muted-foreground mb-2">Uncovered provinces by zone:</p>
+                  <div className="space-y-2">
+                    {[...coverageAnalysis.uncoveredByZone.entries()].map(([zone, provinces]) => (
+                      <div key={zone}>
+                        <p className="font-body text-xs font-semibold text-foreground mb-1">
+                          {zone} <span className="text-muted-foreground font-normal">({provinces.length})</span>
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {provinces.map((name) => (
+                            <span key={name} className="px-2 py-1 rounded-md bg-coral/10 text-coral font-body text-[11px] font-medium">
+                              {name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -527,11 +548,11 @@ const TraffickingMapPage = () => {
             <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
               <h3 className="font-heading text-lg font-bold text-foreground mb-1">High-Risk Uncovered Areas</h3>
               <p className="font-body text-xs text-muted-foreground mb-4">
-                Provinces with risk ≥ 65 in regions lacking safehouse presence
+                Provinces with risk ≥ 65 and no safehouse in their province
               </p>
               {coverageAnalysis.highRiskUncovered.length === 0 ? (
                 <p className="font-body text-sm text-muted-foreground italic">
-                  All high-risk provinces have safehouse coverage in their region.
+                  All high-risk provinces have safehouse coverage.
                 </p>
               ) : (
                 <div className="space-y-2 max-h-[220px] overflow-y-auto">
@@ -567,7 +588,7 @@ const TraffickingMapPage = () => {
             </p>
 
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-              <StatCard label="Uncovered Regions" value={gaps.length} sub={`of ${coveredRegions.size + gaps.length} total`} />
+              <StatCard label="Uncovered Provinces" value={coverageAnalysis.uncoveredCount} sub={`of ${coverageAnalysis.total} provinces`} />
               <StatCard label="Critical Gaps" value={gapKpis.critical} accent="text-red-600" />
               <StatCard label="High Priority" value={gapKpis.high} accent="text-orange-500" />
               <StatCard label="Est. Total Cost" value={`$${gapKpis.totalEstCost.toLocaleString()}`} sub="to cover all gaps" accent="text-teal" />
@@ -602,7 +623,7 @@ const TraffickingMapPage = () => {
                       <div className="flex-1 min-w-0">
                         <p className="font-body text-sm font-medium text-foreground truncate">{g.region}</p>
                         <p className="font-body text-[10px] text-muted-foreground">
-                          {TIER_LABELS[g.priorityTier]} &middot; {g.provinces.length} province{g.provinces.length > 1 ? "s" : ""}
+                          {TIER_LABELS[g.priorityTier]} &middot; {g.uncoveredProvinceCount} of {g.totalProvinceCount} provinces uncovered
                         </p>
                       </div>
                       <div className="text-right shrink-0">
@@ -618,7 +639,7 @@ const TraffickingMapPage = () => {
 
               {/* Funding Progress per Region */}
               <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
-                <h3 className="font-heading text-lg font-bold text-foreground mb-1">Funding by Region</h3>
+                <h3 className="font-heading text-lg font-bold text-foreground mb-1">Funding by Zone</h3>
                 <p className="font-body text-xs text-muted-foreground mb-4">
                   Donations received vs. estimated safehouse cost
                 </p>

@@ -34,7 +34,7 @@ function spawnBird(w: number, h: number, close = false): Bird {
       wingPhase: Math.random() * Math.PI * 2,
       wingSpeed: 5 + Math.random() * 3,
       drift: (Math.random() - 0.5) * 4,
-      delay: Math.random() * 6,
+      delay: Math.random() * 1,
     };
   }
   return {
@@ -46,7 +46,7 @@ function spawnBird(w: number, h: number, close = false): Bird {
     wingPhase: Math.random() * Math.PI * 2,
     wingSpeed: 4 + Math.random() * 3,
     drift: (Math.random() - 0.5) * 3,
-    delay: Math.random() * 12,
+    delay: Math.random() * 0.5,
   };
 }
 
@@ -69,7 +69,7 @@ function spawnFlock(w: number, h: number): Bird[] {
       wingPhase: Math.random() * Math.PI * 2,
       wingSpeed: 4 + Math.random() * 2,
       drift: (Math.random() - 0.5) * 2,
-      delay: Math.random() * 4,
+      delay: Math.random() * 0.5,
     });
   }
   return flock;
@@ -114,8 +114,8 @@ const HeroSection = () => {
 
     const birds: Bird[] = [];
     const DISTANT_COUNT = 3;
-    let nextCloseAt = 15 + Math.random() * 25;
-    let nextFlockAt = 40 + Math.random() * 50;
+    let nextCloseAt = 3 + Math.random() * 5;
+    let nextFlockAt = 6 + Math.random() * 10;
     let elapsed = 0;
 
     const reducedMotion = window.matchMedia(

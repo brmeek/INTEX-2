@@ -129,9 +129,12 @@ public class ReportsController : ControllerBase
 
     [HttpGet("impact")]
     [AllowAnonymous]
-    public async Task<IActionResult> Impact()
+    public async Task<IActionResult> Impact([FromQuery] string? year)
     {
         var currentYear = DateTime.Today.Year;
+        var requestedAllTime = string.Equals(year, "all", StringComparison.OrdinalIgnoreCase);
+        var parsedYear = int.TryParse(year, out var parsedYearValue) ? parsedYearValue : (int?)null;
+        var selectedYear = parsedYear ?? currentYear;
         var totalResidents = await _db.Residents.CountAsync();
         var activeResidents = await _db.Residents.CountAsync(r => r.CaseStatus == "Active");
         var reintegrated = await _db.Residents.CountAsync(r => r.ReintegrationStatus == "Completed");
@@ -164,6 +167,29 @@ public class ReportsController : ControllerBase
             .Select(a => a.Region!.Trim())
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Count();
+
+        var availableDonationYears = await _db.Donations
+            .Where(d => d.DonationDate != null)
+            .Select(d => d.DonationDate!.Value.Year)
+            .Distinct()
+            .OrderByDescending(y => y)
+            .ToListAsync();
+
+        if (!requestedAllTime && availableDonationYears.Count > 0 && !availableDonationYears.Contains(selectedYear))
+            selectedYear = availableDonationYears[0];
+
+        var donationsForSelectedPeriod = requestedAllTime
+            ? _db.Donations.AsQueryable()
+            : _db.Donations.Where(d => d.DonationDate != null && d.DonationDate.Value.Year == selectedYear);
+
+        var donationCountForSelectedYear = await donationsForSelectedPeriod.CountAsync();
+        var donorCountForSelectedYear = await donationsForSelectedPeriod
+            .Where(d => d.SupporterId != null)
+            .Select(d => d.SupporterId)
+            .Distinct()
+            .CountAsync();
+        var totalDonatedForSelectedYear = await donationsForSelectedPeriod
+            .SumAsync(d => (d.Amount ?? d.EstimatedValue) ?? 0);
 
         var donationAllocationRows = await _db.DonationAllocations
             .Where(a => a.AmountAllocated != null && !string.IsNullOrWhiteSpace(a.ProgramArea))
@@ -207,15 +233,26 @@ public class ReportsController : ControllerBase
             .DefaultIfEmpty(0)
             .Average();
 
-        var donationsByType = await _db.Donations
+        var donationsByType = await donationsForSelectedPeriod
             .GroupBy(d => d.DonationType)
-            .Select(g => new { Type = g.Key, Count = g.Count(), Total = g.Sum(d => d.EstimatedValue ?? 0) })
+            .Select(g => new
+            {
+                Type = string.IsNullOrWhiteSpace(g.Key) ? "Unspecified" : g.Key,
+                Count = g.Count(),
+                Total = g.Sum(d => (d.Amount ?? d.EstimatedValue) ?? 0)
+            })
             .ToListAsync();
 
-        var donationsByMonth = await _db.Donations
+        var donationsByMonth = await donationsForSelectedPeriod
             .Where(d => d.DonationDate != null)
             .GroupBy(d => new { d.DonationDate!.Value.Year, d.DonationDate!.Value.Month })
-            .Select(g => new { Year = g.Key.Year, Month = g.Key.Month, Total = g.Sum(d => d.EstimatedValue ?? 0), Count = g.Count() })
+            .Select(g => new
+            {
+                Year = g.Key.Year,
+                Month = g.Key.Month,
+                Total = g.Sum(d => (d.Amount ?? d.EstimatedValue) ?? 0),
+                Count = g.Count()
+            })
             .OrderBy(t => t.Year).ThenBy(t => t.Month)
             .ToListAsync();
 
@@ -229,6 +266,12 @@ public class ReportsController : ControllerBase
             totalRaisedThisYear,
             donorCount,
             activeRegionCount,
+            selectedYear = requestedAllTime ? (int?)null : selectedYear,
+            selectedYearKey = requestedAllTime ? "all" : selectedYear.ToString(),
+            availableDonationYears,
+            donorCountThisYear = donorCountForSelectedYear,
+            donationCountThisYear = donationCountForSelectedYear,
+            totalDonatedThisYear = totalDonatedForSelectedYear,
             allocationsByProgramArea,
             avgEducationProgress = Math.Round(educationProgress, 1),
             avgHealthScore = Math.Round(healthScores, 1),
