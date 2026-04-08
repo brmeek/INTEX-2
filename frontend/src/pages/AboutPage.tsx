@@ -5,7 +5,6 @@ import { useAuth } from "@/context/AuthContext";
 import { getDonorPortalPath } from "@/lib/portalRoutes";
 import mountainsImage from "@/assets/Phillipines-mountains.jpg";
 import girlsImage from "@/assets/Phillipines-girls.jpg";
-import foundersImage from "@/assets/founders-philippines.png";
 import {
   ArrowRight,
   Users,
@@ -92,25 +91,6 @@ const programs = [
       "Vocational skills training",
       "Reintegration and placement support",
     ],
-  },
-];
-
-const founderProfiles = [
-  {
-    name: "Elsie",
-    bio: "Elsie was a successful potato farmer who later inherited her grandfather's estate, then chose to invest those resources into building the mission.",
-  },
-  {
-    name: "Mary Catherine",
-    bio: "Mary Catherine founded her own startup and sold it to Microsoft for $1 billion, bringing entrepreneurial experience and momentum to the team.",
-  },
-  {
-    name: "Levi",
-    bio: "Levi was previously unhoused in Vernal, Utah. After Elsie and Mary Catherine found him on the streets, they helped him stabilize, and he later met Brit in a shelter before joining the mission as an essential part of the work.",
-  },
-  {
-    name: "Brit",
-    bio: "Brit was previously unhoused after coming from Washington. Elsie and Mary Catherine found Brit on the streets as well, and after Brit connected with Levi in a shelter, both were hired and quickly became standout contributors.",
   },
 ];
 
@@ -250,66 +230,6 @@ const AboutPage = () => {
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-24 md:py-32 bg-background">
-        <div className="container">
-          <div className="mb-16 rounded-3xl bg-navy p-8 md:p-10 shadow-elevated">
-            <p className="font-body text-teal-light text-sm font-semibold tracking-widest uppercase mb-4">
-              Meet Our Founders
-            </p>
-            <h2 className="font-heading text-3xl md:text-4xl font-bold text-white leading-tight">
-              Elsie, Brit, Levi, and Mary Catherine
-            </h2>
-          </div>
-
-          <div className="grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] gap-8 lg:gap-10 items-start">
-            <div className="rounded-3xl overflow-hidden shadow-elevated bg-white">
-              <img
-                src={foundersImage}
-                alt="Hope Harbor founders Elsie, Brit, Levi, and Mary Catherine in the Philippines"
-                className="w-full h-full object-cover min-h-[360px] lg:min-h-[520px]"
-                loading="lazy"
-                width={1200}
-                height={800}
-              />
-            </div>
-
-            <div className="rounded-3xl bg-white p-8 md:p-10 shadow-soft">
-              <h3 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-5">
-                The Matriarchy began with conviction
-              </h3>
-              <div className="space-y-4 font-body text-muted-foreground leading-relaxed">
-                <p>
-                  Founded by Elsie and Mary Catherine to form the matriarchy,
-                  this mission started as a bold commitment to build a safer,
-                  stronger future for girls in need.
-                </p>
-                <p>
-                  Brit and Levi left everything behind and donated everything
-                  they had to support the cause, helping transform the vision
-                  into real, day-to-day impact.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 grid md:grid-cols-2 gap-6">
-            {founderProfiles.map((founder) => (
-              <article
-                key={founder.name}
-                className="bg-white rounded-2xl p-7 md:p-8 shadow-soft"
-              >
-                <h3 className="font-heading text-2xl font-bold text-foreground mb-3">
-                  {founder.name}
-                </h3>
-                <p className="font-body text-muted-foreground leading-relaxed">
-                  {founder.bio}
-                </p>
-              </article>
-            ))}
           </div>
         </div>
       </section>

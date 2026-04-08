@@ -10,7 +10,7 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-  const { authSession, isAuthenticated } = useAuth();
+  const { authSession } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -113,13 +113,6 @@ const Navbar = () => {
                 Donate Now
               </Button>
             </Link>
-            {isAuthenticated && (
-              <Link to="/account/security">
-                <Button variant="outline" size="sm" className="font-body">
-                  Security
-                </Button>
-              </Link>
-            )}
           </div>
 
           <button
@@ -176,13 +169,6 @@ const Navbar = () => {
                 </Button>
               </Link>
             </div>
-            {isAuthenticated && (
-              <Link to="/account/security" className="mt-3 block">
-                <Button variant="outline" size="sm" className="w-full font-body">
-                  Security
-                </Button>
-              </Link>
-            )}
           </div>
         </div>
       </nav>
