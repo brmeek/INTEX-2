@@ -16,7 +16,7 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-  const { authSession, isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -89,21 +89,6 @@ const Navbar = () => {
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
-            <span className={cn("text-xs font-body", scrolled || !isHome ? "text-muted-foreground" : "text-white/80")}>
-              {isLoading ? "Loading..." : isAuthenticated ? authSession?.username ?? authSession?.email ?? "Signed in" : "Not signed in"}
-            </span>
-            <Link to="/register">
-              <Button
-                variant="outline"
-                size="sm"
-                className={cn(
-                  "font-body",
-                  scrolled || !isHome ? "" : "border-white/30 text-white/90 hover:bg-white/10 hover:text-white"
-                )}
-              >
-                Create Account
-              </Button>
-            </Link>
             <Link to="/login">
               <Button
                 variant="ghost"
@@ -174,12 +159,7 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
-            <div className="pt-3 border-t border-border mt-3 grid grid-cols-3 gap-3">
-              <Link to="/register" className="flex-1">
-                <Button variant="secondary" size="sm" className="w-full font-body">
-                  Register
-                </Button>
-              </Link>
+            <div className="pt-3 border-t border-border mt-3 grid grid-cols-2 gap-3">
               <Link to="/login" className="flex-1">
                 <Button variant="outline" size="sm" className="w-full font-body">
                   Staff Portal
@@ -201,9 +181,6 @@ const Navbar = () => {
                 </Button>
               </Link>
             )}
-            <p className="px-1 pt-2 text-xs text-muted-foreground">
-              {isLoading ? "Loading..." : isAuthenticated ? authSession?.username ?? authSession?.email ?? "Signed in" : "Not signed in"}
-            </p>
           </div>
         </div>
       </nav>
