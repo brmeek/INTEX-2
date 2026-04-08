@@ -1,7 +1,37 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import missionImage from "@/assets/Phillipines-sisters.jpg";
 
+const API_BASE = import.meta.env.VITE_API_URL || "";
+
+interface PublicImpactData {
+  safehouseCount: number;
+}
+
 const MissionSection = () => {
+  const [safehouseCount, setSafehouseCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    fetch(`${API_BASE}/api/reports/impact`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("Failed to load impact data"))))
+      .then((data: PublicImpactData) => {
+        if (isMounted) {
+          setSafehouseCount(data.safehouseCount);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setSafehouseCount(null);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <section className="py-24 md:py-32 bg-background">
       <div className="container">
@@ -50,9 +80,11 @@ const MissionSection = () => {
                 />
               </div>
               <div className="absolute -bottom-6 -left-6 bg-navy rounded-xl p-5 shadow-elevated hidden md:block">
-                <p className="font-heading text-3xl font-bold text-white">5</p>
+                <p className="font-heading text-3xl font-bold text-white">
+                  {safehouseCount ?? "-"}
+                </p>
                 <p className="font-body text-sm text-white/70">
-                  safe homes
+                  safe home{safehouseCount === 1 ? "" : "s"}
                   <br />
                   in operation
                 </p>

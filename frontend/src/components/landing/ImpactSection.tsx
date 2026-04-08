@@ -1,11 +1,56 @@
-const stats = [
-  { value: "120+", label: "Girls sheltered since founding" },
-  { value: "24/7", label: "On-site care at every home" },
-  { value: "98¢", label: "Of every dollar funds programs" },
-  { value: "4", label: "Countries with active programs" },
-];
+import { useEffect, useMemo, useState } from "react";
+
+const API_BASE = import.meta.env.VITE_API_URL || "";
+
+interface PublicImpactData {
+  totalResidents: number;
+  totalRaisedThisYear: number;
+  activeRegionCount: number;
+}
 
 const ImpactSection = () => {
+  const [impactData, setImpactData] = useState<PublicImpactData | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    fetch(`${API_BASE}/api/reports/impact`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("Failed to load impact data"))))
+      .then((data: PublicImpactData) => {
+        if (isMounted) {
+          setImpactData(data);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setImpactData(null);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const stats = useMemo(
+    () => [
+      {
+        value: impactData ? impactData.totalResidents.toLocaleString() : "-",
+        label: "Residents helped since founding",
+      },
+      { value: "24/7", label: "On-site care at every home" },
+      {
+        value: impactData ? `PHP ${Math.round(impactData.totalRaisedThisYear).toLocaleString()}` : "-",
+        label: "Raised this year",
+      },
+      {
+        value: impactData ? impactData.activeRegionCount.toLocaleString() : "-",
+        label: "Regions with active programs",
+      },
+    ],
+    [impactData]
+  );
+
   return (
     <section className="py-24 md:py-32 bg-navy text-white">
       <div className="container">
@@ -20,7 +65,7 @@ const ImpactSection = () => {
           </h2>
           <p className="font-body text-white/60 leading-relaxed">
             Behind every statistic is a young woman rebuilding her life. We track
-            outcomes carefully — not to generate reports, but to make sure every
+            outcomes carefully, not to generate reports, but to make sure every
             girl in our care is truly progressing.
           </p>
         </div>

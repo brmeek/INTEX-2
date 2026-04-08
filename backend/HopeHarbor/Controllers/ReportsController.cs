@@ -68,14 +68,56 @@ public class ReportsController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> Impact()
     {
+        var currentYear = DateTime.Today.Year;
         var totalResidents = await _db.Residents.CountAsync();
         var activeResidents = await _db.Residents.CountAsync(r => r.CaseStatus == "Active");
         var reintegrated = await _db.Residents.CountAsync(r => r.ReintegrationStatus == "Completed");
         var safehouseCount = await _db.Safehouses.CountAsync();
         var totalDonations = await _db.Donations.Where(d => d.Amount != null).SumAsync(d => d.Amount ?? 0);
+        var totalRaisedThisYear = await _db.Donations
+            .Where(d => d.Amount != null && d.DonationDate != null && d.DonationDate.Value.Year == currentYear)
+            .SumAsync(d => d.Amount ?? 0);
         var donorCount = await _db.Supporters.CountAsync();
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var activeProgramRegions = await (
+            from assignment in _db.PartnerAssignments
+            join safehouse in _db.Safehouses on assignment.SafehouseId equals safehouse.SafehouseId
+            where assignment.SafehouseId != null
+                && !string.IsNullOrWhiteSpace(safehouse.Region)
+            select new
+            {
+                safehouse.Region,
+                assignment.Status,
+                assignment.AssignmentStart,
+                assignment.AssignmentEnd
+            })
+            .ToListAsync();
+        var activeRegionCount = activeProgramRegions
+            .Where(a =>
+                !string.IsNullOrWhiteSpace(a.Status)
+                && a.Status.Equals("Active", StringComparison.OrdinalIgnoreCase)
+                && (a.AssignmentStart == null || a.AssignmentStart <= today)
+                && (a.AssignmentEnd == null || a.AssignmentEnd >= today))
+            .Select(a => a.Region!.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Count();
 
-                // Compute latest-per-resident averages in memory to avoid provider translation edge cases.
+        var donationAllocationRows = await _db.DonationAllocations
+            .Where(a => a.AmountAllocated != null && !string.IsNullOrWhiteSpace(a.ProgramArea))
+            .Select(a => new { a.ProgramArea, a.AmountAllocated })
+            .ToListAsync();
+
+        var allocationsByProgramArea = donationAllocationRows
+            .GroupBy(a => a.ProgramArea!.Trim(), StringComparer.OrdinalIgnoreCase)
+            .Select(g => new
+            {
+                programArea = g.Key,
+                amountAllocated = g.Sum(a => a.AmountAllocated ?? 0)
+            })
+            .OrderByDescending(a => a.amountAllocated)
+            .ToList();
+
+        // Compute latest-per-resident averages in memory to avoid provider translation edge cases.
         var educationProgressRows = await _db.EducationRecords
             .Where(e => e.ProgressPercent != null)
             .Select(e => new { e.ResidentId, e.RecordDate, e.ProgressPercent })
@@ -121,7 +163,10 @@ public class ReportsController : ControllerBase
             reintegrated,
             safehouseCount,
             totalDonations,
+            totalRaisedThisYear,
             donorCount,
+            activeRegionCount,
+            allocationsByProgramArea,
             avgEducationProgress = Math.Round(educationProgress, 1),
             avgHealthScore = Math.Round(healthScores, 1),
             donationsByType,

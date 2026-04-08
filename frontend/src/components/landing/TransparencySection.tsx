@@ -1,7 +1,52 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ShieldCheck, FileText, Lock } from "lucide-react";
 
+const API_BASE = import.meta.env.VITE_API_URL || "";
+
+interface ProgramAllocation {
+  programArea: string;
+  amountAllocated: number;
+}
+
 const TransparencySection = () => {
+  const [allocations, setAllocations] = useState<ProgramAllocation[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    fetch(`${API_BASE}/api/reports/impact`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("Failed to load allocation data"))))
+      .then((data: { allocationsByProgramArea?: ProgramAllocation[] }) => {
+        if (isMounted) {
+          setAllocations(data.allocationsByProgramArea ?? []);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setAllocations([]);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const totalAllocated = useMemo(
+    () => allocations.reduce((sum, item) => sum + item.amountAllocated, 0),
+    [allocations]
+  );
+
+  const moneyGoes = useMemo(
+    () =>
+      allocations.map((item) => ({
+        ...item,
+        sharePct: totalAllocated > 0 ? (item.amountAllocated / totalAllocated) * 100 : 0,
+      })),
+    [allocations, totalAllocated]
+  );
+
   return (
     <section className="py-24 md:py-32 bg-background">
       <div className="container">
@@ -64,25 +109,26 @@ const TransparencySection = () => {
                 Where Your Money Goes
               </p>
               <div className="space-y-3">
-                {[
-                  { label: "Direct care & housing", pct: 72 },
-                  { label: "Counseling & education", pct: 18 },
-                  { label: "Administration", pct: 7 },
-                  { label: "Fundraising", pct: 3 },
-                ].map((item) => (
-                  <div key={item.label}>
+                {moneyGoes.length > 0 ? moneyGoes.map((item) => (
+                  <div key={item.programArea}>
                     <div className="flex justify-between text-sm font-body text-white/80 mb-1">
-                      <span>{item.label}</span>
-                      <span className="font-semibold text-white">{item.pct}%</span>
+                      <span>{item.programArea}</span>
+                      <span className="font-semibold text-white">
+                        PHP {Math.round(item.amountAllocated).toLocaleString()}
+                      </span>
                     </div>
                     <div className="h-1.5 rounded-full bg-white/10">
                       <div
                         className="h-full rounded-full bg-teal"
-                        style={{ width: `${item.pct}%` }}
+                        style={{ width: `${item.sharePct}%` }}
                       />
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <p className="font-body text-sm text-white/70 leading-relaxed">
+                    Allocation data will appear here once donation spending has been recorded.
+                  </p>
+                )}
               </div>
             </div>
           </div>
