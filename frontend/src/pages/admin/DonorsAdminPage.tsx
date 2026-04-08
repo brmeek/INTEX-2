@@ -14,6 +14,10 @@ interface Supporter {
   status: string;
   totalGiven: number | null;
   region: string;
+  churnProbability?: number | null;
+  churnPredicted?: boolean | null;
+  riskTier?: "High" | "Medium" | "Low" | null;
+  churnScoredAtUtc?: string | null;
 }
 
 interface Donation {
@@ -26,6 +30,12 @@ interface Donation {
   channelSource: string;
   isRecurring: boolean;
   supporter?: { supporterName: string };
+}
+
+interface InKindEstimateResult {
+  estimatedUnitValuePhp: number;
+  estimatedTotalValuePhp: number;
+  modelVersion: string;
 }
 
 const DonorsAdminPage = () => {
@@ -42,6 +52,15 @@ const DonorsAdminPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<Supporter | null>(null);
   const [form, setForm] = useState({ supporterName: "", supporterType: "Monetary", email: "", phone: "", status: "Active", region: "", notes: "" });
+  const [inKindEstimateForm, setInKindEstimateForm] = useState({
+    itemCategory: "Supplies",
+    quantity: "1",
+    unitOfMeasure: "pcs",
+    intendedUse: "Education",
+    receivedCondition: "Good",
+  });
+  const [inKindEstimate, setInKindEstimate] = useState<InKindEstimateResult | null>(null);
+  const [estimatingInKind, setEstimatingInKind] = useState(false);
 
   const loadSupporters = async (p = 1) => {
     setLoading(true);
@@ -69,6 +88,36 @@ const DonorsAdminPage = () => {
     if (tab === "supporters") loadSupporters();
     else loadDonations();
   }, [tab]);
+
+  useEffect(() => {
+    if (tab !== "donations") return;
+
+    const quantity = Number(inKindEstimateForm.quantity || "0");
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      setInKindEstimate(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setEstimatingInKind(true);
+      try {
+        const estimate = await api.post<InKindEstimateResult>("/api/donations/in-kind/estimate", {
+          itemCategory: inKindEstimateForm.itemCategory,
+          quantity,
+          unitOfMeasure: inKindEstimateForm.unitOfMeasure,
+          intendedUse: inKindEstimateForm.intendedUse,
+          receivedCondition: inKindEstimateForm.receivedCondition,
+        });
+        setInKindEstimate(estimate);
+      } catch {
+        setInKindEstimate(null);
+      } finally {
+        setEstimatingInKind(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [tab, inKindEstimateForm]);
 
   const handleSave = async () => {
     try {
@@ -106,6 +155,12 @@ const DonorsAdminPage = () => {
   };
 
   const inputClass = "w-full px-3 py-2 rounded-lg border border-border bg-secondary font-body text-sm focus:outline-none focus:ring-2 focus:ring-accent";
+  const getRiskPillClass = (riskTier?: string | null) => {
+    if (riskTier === "High") return "bg-red-100 text-red-700";
+    if (riskTier === "Medium") return "bg-amber-100 text-amber-700";
+    if (riskTier === "Low") return "bg-emerald-100 text-emerald-700";
+    return "bg-muted text-muted-foreground";
+  };
 
   return (
     <AdminLayout title="Donors & Contributions" subtitle="Manage supporters and track donations">
@@ -156,6 +211,43 @@ const DonorsAdminPage = () => {
           </div>
         )}
 
+        {tab === "donations" && (
+          <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+            <h3 className="font-heading text-lg font-bold text-foreground mb-1">In-Kind Donation Value Estimator</h3>
+            <p className="font-body text-xs text-muted-foreground mb-4">
+              Pipeline 5: estimate in-kind donation value instantly during intake.
+            </p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
+              <select className={inputClass} value={inKindEstimateForm.itemCategory} onChange={(e) => setInKindEstimateForm((f) => ({ ...f, itemCategory: e.target.value }))}>
+                <option>Food</option><option>Supplies</option><option>Clothing</option><option>SchoolMaterials</option><option>Hygiene</option><option>Furniture</option><option>Medical</option>
+              </select>
+              <input className={inputClass} type="number" min={1} placeholder="Quantity" value={inKindEstimateForm.quantity} onChange={(e) => setInKindEstimateForm((f) => ({ ...f, quantity: e.target.value }))} />
+              <select className={inputClass} value={inKindEstimateForm.unitOfMeasure} onChange={(e) => setInKindEstimateForm((f) => ({ ...f, unitOfMeasure: e.target.value }))}>
+                <option>pcs</option><option>boxes</option><option>kg</option><option>sets</option><option>packs</option>
+              </select>
+              <select className={inputClass} value={inKindEstimateForm.intendedUse} onChange={(e) => setInKindEstimateForm((f) => ({ ...f, intendedUse: e.target.value }))}>
+                <option>Meals</option><option>Education</option><option>Shelter</option><option>Hygiene</option><option>Health</option>
+              </select>
+              <select className={inputClass} value={inKindEstimateForm.receivedCondition} onChange={(e) => setInKindEstimateForm((f) => ({ ...f, receivedCondition: e.target.value }))}>
+                <option>New</option><option>Good</option><option>Fair</option>
+              </select>
+            </div>
+            <div className="font-body text-sm">
+              {estimatingInKind ? (
+                <p className="text-muted-foreground">Estimating...</p>
+              ) : inKindEstimate ? (
+                <div className="space-y-1">
+                  <p>Estimated unit value: <span className="font-semibold">₱{inKindEstimate.estimatedUnitValuePhp.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                  <p>Estimated total value: <span className="font-semibold">₱{inKindEstimate.estimatedTotalValuePhp.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                  <p className="text-xs text-muted-foreground">Model: {inKindEstimate.modelVersion}</p>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">Enter item details to estimate value.</p>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Table */}
         <div className="bg-white rounded-xl shadow-soft border border-border overflow-hidden">
           {loading ? (
@@ -166,6 +258,7 @@ const DonorsAdminPage = () => {
                 <table className="w-full">
                   <thead><tr className="border-b border-border bg-muted/50">
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Name</th>
+                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Risk</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Type</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
@@ -175,7 +268,25 @@ const DonorsAdminPage = () => {
                   <tbody>
                     {supporters.map((s) => (
                       <tr key={s.supporterId} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                        <td className="px-4 py-3 font-body text-sm font-medium">{s.supporterName}</td>
+                        <td className="px-4 py-3 font-body text-sm font-medium">
+                          <div className="flex items-center gap-2">
+                            <span>{s.supporterName}</span>
+                            {s.churnPredicted && (
+                              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${getRiskPillClass(s.riskTier)}`}>
+                                {s.riskTier} Risk
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          {s.riskTier ? (
+                            <span className={`text-xs font-body px-2 py-1 rounded-full ${getRiskPillClass(s.riskTier)}`}>
+                              {s.riskTier} ({((s.churnProbability ?? 0) * 100).toFixed(2)}%)
+                            </span>
+                          ) : (
+                            <span className="text-xs font-body text-muted-foreground">Not scored</span>
+                          )}
+                        </td>
                         <td className="px-4 py-3"><span className="text-xs font-body px-2 py-1 rounded-full bg-secondary">{s.supporterType}</span></td>
                         <td className="px-4 py-3 font-body text-sm text-muted-foreground">{s.email}</td>
                         <td className="px-4 py-3"><span className={`text-xs font-body px-2 py-1 rounded-full ${s.status === "Active" ? "bg-teal/10 text-teal" : "bg-muted text-muted-foreground"}`}>{s.status}</span></td>

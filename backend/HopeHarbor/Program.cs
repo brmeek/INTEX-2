@@ -63,8 +63,7 @@ builder.Services.AddControllers()
 builder.Services.AddOpenApi();
 builder.Services.Configure<ContactEmailOptions>(builder.Configuration.GetSection("ContactEmail"));
 builder.Services.AddScoped<IContactEmailSender, ContactEmailSender>();
-builder.Services.AddScoped<RegionalRiskSyncService>();
-builder.Services.AddHostedService<RegionalRiskRefreshWorker>();
+builder.Services.AddHttpClient<IChatbotService, ChatbotService>();
 
 builder.Services.AddDbContext<HopeHarborContext>(opts =>
     opts.UseNpgsql(postgresConnectionString));
@@ -79,6 +78,11 @@ Console.WriteLine($"Identity Postgres target: {identityPg.Host}:{identityPg.Port
 
 builder.Services.AddDbContext<AuthIdentityDbContext>(opts =>
     opts.UseNpgsql(identityConnectionString));
+builder.Services.AddScoped<IDonorChurnScoringService, DonorChurnScoringService>();
+builder.Services.AddScoped<IResidentReintegrationScoringService, ResidentReintegrationScoringService>();
+builder.Services.AddScoped<ISocialMediaConversionScoringService, SocialMediaConversionScoringService>();
+builder.Services.AddScoped<ISafehouseEducationForecastingService, SafehouseEducationForecastingService>();
+builder.Services.AddScoped<IInKindDonationValuationService, InKindDonationValuationService>();
 
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddRoles<IdentityRole>()
@@ -130,6 +134,10 @@ using (var scope = app.Services.CreateScope())
 {
     var appDb = scope.ServiceProvider.GetRequiredService<HopeHarborContext>();
     appDb.Database.EnsureCreated();
+    await EnsureDonorChurnScoresTableAsync(appDb);
+    await EnsureResidentReadinessScoresTableAsync(appDb);
+    await EnsureSocialMediaConversionPredictionsTableAsync(appDb);
+    await EnsureSafehouseEducationForecastsTableAsync(appDb);
 
     var identityDb = scope.ServiceProvider.GetRequiredService<AuthIdentityDbContext>();
     identityDb.Database.EnsureCreated();
@@ -159,6 +167,27 @@ app.UseAuthorization();
 
 app.MapIdentityApi<ApplicationUser>();
 app.MapControllers();
+
+_ = Task.Run(async () =>
+{
+    try
+    {
+        using var startupScope = app.Services.CreateScope();
+        var startupDb = startupScope.ServiceProvider.GetRequiredService<HopeHarborContext>();
+        var donorChurnScoringService = startupScope.ServiceProvider.GetRequiredService<IDonorChurnScoringService>();
+        var residentReintegrationScoringService = startupScope.ServiceProvider.GetRequiredService<IResidentReintegrationScoringService>();
+        var safehouseEducationForecastingService = startupScope.ServiceProvider.GetRequiredService<ISafehouseEducationForecastingService>();
+
+        var donorCount = await donorChurnScoringService.ScoreAllAsync(startupDb);
+        var residentCount = await residentReintegrationScoringService.ScoreAllAsync(startupDb);
+        var safehouseCount = await safehouseEducationForecastingService.ScoreAllAsync(startupDb);
+        Console.WriteLine($"Startup scoring complete. Donors scored: {donorCount}, residents scored: {residentCount}, safehouses scored: {safehouseCount}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Startup scoring warning: {ex.Message}");
+    }
+});
 
 if (Directory.Exists(wwwroot))
 {
@@ -311,4 +340,112 @@ static void LoadDotEnvIfPresent(string dotEnvPath)
         if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(key)))
             Environment.SetEnvironmentVariable(key, value);
     }
+}
+
+static async Task EnsureDonorChurnScoresTableAsync(HopeHarborContext db)
+{
+    var sql = """
+        CREATE TABLE IF NOT EXISTS donor_churn_scores (
+            supporter_id INT PRIMARY KEY REFERENCES supporters(supporter_id) ON DELETE CASCADE,
+            churn_probability NUMERIC(6,4) NOT NULL,
+            churn_predicted BOOLEAN NOT NULL,
+            risk_tier VARCHAR(20) NOT NULL,
+            scored_at_utc TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+            model_version VARCHAR(100) NOT NULL,
+            days_since_last_donation INT NOT NULL,
+            has_recurring_donation BOOLEAN NOT NULL,
+            num_campaigns_participated INT NOT NULL,
+            giving_trajectory NUMERIC(8,4) NOT NULL,
+            skipped_most_recent_campaign BOOLEAN NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS ix_donor_churn_scores_risk_tier ON donor_churn_scores(risk_tier);
+        CREATE INDEX IF NOT EXISTS ix_donor_churn_scores_churn_probability ON donor_churn_scores(churn_probability DESC);
+    """;
+
+    await db.Database.ExecuteSqlRawAsync(sql);
+}
+
+static async Task EnsureResidentReadinessScoresTableAsync(HopeHarborContext db)
+{
+    var sql = """
+        CREATE TABLE IF NOT EXISTS resident_reintegration_scores (
+            resident_id INT PRIMARY KEY REFERENCES residents(resident_id) ON DELETE CASCADE,
+            readiness_score NUMERIC(6,4) NOT NULL,
+            readiness_tier VARCHAR(40) NOT NULL,
+            top_concern_feature VARCHAR(100) NOT NULL,
+            trend_label VARCHAR(40) NOT NULL,
+            history_months_used INT NOT NULL,
+            month_over_month_change NUMERIC(8,4) NULL,
+            first_vs_latest_change NUMERIC(8,4) NULL,
+            initial_vs_latest_change NUMERIC(8,4) NULL,
+            trajectory_slope NUMERIC(8,4) NULL,
+            scored_at_utc TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+            model_version VARCHAR(100) NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS ix_resident_reintegration_scores_tier ON resident_reintegration_scores(readiness_tier);
+        CREATE INDEX IF NOT EXISTS ix_resident_reintegration_scores_score ON resident_reintegration_scores(readiness_score DESC);
+        CREATE INDEX IF NOT EXISTS ix_resident_reintegration_scores_trend ON resident_reintegration_scores(trend_label);
+    """;
+
+    await db.Database.ExecuteSqlRawAsync(sql);
+}
+
+static async Task EnsureSocialMediaConversionPredictionsTableAsync(HopeHarborContext db)
+{
+    var sql = """
+        CREATE TABLE IF NOT EXISTS social_media_conversion_predictions (
+            prediction_id INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+            platform VARCHAR(50) NOT NULL,
+            post_type VARCHAR(50) NOT NULL,
+            media_type VARCHAR(50) NOT NULL,
+            sentiment_tone VARCHAR(50) NOT NULL,
+            content_topic VARCHAR(100) NOT NULL,
+            has_call_to_action BOOLEAN NOT NULL,
+            call_to_action_type VARCHAR(100) NULL,
+            is_boosted BOOLEAN NOT NULL,
+            boost_budget_php NUMERIC(12,2) NOT NULL,
+            num_hashtags INT NOT NULL,
+            caption_length INT NOT NULL,
+            features_resident_story BOOLEAN NOT NULL,
+            campaign_name VARCHAR(255) NULL,
+            predicted_log_referrals NUMERIC(8,4) NOT NULL,
+            predicted_referrals NUMERIC(12,2) NOT NULL,
+            prediction_confidence VARCHAR(20) NOT NULL,
+            model_version VARCHAR(100) NOT NULL,
+            scored_at_utc TIMESTAMP WITHOUT TIME ZONE NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS ix_social_media_conversion_predictions_scored_at
+            ON social_media_conversion_predictions(scored_at_utc DESC);
+    """;
+
+    await db.Database.ExecuteSqlRawAsync(sql);
+}
+
+static async Task EnsureSafehouseEducationForecastsTableAsync(HopeHarborContext db)
+{
+    var sql = """
+        CREATE TABLE IF NOT EXISTS safehouse_education_forecasts (
+            safehouse_id INT PRIMARY KEY REFERENCES safehouses(safehouse_id) ON DELETE CASCADE,
+            forecast_for_month DATE NOT NULL,
+            predicted_education_score NUMERIC(6,2) NOT NULL,
+            latest_observed_score NUMERIC(6,2) NOT NULL,
+            previous_observed_score NUMERIC(6,2) NULL,
+            trajectory_slope NUMERIC(8,4) NULL,
+            history_months_used INT NOT NULL,
+            alert_flag BOOLEAN NOT NULL,
+            alert_reason VARCHAR(120) NOT NULL,
+            scored_at_utc TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+            model_version VARCHAR(100) NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS ix_safehouse_education_forecasts_alert
+            ON safehouse_education_forecasts(alert_flag);
+        CREATE INDEX IF NOT EXISTS ix_safehouse_education_forecasts_score
+            ON safehouse_education_forecasts(predicted_education_score);
+    """;
+
+    await db.Database.ExecuteSqlRawAsync(sql);
 }

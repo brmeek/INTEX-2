@@ -1,0 +1,32 @@
+[
+  {
+    "title": "How to donate",
+    "url": "/donor/login",
+    "tags": ["donation", "give", "monthly", "one-time", "portal"],
+    "content": "Donors can sign in through the donor portal and submit one-time or monthly gifts. The portal supports preset donation amounts and custom contributions so supporters can choose what fits their budget."
+  },
+  {
+    "title": "Where donations go",
+    "url": "/",
+    "tags": ["funds", "allocation", "transparency", "programs"],
+    "content": "Donation spending is allocated to direct program areas that support safe housing, counseling, education support, and related care services. The transparency section emphasizes that funds are tied to real program outcomes."
+  },
+  {
+    "title": "Transparency and accountability",
+    "url": "/impact",
+    "tags": ["audit", "report", "financial", "accountability"],
+    "content": "The organization communicates trust through annual financial reporting, independent audits, and regular updates to donors. This helps supporters understand the impact of their contributions."
+  },
+  {
+    "title": "Privacy and safety commitment",
+    "url": "/privacy",
+    "tags": ["privacy", "security", "survivors", "safety"],
+    "content": "Resident safety is prioritized with privacy-first practices. Identifying resident information is not publicly shared, and systems are designed around protecting minors and survivors."
+  },
+  {
+    "title": "Need exact financial details",
+    "url": "/contact",
+    "tags": ["contact", "question", "details", "follow-up"],
+    "content": "If a donor needs a precise or custom financial breakdown, they should use the contact page for direct support. The chat assistant is intended for quick guidance and may not include every edge-case detail."
+  }
+]

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HopeHarbor.Data;
+using HopeHarbor.Services;
 
 namespace HopeHarbor.Controllers;
 
@@ -11,7 +12,18 @@ namespace HopeHarbor.Controllers;
 public class ReportsController : ControllerBase
 {
     private readonly HopeHarborContext _db;
-    public ReportsController(HopeHarborContext db) => _db = db;
+    private readonly ISocialMediaConversionScoringService _socialMediaConversionScoringService;
+    private readonly ISafehouseEducationForecastingService _safehouseEducationForecastingService;
+
+    public ReportsController(
+        HopeHarborContext db,
+        ISocialMediaConversionScoringService socialMediaConversionScoringService,
+        ISafehouseEducationForecastingService safehouseEducationForecastingService)
+    {
+        _db = db;
+        _socialMediaConversionScoringService = socialMediaConversionScoringService;
+        _safehouseEducationForecastingService = safehouseEducationForecastingService;
+    }
 
     [HttpGet("dashboard")]
     public async Task<IActionResult> Dashboard()
@@ -26,12 +38,47 @@ public class ReportsController : ControllerBase
             .OrderByDescending(d => d.DonationDate)
             .Take(5)
             .ToListAsync();
+        var atRiskDonors = await _db.DonorChurnScores
+            .Include(s => s.Supporter)
+            .Where(s => s.ChurnPredicted)
+            .OrderByDescending(s => s.ChurnProbability)
+            .Take(5)
+            .Select(s => new
+            {
+                s.SupporterId,
+                supporterName = s.Supporter != null ? s.Supporter.SupporterName : null,
+                s.RiskTier,
+                s.ChurnProbability,
+                s.ScoredAtUtc
+            })
+            .ToListAsync();
         var upcomingConferences = await _db.InterventionPlans
             .Where(p => p.CaseConferenceDate != null && p.CaseConferenceDate >= DateOnly.FromDateTime(DateTime.Today))
             .OrderBy(p => p.CaseConferenceDate)
             .Take(5)
             .Include(p => p.Resident)
             .ToListAsync();
+        var safehouseEducationForecasts = await _db.SafehouseEducationForecasts
+            .Include(f => f.Safehouse)
+            .OrderByDescending(f => f.AlertFlag)
+            .ThenBy(f => f.SafehouseId)
+            .Select(f => new
+            {
+                f.SafehouseId,
+                safehouseName = f.Safehouse != null ? f.Safehouse.SafehouseName : null,
+                region = f.Safehouse != null ? f.Safehouse.Region : null,
+                f.ForecastForMonth,
+                f.PredictedEducationScore,
+                f.LatestObservedScore,
+                f.PreviousObservedScore,
+                f.TrajectorySlope,
+                f.HistoryMonthsUsed,
+                f.AlertFlag,
+                f.AlertReason,
+                f.ScoredAtUtc
+            })
+            .ToListAsync();
+        var safehouseForecastEvaluation = await _safehouseEducationForecastingService.EvaluateAsync(_db);
 
         return Ok(new
         {
@@ -41,7 +88,22 @@ public class ReportsController : ControllerBase
             donationCount,
             safehouseCount,
             recentDonations,
-            upcomingConferences
+            atRiskDonors,
+            upcomingConferences,
+            safehouseEducationForecasts,
+            safehouseForecastEvaluation
+        });
+    }
+
+    [HttpPost("safehouse-education/refresh")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> RefreshSafehouseEducationForecasts(CancellationToken cancellationToken)
+    {
+        var scoredCount = await _safehouseEducationForecastingService.ScoreAllAsync(_db, cancellationToken);
+        return Ok(new
+        {
+            message = "Safehouse education forecasts refreshed.",
+            scoredCount
         });
     }
 
@@ -210,6 +272,73 @@ public class ReportsController : ControllerBase
             : 0;
 
         return Ok(new { byStatus, byCategory, reintegrationRate });
+    }
+
+    [HttpPost("social-media-conversion/predict")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> PredictSocialMediaConversion([FromBody] SocialMediaDraftInput input)
+    {
+        var prediction = _socialMediaConversionScoringService.ScoreDraft(input);
+        _db.SocialMediaConversionPredictions.Add(prediction);
+        await _db.SaveChangesAsync();
+
+        var donationSnapshots = await _db.Donations
+            .Where(d => ((d.Amount ?? d.EstimatedValue) ?? 0m) > 0m)
+            .Select(d => new
+            {
+                Value = d.Amount ?? d.EstimatedValue ?? 0m,
+                d.ReferralPostId,
+                d.ChannelSource
+            })
+            .ToListAsync();
+
+        var socialAttributedValues = donationSnapshots
+            .Where(d =>
+                d.ReferralPostId != null
+                || (!string.IsNullOrWhiteSpace(d.ChannelSource)
+                    && (
+                        d.ChannelSource.Contains("social", StringComparison.OrdinalIgnoreCase)
+                        || d.ChannelSource.Contains("facebook", StringComparison.OrdinalIgnoreCase)
+                        || d.ChannelSource.Contains("instagram", StringComparison.OrdinalIgnoreCase)
+                        || d.ChannelSource.Contains("tiktok", StringComparison.OrdinalIgnoreCase)
+                        || d.ChannelSource.Contains("youtube", StringComparison.OrdinalIgnoreCase)
+                    )))
+            .Select(d => d.Value)
+            .ToList();
+
+        var overallDonationValues = donationSnapshots
+            .Select(d => d.Value)
+            .ToList();
+
+        // Keep planner usable even when attribution history is sparse.
+        var averageDonationPerReferralPhp = socialAttributedValues.Count > 0
+            ? socialAttributedValues.Average()
+            : (overallDonationValues.Count > 0 ? overallDonationValues.Average() : 650m);
+
+        if (averageDonationPerReferralPhp <= 0m)
+        {
+            averageDonationPerReferralPhp = 650m;
+        }
+
+        var predictedDonationValuePhp = Math.Round(
+            prediction.PredictedReferrals * averageDonationPerReferralPhp, 2);
+        var planningEstimateLowPhp = Math.Round(predictedDonationValuePhp * 0.75m, 2);
+        var planningEstimateHighPhp = Math.Round(predictedDonationValuePhp * 1.25m, 2);
+
+        return Ok(new
+        {
+            prediction.PredictionId,
+            prediction.PredictedLogReferrals,
+            prediction.PredictedReferrals,
+            referralMetricDefinition = "Estimated number of donors referred by this post (not website visits).",
+            predictedDonationValuePhp,
+            planningEstimateLowPhp,
+            planningEstimateHighPhp,
+            averageDonationPerReferralPhp = Math.Round(averageDonationPerReferralPhp, 2),
+            prediction.PredictionConfidence,
+            prediction.ModelVersion,
+            prediction.ScoredAtUtc
+        });
     }
 }
 

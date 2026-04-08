@@ -21,7 +21,10 @@ public class HopeHarborContext : DbContext
     public DbSet<DonationAllocation> DonationAllocations => Set<DonationAllocation>();
     public DbSet<PartnerAssignment> PartnerAssignments => Set<PartnerAssignment>();
     public DbSet<ProcessRecording> ProcessRecordings => Set<ProcessRecording>();
-    public DbSet<RegionalRiskSnapshot> RegionalRiskSnapshots => Set<RegionalRiskSnapshot>();
+    public DbSet<DonorChurnScore> DonorChurnScores => Set<DonorChurnScore>();
+    public DbSet<ResidentReintegrationScore> ResidentReintegrationScores => Set<ResidentReintegrationScore>();
+    public DbSet<SocialMediaConversionPrediction> SocialMediaConversionPredictions => Set<SocialMediaConversionPrediction>();
+    public DbSet<SafehouseEducationForecast> SafehouseEducationForecasts => Set<SafehouseEducationForecast>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -45,11 +48,22 @@ public class HopeHarborContext : DbContext
             .HasForeignKey(pa => pa.PartnerId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Entity<RegionalRiskSnapshot>()
-            .HasIndex(r => r.Region)
-            .IsUnique();
+        builder.Entity<DonorChurnScore>()
+            .HasOne(d => d.Supporter)
+            .WithOne()
+            .HasForeignKey<DonorChurnScore>(d => d.SupporterId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Entity<RegionalRiskSnapshot>()
-            .HasIndex(r => r.UpdatedAtUtc);
+        builder.Entity<ResidentReintegrationScore>()
+            .HasOne(r => r.Resident)
+            .WithOne()
+            .HasForeignKey<ResidentReintegrationScore>(r => r.ResidentId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<SafehouseEducationForecast>()
+            .HasOne(s => s.Safehouse)
+            .WithOne()
+            .HasForeignKey<SafehouseEducationForecast>(s => s.SafehouseId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

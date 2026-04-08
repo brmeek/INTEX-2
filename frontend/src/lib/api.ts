@@ -31,3 +31,26 @@ export const api = {
   put: <T>(path: string, body: unknown) => request<T>(path, { method: "PUT", body: JSON.stringify(body) }),
   delete: (path: string) => request<void>(path, { method: "DELETE" }),
 };
+
+type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
+type ChatCitation = {
+  title: string;
+  url?: string;
+};
+
+type ChatAskResponse = {
+  answer: string;
+  citations: ChatCitation[];
+};
+
+export const chatApi = {
+  ask: (message: string, history: ChatMessage[]) =>
+    request<ChatAskResponse>("/api/chat/ask", {
+      method: "POST",
+      body: JSON.stringify({ message, history }),
+    }),
+};
