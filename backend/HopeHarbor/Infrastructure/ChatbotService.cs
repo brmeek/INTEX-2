@@ -112,12 +112,50 @@ public sealed class ChatbotService : IChatbotService
         "harm someone",
         "kill someone",
         "attack someone",
-        "poison",
-        "stab",
+        "poison someone",
+        "stab someone",
         "make a bomb",
+        "build a bomb",
         "how to hurt",
         "how to kill",
         "how to attack",
+        "how to bomb",
+        "how to shoot",
+        "how to stab",
+        "how to murder",
+        "how to poison",
+        "how to blow up",
+        "how to assault",
+        "how to kidnap",
+        "how to abuse",
+        "how to exploit",
+        "how to traffick",
+        "how to harm",
+        "how to destroy",
+    ];
+    private static readonly string[] HarmfulSingleTerms =
+    [
+        "bomb",
+        "bombing",
+        "shoot",
+        "shooting",
+        "murder",
+        "kidnap",
+        "kidnapping",
+        "traffick",
+        "trafficking",
+        "arson",
+        "terrorism",
+        "terrorist",
+        "massacre",
+        "assassin",
+        "assassination",
+        "assault",
+        "molest",
+        "rape",
+        "exploit children",
+        "child abuse",
+        "human trafficking",
     ];
     private static readonly Dictionary<string, string[]> IntentTermGroups = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -125,7 +163,7 @@ public sealed class ChatbotService : IChatbotService
         ["privacy"] = ["privacy", "safe", "safety", "security", "confidential", "personal", "protect"],
         ["cookies"] = ["cookie", "cookies", "tracking", "consent", "policy"],
         ["impact"] = ["impact", "transparency", "report", "accountability", "outcomes", "results"],
-        ["donate"] = ["donate", "donation", "give", "giving", "gift", "contribute", "contribution"],
+        ["donate"] = ["donate", "donation", "donor", "give", "giving", "gift", "contribute", "contribution"],
         ["login"] = ["login", "log", "signin", "sign", "access", "account", "portal"],
         ["register"] = ["register", "signup", "create", "account", "join"],
         ["about"] = ["about", "mission", "program", "programs", "services", "organization"],
@@ -220,9 +258,14 @@ public sealed class ChatbotService : IChatbotService
                 {
                     role = "system",
                     content =
-                        "You are a website help assistant for a class project nonprofit site. " +
+                        "You are a website help assistant for a class project nonprofit site called Hope Harbor. " +
                         "Answer using only the provided context. If context is missing, clearly say you do not know and suggest the contact page. " +
-                        "Prioritize matching the user's intent to the right page (for example contact, privacy, impact, login, or donation). " +
+                        "Prioritize matching the user's intent to the MOST relevant page from the provided context. " +
+                        "If the user asks about donating or making a gift, direct them to the donor login page specifically. " +
+                        "If the user asks about the organization, mission, or programs, direct them to the about page. " +
+                        "If the user asks about contacting the team, direct them to the contact page. " +
+                        "Do NOT mix up page recommendations. Only suggest pages that directly answer the user's question. " +
+                        "If a question is inappropriate, harmful, or completely unrelated to the website, refuse to answer politely. " +
                         "Keep answers concise and practical. Never fabricate policies, legal details, or numbers. " +
                         "Never provide specific safehouse locations, addresses, or any private identifying information. " +
                         "Do not include raw URL paths like /contact in your response text. " +
@@ -282,10 +325,7 @@ public sealed class ChatbotService : IChatbotService
             .ThenBy(item => item.Doc.Title)
             .ToList();
 
-        var topScored = ranked.Where(item => item.Score > 0).Take(3).Select(item => item.Doc).ToList();
-        if (topScored.Count > 0) return topScored;
-
-        return ranked.Take(2).Select(item => item.Doc).ToList();
+        return ranked.Where(item => item.Score > 0).Take(3).Select(item => item.Doc).ToList();
     }
 
     private static IEnumerable<string> Tokenize(string value)
@@ -377,10 +417,15 @@ public sealed class ChatbotService : IChatbotService
         if (OutOfScopeSignals.Any(signal => normalized.Contains(signal, StringComparison.Ordinal)))
             return true;
 
-        // We only hard-block clearly unrelated prompts; unknown website questions can still
-        // continue through retrieval where they will safely fall back to contact guidance.
-        return !WebsiteScopeSignals.Any(signal => normalized.Contains(signal, StringComparison.Ordinal))
-               && normalized.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Length <= 2;
+        var hasWebsiteContext = WebsiteScopeSignals.Any(signal =>
+            normalized.Contains(signal, StringComparison.Ordinal));
+        var hasIntentMatch = IntentTermGroups.Values.Any(group =>
+            ContainsAnyTerm(normalized, group));
+
+        if (!hasWebsiteContext && !hasIntentMatch)
+            return true;
+
+        return false;
     }
 
     private static string Normalize(string value)
@@ -391,7 +436,11 @@ public sealed class ChatbotService : IChatbotService
     private static bool IsUnsafeQuestion(string message)
     {
         var normalized = Normalize(message);
-        return HarmfulIntentPhrases.Any(phrase => normalized.Contains(phrase, StringComparison.Ordinal));
+
+        if (HarmfulIntentPhrases.Any(phrase => normalized.Contains(phrase, StringComparison.Ordinal)))
+            return true;
+
+        return HarmfulSingleTerms.Any(term => normalized.Contains(term, StringComparison.Ordinal));
     }
 
     private static int GetIntentBoost(string normalizedMessage, KnowledgeItem doc)
@@ -425,7 +474,7 @@ public sealed class ChatbotService : IChatbotService
         if (ContainsAnyTerm(normalizedMessage, IntentTermGroups["donate"])
             && url.Contains("/donor/login", StringComparison.Ordinal))
         {
-            return 8;
+            return 12;
         }
 
         if ((ContainsAnyTerm(normalizedMessage, IntentTermGroups["login"]) || normalizedMessage.Contains("sign in", StringComparison.Ordinal))
