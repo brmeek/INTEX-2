@@ -10,8 +10,6 @@ type ChatMessage = {
   content: string;
 };
 
-type ChatCitation = { title: string; url?: string };
-
 const starterQuestions = [
   "How can I donate on this website?",
   "Where can I view impact and transparency info?",
