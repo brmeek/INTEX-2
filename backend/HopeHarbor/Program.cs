@@ -51,6 +51,8 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddOpenApi();
+builder.Services.Configure<ContactEmailOptions>(builder.Configuration.GetSection("ContactEmail"));
+builder.Services.AddScoped<IContactEmailSender, ContactEmailSender>();
 
 builder.Services.AddDbContext<HopeHarborContext>(opts =>
     opts.UseNpgsql(postgresConnectionString));
