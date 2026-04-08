@@ -2,6 +2,17 @@ import type { AuthSession } from "@/types/AuthSession";
 
 export type PortalTarget = "admin" | "donor";
 
+export function hasAdminAccess(authSession: AuthSession | null): boolean {
+  return Boolean(authSession?.isAuthenticated && authSession.roles.includes("Admin"));
+}
+
+export function hasDonorPortalAccess(authSession: AuthSession | null): boolean {
+  return Boolean(
+    authSession?.isAuthenticated &&
+    (authSession.roles.includes("Donor") || authSession.roles.includes("Admin"))
+  );
+}
+
 export function getPortalRedirectPath(target?: PortalTarget): string {
   if (!target) {
     return "/portal";
@@ -12,27 +23,26 @@ export function getPortalRedirectPath(target?: PortalTarget): string {
 
 export function getPortalLandingPath(authSession: AuthSession | null, preferredTarget?: PortalTarget): string {
   const isAuthenticated = authSession?.isAuthenticated ?? false;
-  const roles = authSession?.roles ?? [];
-  const hasAdminAccess = roles.includes("Admin");
-  const hasDonorAccess = roles.includes("Donor");
+  const canAccessAdmin = hasAdminAccess(authSession);
+  const canAccessDonorPortal = hasDonorPortalAccess(authSession);
 
   if (!isAuthenticated) {
     return preferredTarget === "admin" ? "/login" : "/donor/login";
   }
 
-  if (preferredTarget === "donor" && hasDonorAccess) {
+  if (preferredTarget === "donor" && canAccessDonorPortal) {
     return "/donor";
   }
 
-  if (preferredTarget === "admin" && hasAdminAccess) {
+  if (preferredTarget === "admin" && canAccessAdmin) {
     return "/admin";
   }
 
-  if (hasAdminAccess) {
+  if (canAccessAdmin) {
     return "/admin";
   }
 
-  if (hasDonorAccess) {
+  if (canAccessDonorPortal) {
     return "/donor";
   }
 
@@ -40,7 +50,7 @@ export function getPortalLandingPath(authSession: AuthSession | null, preferredT
 }
 
 export function getStaffPortalPath(authSession: AuthSession | null): string {
-  if (authSession?.isAuthenticated && authSession.roles.includes("Admin")) {
+  if (hasAdminAccess(authSession)) {
     return "/admin";
   }
 
@@ -48,10 +58,7 @@ export function getStaffPortalPath(authSession: AuthSession | null): string {
 }
 
 export function getDonorPortalPath(authSession: AuthSession | null): string {
-  if (
-    authSession?.isAuthenticated &&
-    authSession.roles.includes("Donor")
-  ) {
+  if (hasDonorPortalAccess(authSession)) {
     return "/donor";
   }
 

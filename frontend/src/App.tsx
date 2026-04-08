@@ -6,7 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { CookieConsentProvider } from "@/context/CookieConsentContext";
-import { getPortalLandingPath, type PortalTarget } from "@/lib/portalRoutes";
+import { getPortalLandingPath, hasDonorPortalAccess, type PortalTarget } from "@/lib/portalRoutes";
 import InitialLoadingScreen from "./components/InitialLoadingScreen";
 import ScrollToTop from "./components/ScrollToTop";
 import CookieConsentBanner from "./components/CookieConsentBanner";
@@ -50,7 +50,11 @@ function ProtectedRoute({ children, requireRole }: { children: React.ReactNode; 
   }
 
   if (!authSession?.isAuthenticated) return <Navigate to={requireRole === "Admin" ? "/login" : "/donor/login"} replace />;
-  if (requireRole && !authSession.roles.includes(requireRole)) {
+  const hasRequiredAccess = !requireRole
+    || authSession.roles.includes(requireRole)
+    || (requireRole === "Donor" && hasDonorPortalAccess(authSession));
+
+  if (!hasRequiredAccess) {
     return <Navigate to={requireRole === "Admin" ? "/login" : "/donor/login"} replace />;
   }
   return <>{children}</>;

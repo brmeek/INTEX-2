@@ -280,7 +280,7 @@ const DonorPortalPage = () => {
         <section className="bg-secondary border border-border rounded-xl p-4 flex items-start gap-3">
           <ShieldCheck className="h-4 w-4 text-accent mt-0.5" />
           <p className="font-body text-xs text-muted-foreground">
-            Access is role-restricted. Donor accounts can only access donor portal features and cannot view staff admin data.
+            Access is role-restricted. Donor and staff accounts can use this portal, but staff-only admin dashboards remain separate.
           </p>
         </section>
       </main>

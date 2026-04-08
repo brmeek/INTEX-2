@@ -5,7 +5,7 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { loginUser, registerUser } from "@/lib/authApi";
-import { getPortalRedirectPath } from "@/lib/portalRoutes";
+import { getPortalRedirectPath, hasDonorPortalAccess } from "@/lib/portalRoutes";
 
 const DonorLoginPage = () => {
   const [mode, setMode] = useState<"login" | "create">("login");
@@ -22,7 +22,7 @@ const DonorLoginPage = () => {
     return mode === "login" ? "Sign In to Continue" : "Create Donor Account";
   }, [loading, mode]);
 
-  if (isAuthenticated && authSession?.roles.includes("Donor")) return <Navigate to="/donor" replace />;
+  if (isAuthenticated && hasDonorPortalAccess(authSession)) return <Navigate to="/donor" replace />;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,7 +112,7 @@ const DonorLoginPage = () => {
               <p className="font-body text-muted-foreground mb-8">
                 {mode === "login"
                   ? isAuthenticated
-                    ? "Your current account does not have donor access. Sign in with donor credentials to continue."
+                    ? "Your current session can already use the donor portal."
                     : "Sign in to continue to your donor dashboard."
                   : "Create a secure account to donate and keep a history of your gifts."}
               </p>
