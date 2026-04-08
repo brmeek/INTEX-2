@@ -19,6 +19,16 @@ const starterQuestions = [
 ];
 
 const hiddenPrefixes = ["/admin", "/donor", "/portal", "/login", "/register", "/account", "/logout"];
+const routeLinks: Array<{ route: string; label: string }> = [
+  { route: "/contact", label: "contact page" },
+  { route: "/privacy", label: "privacy page" },
+  { route: "/impact", label: "impact page" },
+  { route: "/about", label: "about page" },
+  { route: "/cookies", label: "cookie policy page" },
+  { route: "/login", label: "login page" },
+  { route: "/register", label: "registration page" },
+  { route: "/donor/login", label: "donor login page" },
+];
 
 const ChatbotWidget = () => {
   const location = useLocation();
@@ -70,6 +80,27 @@ const ChatbotWidget = () => {
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
     await askQuestion(input);
+  };
+
+  const renderAssistantContent = (content: string) => {
+    const pattern = new RegExp(`(${routeLinks.map((item) => item.route.replace("/", "\\/")).join("|")})`, "g");
+    const parts = content.split(pattern);
+    if (parts.length === 1) return content;
+
+    return parts.map((part, index) => {
+      const match = routeLinks.find((item) => item.route === part);
+      if (!match) return <span key={`assistant-text-${index}`}>{part}</span>;
+
+      return (
+        <Link
+          key={`assistant-link-${match.route}-${index}`}
+          to={match.route}
+          className="text-accent underline underline-offset-2 hover:opacity-80"
+        >
+          {match.label}
+        </Link>
+      );
+    });
   };
 
   return (
@@ -124,7 +155,7 @@ const ChatbotWidget = () => {
                   message.role === "user" ? "ml-auto bg-navy text-white" : "bg-secondary text-foreground"
                 )}
               >
-                {message.content}
+                {message.role === "assistant" ? renderAssistantContent(message.content) : message.content}
               </div>
             ))}
 
@@ -154,7 +185,7 @@ const ChatbotWidget = () => {
               <input
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
-                placeholder="Ask about this website..."
+                placeholder="Ask us your questions..."
                 className="h-10 w-full rounded-lg border border-border px-3 font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
               />
               <button

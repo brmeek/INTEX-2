@@ -6,6 +6,18 @@
     "content": "Donors can sign in through the donor portal and submit one-time or monthly gifts. The portal supports preset donation amounts and custom contributions so supporters can choose what fits their budget."
   },
   {
+    "title": "How to contact the team",
+    "url": "/contact",
+    "tags": ["contact", "team", "email", "phone", "help", "support"],
+    "content": "For direct help, users should use the contact page. It is the best place to send questions that need a response from the team."
+  },
+  {
+    "title": "About and programs page",
+    "url": "/about",
+    "tags": ["about", "programs", "services", "mission"],
+    "content": "The About page explains the organization's mission and programs. It is the main place to learn what services and support areas are highlighted on the website."
+  },
+  {
     "title": "Where donations go",
     "url": "/",
     "tags": ["funds", "allocation", "transparency", "programs"],
@@ -24,9 +36,27 @@
     "content": "Resident safety is prioritized with privacy-first practices. Identifying resident information is not publicly shared, and systems are designed around protecting minors and survivors."
   },
   {
-    "title": "Need exact financial details",
+    "title": "Cookie policy page",
+    "url": "/cookies",
+    "tags": ["cookies", "tracking", "consent", "policy"],
+    "content": "The cookie policy page explains how cookie consent works on the site and what cookies are used for website functionality and user experience."
+  },
+  {
+    "title": "Admin and donor portal access",
+    "url": "/portal",
+    "tags": ["portal", "admin", "donor", "access", "account", "security"],
+    "content": "Users can access protected areas through portal routes and login pages. Admin and donor pages require authentication and are separate from public website pages."
+  },
+  {
+    "title": "Account login and registration pages",
+    "url": "/login",
+    "tags": ["login", "register", "sign in", "sign up", "account"],
+    "content": "The website includes login and registration flows for account access. Donors also have a dedicated donor login page."
+  },
+  {
+    "title": "When exact details are needed",
     "url": "/contact",
     "tags": ["contact", "question", "details", "follow-up"],
-    "content": "If a donor needs a precise or custom financial breakdown, they should use the contact page for direct support. The chat assistant is intended for quick guidance and may not include every edge-case detail."
+    "content": "If a visitor needs exact details or information not shown publicly on the website, they should use the contact page for direct support."
   }
 ]

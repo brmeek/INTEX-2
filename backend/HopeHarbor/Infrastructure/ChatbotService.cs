@@ -25,6 +25,7 @@ public sealed class ChatbotService : IChatbotService
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private const string UnsupportedQuestionReply = "We cannot help you with that. Is there something else we can help you with today?";
+    private const string UnsafeQuestionReply = "I cannot assist with that. Is there something else I can help you with today?";
     private static readonly string[] PrivacySensitivePhrases =
     [
         "private information",
@@ -75,6 +76,16 @@ public sealed class ChatbotService : IChatbotService
         "support",
         "help",
         "navigation",
+        "team",
+        "email",
+        "phone",
+        "mission",
+        "services",
+        "cookie",
+        "policy",
+        "sign",
+        "signin",
+        "signup",
     ];
     private static readonly string[] OutOfScopeSignals =
     [
@@ -86,6 +97,30 @@ public sealed class ChatbotService : IChatbotService
         "translate",
         "write me code",
     ];
+    private static readonly string[] HarmfulIntentPhrases =
+    [
+        "hurt someone",
+        "harm someone",
+        "kill someone",
+        "attack someone",
+        "poison",
+        "stab",
+        "make a bomb",
+        "how to hurt",
+        "how to kill",
+        "how to attack",
+    ];
+    private static readonly Dictionary<string, string[]> IntentTermGroups = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["contact"] = ["contact", "team", "support", "help", "email", "phone", "reach", "connect", "staff", "contcat", "cntact"],
+        ["privacy"] = ["privacy", "safe", "safety", "security", "confidential", "personal", "protect"],
+        ["cookies"] = ["cookie", "cookies", "tracking", "consent", "policy"],
+        ["impact"] = ["impact", "transparency", "report", "accountability", "outcomes", "results"],
+        ["donate"] = ["donate", "donation", "give", "giving", "gift", "contribute", "contribution"],
+        ["login"] = ["login", "log", "signin", "sign", "access", "account", "portal"],
+        ["register"] = ["register", "signup", "create", "account", "join"],
+        ["about"] = ["about", "mission", "program", "programs", "services", "organization"],
+    };
     private readonly HttpClient _httpClient;
     private readonly ILogger<ChatbotService> _logger;
     private readonly string _model;
@@ -103,6 +138,11 @@ public sealed class ChatbotService : IChatbotService
 
     public async Task<ChatAnswerResult> AskAsync(string message, IReadOnlyList<ChatHistoryItem> history, CancellationToken cancellationToken)
     {
+        if (IsUnsafeQuestion(message))
+        {
+            return new ChatAnswerResult(UnsafeQuestionReply, []);
+        }
+
         if (IsPrivacySensitiveQuestion(message))
         {
             return new ChatAnswerResult(UnsupportedQuestionReply, []);
@@ -170,9 +210,11 @@ public sealed class ChatbotService : IChatbotService
                 {
                     role = "system",
                     content =
-                        "You are a nonprofit donation assistant for a class project site. " +
+                        "You are a website help assistant for a class project nonprofit site. " +
                         "Answer using only the provided context. If context is missing, clearly say you do not know and suggest the contact page. " +
-                        "Keep answers concise and practical. Never fabricate policies, legal details, or numbers."
+                        "Prioritize matching the user's intent to the right page (for example contact, privacy, impact, login, or donation). " +
+                        "Keep answers concise and practical. Never fabricate policies, legal details, or numbers. " +
+                        "Do not include raw URL paths like /contact in your response text."
                 },
                 new
                 {
@@ -206,13 +248,22 @@ public sealed class ChatbotService : IChatbotService
     private List<KnowledgeItem> RetrieveRelevantDocs(string message, IReadOnlyList<ChatHistoryItem> history)
     {
         var query = string.Join(" ", history.TakeLast(3).Select(h => h.Content).Append(message));
-        var queryTokens = Tokenize(query).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var normalizedMessage = Normalize(message);
+        var queryTokens = BuildExpandedQueryTokenSet(query);
 
         var ranked = _knowledge
             .Select(doc =>
             {
                 var docTokens = Tokenize($"{doc.Title} {doc.Content} {string.Join(' ', doc.Tags)}").ToArray();
-                var score = docTokens.Count(token => queryTokens.Contains(token));
+                var titleTokens = Tokenize(doc.Title).ToArray();
+                var tagTokens = doc.Tags.SelectMany(Tokenize).ToArray();
+
+                var contentOverlap = docTokens.Count(token => queryTokens.Contains(token));
+                var titleOverlap = titleTokens.Count(token => queryTokens.Contains(token));
+                var tagOverlap = tagTokens.Count(token => queryTokens.Contains(token));
+                var intentBoost = GetIntentBoost(normalizedMessage, doc);
+
+                var score = contentOverlap + (titleOverlap * 2) + (tagOverlap * 3) + intentBoost;
                 return new { Doc = doc, Score = score };
             })
             .OrderByDescending(item => item.Score)
@@ -235,13 +286,33 @@ public sealed class ChatbotService : IChatbotService
             .Where(token => token.Length > 2);
     }
 
+    private static HashSet<string> BuildExpandedQueryTokenSet(string query)
+    {
+        var tokens = Tokenize(query).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var expanded = new HashSet<string>(tokens, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var token in tokens)
+        {
+            foreach (var group in IntentTermGroups.Values)
+            {
+                if (!group.Contains(token, StringComparer.OrdinalIgnoreCase))
+                    continue;
+
+                foreach (var term in group)
+                    expanded.Add(term);
+            }
+        }
+
+        return expanded;
+    }
+
     private static string BuildFallbackAnswer(IReadOnlyList<KnowledgeItem> docs)
     {
         var summary = string.Join(" ", docs.Take(2).Select(doc => doc.Content.Trim()));
         if (summary.Length > 420)
             summary = $"{summary[..420].TrimEnd()}...";
 
-        return $"{summary} If you need a specific breakdown, please use the contact page for a detailed response.";
+        return $"{summary} If you need more details, please use the contact page.";
     }
 
     private static IReadOnlyList<KnowledgeItem> LoadKnowledge(string contentRootPath, ILogger logger)
@@ -298,5 +369,71 @@ public sealed class ChatbotService : IChatbotService
     private static string Normalize(string value)
     {
         return new string(value.ToLowerInvariant().Select(ch => char.IsLetterOrDigit(ch) || char.IsWhiteSpace(ch) ? ch : ' ').ToArray());
+    }
+
+    private static bool IsUnsafeQuestion(string message)
+    {
+        var normalized = Normalize(message);
+        return HarmfulIntentPhrases.Any(phrase => normalized.Contains(phrase, StringComparison.Ordinal));
+    }
+
+    private static int GetIntentBoost(string normalizedMessage, KnowledgeItem doc)
+    {
+        var url = doc.Url?.ToLowerInvariant() ?? string.Empty;
+
+        if (ContainsAnyTerm(normalizedMessage, IntentTermGroups["contact"])
+            && url.Contains("/contact", StringComparison.Ordinal))
+        {
+            return 10;
+        }
+
+        if (ContainsAnyTerm(normalizedMessage, IntentTermGroups["privacy"])
+            && url.Contains("/privacy", StringComparison.Ordinal))
+        {
+            return 10;
+        }
+
+        if (ContainsAnyTerm(normalizedMessage, IntentTermGroups["cookies"])
+            && url.Contains("/cookies", StringComparison.Ordinal))
+        {
+            return 10;
+        }
+
+        if (ContainsAnyTerm(normalizedMessage, IntentTermGroups["impact"])
+            && url.Contains("/impact", StringComparison.Ordinal))
+        {
+            return 8;
+        }
+
+        if (ContainsAnyTerm(normalizedMessage, IntentTermGroups["donate"])
+            && url.Contains("/donor/login", StringComparison.Ordinal))
+        {
+            return 8;
+        }
+
+        if ((ContainsAnyTerm(normalizedMessage, IntentTermGroups["login"]) || normalizedMessage.Contains("sign in", StringComparison.Ordinal))
+            && (url.Contains("/login", StringComparison.Ordinal) || url.Contains("/donor/login", StringComparison.Ordinal)))
+        {
+            return 8;
+        }
+
+        if ((ContainsAnyTerm(normalizedMessage, IntentTermGroups["register"]) || normalizedMessage.Contains("sign up", StringComparison.Ordinal))
+            && url.Contains("/register", StringComparison.Ordinal))
+        {
+            return 8;
+        }
+
+        if (ContainsAnyTerm(normalizedMessage, IntentTermGroups["about"])
+            && url.Contains("/about", StringComparison.Ordinal))
+        {
+            return 8;
+        }
+
+        return 0;
+    }
+
+    private static bool ContainsAnyTerm(string normalizedMessage, IEnumerable<string> terms)
+    {
+        return terms.Any(term => normalizedMessage.Contains(term, StringComparison.Ordinal));
     }
 }
