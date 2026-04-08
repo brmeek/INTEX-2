@@ -12,6 +12,12 @@ import {
   getRiskLabel,
   type ProvinceData,
 } from "@/data/traffickingData";
+import {
+  computeCoverageGaps,
+  TIER_COLORS,
+  TIER_LABELS,
+} from "@/data/coverageGapData";
+import { cn } from "@/lib/utils";
 
 type MetricKey = "riskScore" | "reportedIncidents" | "serviceGaps";
 
@@ -25,24 +31,33 @@ interface SafehouseApi {
   status: string | null;
 }
 
-const METRIC_CONFIG: Record<MetricKey, { label: string; unit: string; max: number; colors: string[] }> = {
+const METRIC_CONFIG: Record<MetricKey, { label: string; unit: string; max: number; colors: string[]; description: string; thresholds: string; examples: string }> = {
   riskScore: {
-    label: "Trafficking Risk Score",
+    label: "Risk Score",
     unit: "/ 100",
     max: 100,
     colors: ["#22c55e", "#facc15", "#f97316", "#dc2626", "#991b1b"],
+    description: "A composite score (0–100) measuring a province's overall vulnerability to human trafficking and abuse. Factors include poverty rate, proximity to trafficking corridors, presence of exploitative industries, migration patterns, and law enforcement capacity.",
+    thresholds: "0–34 Minimal · 35–49 Low · 50–64 Moderate · 65–79 High · 80–100 Critical",
+    examples: "A province with high migration outflows, weak local policing, and documented recruiter activity would score 75+.",
   },
   reportedIncidents: {
     label: "Reported Incidents",
     unit: "cases",
     max: 500,
     colors: ["#dbeafe", "#93c5fd", "#3b82f6", "#1d4ed8", "#1e3a5f"],
+    description: "The total number of reported cases involving trafficking, domestic abuse, child exploitation, forced labor, or online sexual exploitation originating from or occurring within the province.",
+    thresholds: "Ranges from single digits in remote provinces to 400+ in major urban centers",
+    examples: "Online sexual exploitation of children, labor trafficking through illegal recruitment agencies, domestic violence cases referred by barangay officials.",
   },
   serviceGaps: {
     label: "Service Gap Index",
     unit: "/ 100",
     max: 100,
     colors: ["#86efac", "#fb923c", "#ea580c", "#c2410c", "#7c2d12"],
+    description: "Measures how underserved a province is (0–100) based on the availability of shelters, counseling, legal aid, medical services, and livelihood programs for survivors relative to demand.",
+    thresholds: "0–34 Well-served · 35–49 Some gaps · 50–64 Moderate · 65–79 Significant · 80–100 Severe",
+    examples: "A province with no shelter within 100 km, no trauma-trained counselors, and limited legal aid would score 80+.",
   },
 };
 
@@ -115,18 +130,31 @@ function Legend({ metric }: { metric: MetricKey }) {
   );
 }
 
-function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
+function StatCard({ label, value, sub, accent }: { label: string; value: string | number; sub?: string; accent?: string }) {
   return (
     <div className="bg-white rounded-xl p-4 shadow-soft border border-border">
       <p className="font-body text-xs text-muted-foreground mb-1">{label}</p>
-      <p className="font-heading text-2xl font-bold text-foreground">{value}</p>
+      <p className={cn("font-heading text-2xl font-bold", accent ?? "text-foreground")}>{value}</p>
       {sub && <p className="font-body text-[10px] text-muted-foreground mt-0.5">{sub}</p>}
     </div>
   );
 }
 
+interface DonationApi {
+  donationId: number;
+  donationType: string;
+  donationDate: string;
+  amount: number | null;
+  estimatedValue: number | null;
+  campaignName: string | null;
+  channelSource: string;
+  isRecurring: boolean;
+  supporter?: { supporterName: string };
+}
+
 const TraffickingMapPage = () => {
   const [safehouses, setSafehouses] = useState<SafehouseApi[]>([]);
+  const [donations, setDonations] = useState<DonationApi[]>([]);
   const [loading, setLoading] = useState(true);
   const [metric, setMetric] = useState<MetricKey>("riskScore");
   const [showSafehouses, setShowSafehouses] = useState(true);
@@ -134,10 +162,14 @@ const TraffickingMapPage = () => {
   const [selectedProvince, setSelectedProvince] = useState<ProvinceData | null>(null);
 
   useEffect(() => {
-    api
-      .get<SafehouseApi[]>("/api/Safehouses")
-      .then(setSafehouses)
-      .catch(() => {})
+    Promise.all([
+      api.get<SafehouseApi[]>("/api/Safehouses").catch(() => [] as SafehouseApi[]),
+      api.get<{ items: DonationApi[]; total: number }>("/api/donations?page=1&pageSize=500").catch(() => ({ items: [] as DonationApi[], total: 0 })),
+    ])
+      .then(([sh, donRes]) => {
+        setSafehouses(sh);
+        setDonations(donRes.items);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -173,8 +205,50 @@ const TraffickingMapPage = () => {
     return { totalIncidents, avgRisk, avgGap, criticalCount };
   }, []);
 
+  const coveredRegions = useMemo(
+    () => new Set(safehouses.map((s) => s.region?.trim()).filter(Boolean) as string[]),
+    [safehouses]
+  );
+
+  const gaps = useMemo(() => computeCoverageGaps(coveredRegions), [coveredRegions]);
+
+  const gapKpis = useMemo(() => {
+    const critical = gaps.filter((g) => g.priorityTier === "critical").length;
+    const high = gaps.filter((g) => g.priorityTier === "high").length;
+    const totalPopAtRisk = gaps.reduce((s, g) => s + g.totalPopulation, 0);
+    const totalEstCost = gaps.reduce((s, g) => s + g.estimatedCostUsd, 0);
+    return { critical, high, totalPopAtRisk, totalEstCost };
+  }, [gaps]);
+
+  const fundingAnalysis = useMemo(() => {
+    const gapDonations = donations.filter(
+      (d) => d.campaignName && d.campaignName.includes("Coverage Gap")
+    );
+
+    const totalRaised = gapDonations.reduce(
+      (s, d) => s + (d.amount ?? d.estimatedValue ?? 0),
+      0
+    );
+
+    const perRegion = new Map<string, number>();
+    for (const d of gapDonations) {
+      const match = d.campaignName?.match(/Coverage Gap\s*[—–-]\s*(.+)/);
+      if (match) {
+        const region = match[1].trim();
+        perRegion.set(region, (perRegion.get(region) ?? 0) + (d.amount ?? d.estimatedValue ?? 0));
+      }
+    }
+
+    const recentDonors = gapDonations
+      .filter((d) => d.supporter?.supporterName)
+      .sort((a, b) => new Date(b.donationDate).getTime() - new Date(a.donationDate).getTime())
+      .slice(0, 8);
+
+    return { totalRaised, perRegion, recentDonors, totalDonations: gapDonations.length };
+  }, [donations]);
+
   return (
-    <AdminLayout title="Trafficking Heat Map" subtitle="Philippine provinces — risk, incidents & service gaps">
+    <AdminLayout title="Needs Assessment Map" subtitle="Risk, incidents & service gaps across Philippine provinces">
       {loading ? (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin h-8 w-8 border-4 border-accent border-t-transparent rounded-full" />
@@ -226,6 +300,31 @@ const TraffickingMapPage = () => {
               />
               Show Safehouses ({safehouses.length})
             </label>
+          </div>
+
+          {/* Metric explainer */}
+          <div className="bg-white rounded-xl p-5 shadow-soft border border-border">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: METRIC_CONFIG[metric].colors[3] }} />
+              <div>
+                <h3 className="font-heading text-sm font-bold text-foreground mb-1">
+                  What is {METRIC_CONFIG[metric].label}?
+                </h3>
+                <p className="font-body text-sm text-muted-foreground mb-2">
+                  {METRIC_CONFIG[metric].description}
+                </p>
+                <div className="flex flex-wrap gap-x-6 gap-y-1">
+                  <p className="font-body text-xs text-muted-foreground">
+                    <span className="font-semibold text-foreground">Scale: </span>
+                    {METRIC_CONFIG[metric].thresholds}
+                  </p>
+                </div>
+                <p className="font-body text-xs text-muted-foreground mt-1">
+                  <span className="font-semibold text-foreground">Examples: </span>
+                  {METRIC_CONFIG[metric].examples}
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Map */}
@@ -457,6 +556,144 @@ const TraffickingMapPage = () => {
                     ))}
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Expansion & Funding Report */}
+          <div className="border-t border-border pt-6">
+            <h2 className="font-heading text-xl font-bold text-foreground mb-1">Expansion & Funding Report</h2>
+            <p className="font-body text-sm text-muted-foreground mb-5">
+              Coverage gap priorities, funding progress, and donor contributions
+            </p>
+
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+              <StatCard label="Uncovered Regions" value={gaps.length} sub={`of ${coveredRegions.size + gaps.length} total`} />
+              <StatCard label="Critical Gaps" value={gapKpis.critical} accent="text-red-600" />
+              <StatCard label="High Priority" value={gapKpis.high} accent="text-orange-500" />
+              <StatCard label="Est. Total Cost" value={`$${gapKpis.totalEstCost.toLocaleString()}`} sub="to cover all gaps" accent="text-teal" />
+              <StatCard
+                label="Total Raised"
+                value={`$${fundingAnalysis.totalRaised.toLocaleString()}`}
+                sub={`${fundingAnalysis.totalDonations} donation${fundingAnalysis.totalDonations !== 1 ? "s" : ""}`}
+                accent="text-teal"
+              />
+            </div>
+
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* Expansion Roadmap */}
+              <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+                <h3 className="font-heading text-lg font-bold text-foreground mb-1">Expansion Roadmap</h3>
+                <p className="font-body text-xs text-muted-foreground mb-4">
+                  Priority order based on composite scoring
+                </p>
+                <div className="space-y-2 max-h-[320px] overflow-y-auto">
+                  {gaps.map((g, i) => (
+                    <div
+                      key={g.region}
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary transition-colors"
+                    >
+                      <span className="font-heading text-sm font-bold text-muted-foreground w-6 text-right shrink-0">
+                        {i + 1}.
+                      </span>
+                      <div
+                        className="h-2.5 w-2.5 rounded-full shrink-0"
+                        style={{ backgroundColor: TIER_COLORS[g.priorityTier] }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-body text-sm font-medium text-foreground truncate">{g.region}</p>
+                        <p className="font-body text-[10px] text-muted-foreground">
+                          {TIER_LABELS[g.priorityTier]} &middot; {g.provinces.length} province{g.provinces.length > 1 ? "s" : ""}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="font-body text-xs font-semibold" style={{ color: getRiskColor(g.avgRiskScore) }}>
+                          {g.avgRiskScore}
+                        </p>
+                        <p className="font-body text-[10px] text-muted-foreground">risk</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Funding Progress per Region */}
+              <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+                <h3 className="font-heading text-lg font-bold text-foreground mb-1">Funding by Region</h3>
+                <p className="font-body text-xs text-muted-foreground mb-4">
+                  Donations received vs. estimated safehouse cost
+                </p>
+                <div className="space-y-3 max-h-[320px] overflow-y-auto">
+                  {gaps.map((g) => {
+                    const raised = fundingAnalysis.perRegion.get(g.region) ?? 0;
+                    const pct = g.estimatedCostUsd > 0
+                      ? Math.min(100, Math.round((raised / g.estimatedCostUsd) * 100))
+                      : 0;
+                    return (
+                      <div key={g.region}>
+                        <div className="flex justify-between mb-1">
+                          <div className="flex items-center gap-1.5">
+                            <div
+                              className="h-2 w-2 rounded-full shrink-0"
+                              style={{ backgroundColor: TIER_COLORS[g.priorityTier] }}
+                            />
+                            <span className="font-body text-sm font-medium text-foreground">{g.region}</span>
+                          </div>
+                          <span className="font-body text-xs text-muted-foreground">
+                            ${raised.toLocaleString()} / ${g.estimatedCostUsd.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="h-2 w-full rounded-full bg-muted">
+                          <div
+                            className="h-full rounded-full bg-teal transition-all"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <p className="font-body text-[10px] text-muted-foreground mt-0.5 text-right">
+                          {pct}% funded &middot; ${(g.estimatedCostUsd - raised).toLocaleString()} remaining
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Recent Donors */}
+              <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+                <h3 className="font-heading text-lg font-bold text-foreground mb-1">Recent Gap Donors</h3>
+                <p className="font-body text-xs text-muted-foreground mb-4">
+                  Contributors to coverage gap campaigns
+                </p>
+                {fundingAnalysis.recentDonors.length === 0 ? (
+                  <p className="font-body text-sm text-muted-foreground italic">
+                    No coverage gap donations recorded yet.
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-[320px] overflow-y-auto">
+                    {fundingAnalysis.recentDonors.map((d) => {
+                      const match = d.campaignName?.match(/Coverage Gap\s*[—–-]\s*(.+)/);
+                      const region = match ? match[1].trim() : "General";
+                      return (
+                        <div
+                          key={d.donationId}
+                          className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-secondary border border-border"
+                        >
+                          <div>
+                            <p className="font-body text-sm font-medium text-foreground">
+                              {d.supporter?.supporterName ?? "Anonymous"}
+                            </p>
+                            <p className="font-body text-[10px] text-muted-foreground">
+                              {region} &middot; {new Date(d.donationDate).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <p className="font-heading text-sm font-bold text-teal">
+                            ${(d.amount ?? d.estimatedValue ?? 0).toLocaleString()}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
