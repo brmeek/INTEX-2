@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   Map,
   Shield,
+  CalendarClock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -30,6 +31,7 @@ const sidebarLinks = [
   { label: "Visitations", href: "/admin/visitations", icon: Home },
   { label: "Partners", href: "/admin/partners", icon: Users },
   { label: "Reports", href: "/admin/reports", icon: BarChart3 },
+  { label: "Posting Calendar", href: "/admin/posting-calendar", icon: CalendarClock },
   { label: "Needs Map", href: "/admin/trafficking-map", icon: Map },
 ];
 

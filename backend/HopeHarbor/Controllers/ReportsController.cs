@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HopeHarbor.Data;
+using HopeHarbor.Models;
 using HopeHarbor.Services;
 
 namespace HopeHarbor.Controllers;
@@ -282,6 +283,196 @@ public class ReportsController : ControllerBase
         _db.SocialMediaConversionPredictions.Add(prediction);
         await _db.SaveChangesAsync();
 
+        var avgDonation = await GetAverageDonationPerReferralAsync();
+
+        var predictedDonationValuePhp = Math.Round(
+            prediction.PredictedReferrals * avgDonation, 2);
+        var planningEstimateLowPhp = Math.Round(predictedDonationValuePhp * 0.75m, 2);
+        var planningEstimateHighPhp = Math.Round(predictedDonationValuePhp * 1.25m, 2);
+
+        return Ok(new
+        {
+            prediction.PredictionId,
+            prediction.PredictedLogReferrals,
+            prediction.PredictedReferrals,
+            referralMetricDefinition = "Estimated number of donors referred by this post (not website visits).",
+            predictedDonationValuePhp,
+            planningEstimateLowPhp,
+            planningEstimateHighPhp,
+            averageDonationPerReferralPhp = Math.Round(avgDonation, 2),
+            prediction.PredictionConfidence,
+            prediction.ModelVersion,
+            prediction.ScoredAtUtc
+        });
+    }
+
+    [HttpGet("posting-calendar/suggestions")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> PostingCalendarSuggestions()
+    {
+        string[] platforms = ["Facebook", "Instagram", "TikTok", "YouTube"];
+        string[] postTypes = ["Impact Story", "Appeal", "Campaign Update", "Event Promo"];
+        string[] mediaTypes = ["Video", "Carousel", "Image"];
+        string[] sentimentTones = ["Hopeful", "Urgent", "Celebratory"];
+        string[] contentTopics = ["Program Impact", "Resident Story", "Funding Need", "Event"];
+        string[] ctaTypes = ["Donate Now", "Learn More", "Share"];
+
+        var candidates = new List<(SocialMediaDraftInput Input, SocialMediaConversionPrediction Pred)>();
+
+        foreach (var platform in platforms)
+        foreach (var postType in postTypes)
+        foreach (var mediaType in mediaTypes)
+        {
+            var input = new SocialMediaDraftInput
+            {
+                Platform = platform,
+                PostType = postType,
+                MediaType = mediaType,
+                SentimentTone = sentimentTones[0],
+                ContentTopic = contentTopics[0],
+                HasCallToAction = true,
+                CallToActionType = ctaTypes[0],
+                NumHashtags = 5,
+                CaptionLength = 200,
+                FeaturesResidentStory = postType == "Impact Story",
+            };
+            candidates.Add((input, _socialMediaConversionScoringService.ScoreDraft(input)));
+        }
+
+        foreach (var topic in contentTopics)
+        foreach (var tone in sentimentTones)
+        {
+            var input = new SocialMediaDraftInput
+            {
+                Platform = "Facebook",
+                PostType = "Impact Story",
+                MediaType = "Video",
+                SentimentTone = tone,
+                ContentTopic = topic,
+                HasCallToAction = true,
+                CallToActionType = "Donate Now",
+                NumHashtags = 5,
+                CaptionLength = 250,
+                FeaturesResidentStory = topic == "Resident Story",
+            };
+            candidates.Add((input, _socialMediaConversionScoringService.ScoreDraft(input)));
+        }
+
+        var ranked = candidates
+            .OrderByDescending(c => c.Pred.PredictedReferrals)
+            .DistinctBy(c => c.Input.Platform + "|" + c.Input.PostType + "|" + c.Input.MediaType)
+            .Take(21)
+            .ToList();
+
+        var avgDonation = await GetAverageDonationPerReferralAsync();
+
+        var today = DateTime.Today;
+        var monday = today.AddDays(-(int)today.DayOfWeek + (int)DayOfWeek.Monday);
+        if (monday < today) monday = monday.AddDays(7);
+
+        string[] bestHours = ["09:00", "12:00", "18:00"];
+
+        var suggestions = ranked.Select((c, i) =>
+        {
+            var dayOffset = i % 7;
+            var slotDate = monday.AddDays(dayOffset);
+            var bestHour = bestHours[i % bestHours.Length];
+            var estDonation = Math.Round(c.Pred.PredictedReferrals * avgDonation, 2);
+
+            return new
+            {
+                day = slotDate.ToString("yyyy-MM-dd"),
+                dayOfWeek = slotDate.DayOfWeek.ToString(),
+                suggestedTime = bestHour,
+                platform = c.Input.Platform,
+                postType = c.Input.PostType,
+                mediaType = c.Input.MediaType,
+                sentimentTone = c.Input.SentimentTone,
+                contentTopic = c.Input.ContentTopic,
+                callToActionType = c.Input.CallToActionType,
+                featuresResidentStory = c.Input.FeaturesResidentStory,
+                predictedReferrals = c.Pred.PredictedReferrals,
+                predictedDonationValuePhp = estDonation,
+                confidence = c.Pred.PredictionConfidence,
+            };
+        }).ToList();
+
+        return Ok(new { weekStarting = monday.ToString("yyyy-MM-dd"), suggestions });
+    }
+
+    [HttpGet("posting-calendar/history")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> PostingCalendarHistory()
+    {
+        var predictions = await _db.SocialMediaConversionPredictions
+            .OrderByDescending(p => p.ScoredAtUtc)
+            .Take(50)
+            .ToListAsync();
+
+        var avgDonation = await GetAverageDonationPerReferralAsync();
+
+        var history = predictions.Select(p => new
+        {
+            p.PredictionId,
+            p.Platform,
+            p.PostType,
+            p.MediaType,
+            p.SentimentTone,
+            p.ContentTopic,
+            p.HasCallToAction,
+            p.CallToActionType,
+            p.IsBoosted,
+            p.BoostBudgetPhp,
+            p.FeaturesResidentStory,
+            p.CampaignName,
+            p.PredictedReferrals,
+            predictedDonationValuePhp = Math.Round(p.PredictedReferrals * avgDonation, 2),
+            p.PredictionConfidence,
+            p.ScoredAtUtc,
+        });
+
+        var platformBreakdown = predictions
+            .GroupBy(p => p.Platform)
+            .Select(g => new
+            {
+                platform = g.Key,
+                count = g.Count(),
+                avgReferrals = Math.Round(g.Average(p => (double)p.PredictedReferrals), 1),
+            })
+            .OrderByDescending(x => x.avgReferrals)
+            .ToList();
+
+        var postTypeBreakdown = predictions
+            .GroupBy(p => p.PostType)
+            .Select(g => new
+            {
+                postType = g.Key,
+                count = g.Count(),
+                avgReferrals = Math.Round(g.Average(p => (double)p.PredictedReferrals), 1),
+            })
+            .OrderByDescending(x => x.avgReferrals)
+            .ToList();
+
+        var mediaTypeBreakdown = predictions
+            .GroupBy(p => p.MediaType)
+            .Select(g => new
+            {
+                mediaType = g.Key,
+                count = g.Count(),
+                avgReferrals = Math.Round(g.Average(p => (double)p.PredictedReferrals), 1),
+            })
+            .OrderByDescending(x => x.avgReferrals)
+            .ToList();
+
+        return Ok(new
+        {
+            history,
+            analytics = new { platformBreakdown, postTypeBreakdown, mediaTypeBreakdown }
+        });
+    }
+
+    private async Task<decimal> GetAverageDonationPerReferralAsync()
+    {
         var donationSnapshots = await _db.Donations
             .Where(d => ((d.Amount ?? d.EstimatedValue) ?? 0m) > 0m)
             .Select(d => new
@@ -310,35 +501,11 @@ public class ReportsController : ControllerBase
             .Select(d => d.Value)
             .ToList();
 
-        // Keep planner usable even when attribution history is sparse.
-        var averageDonationPerReferralPhp = socialAttributedValues.Count > 0
+        var avg = socialAttributedValues.Count > 0
             ? socialAttributedValues.Average()
             : (overallDonationValues.Count > 0 ? overallDonationValues.Average() : 650m);
 
-        if (averageDonationPerReferralPhp <= 0m)
-        {
-            averageDonationPerReferralPhp = 650m;
-        }
-
-        var predictedDonationValuePhp = Math.Round(
-            prediction.PredictedReferrals * averageDonationPerReferralPhp, 2);
-        var planningEstimateLowPhp = Math.Round(predictedDonationValuePhp * 0.75m, 2);
-        var planningEstimateHighPhp = Math.Round(predictedDonationValuePhp * 1.25m, 2);
-
-        return Ok(new
-        {
-            prediction.PredictionId,
-            prediction.PredictedLogReferrals,
-            prediction.PredictedReferrals,
-            referralMetricDefinition = "Estimated number of donors referred by this post (not website visits).",
-            predictedDonationValuePhp,
-            planningEstimateLowPhp,
-            planningEstimateHighPhp,
-            averageDonationPerReferralPhp = Math.Round(averageDonationPerReferralPhp, 2),
-            prediction.PredictionConfidence,
-            prediction.ModelVersion,
-            prediction.ScoredAtUtc
-        });
+        return avg <= 0m ? 650m : avg;
     }
 }
 
