@@ -14,6 +14,17 @@ namespace HopeHarbor.Controllers;
 [Authorize]
 public class DonationsController : ControllerBase
 {
+    public sealed class DonorImpactForecastRequest
+    {
+        [Range(1, 1_000_000)]
+        public decimal Amount { get; set; }
+
+        public bool IsRecurring { get; set; }
+        public string? ChannelSource { get; set; }
+        public string? CampaignName { get; set; }
+        public string? CurrencyCode { get; set; }
+    }
+
     public sealed class InKindValueEstimateRequest
     {
         [Required]
@@ -47,11 +58,16 @@ public class DonationsController : ControllerBase
 
     private readonly HopeHarborContext _db;
     private readonly IInKindDonationValuationService _inKindDonationValuationService;
+    private readonly IDonorImpactForecastingService _donorImpactForecastingService;
 
-    public DonationsController(HopeHarborContext db, IInKindDonationValuationService inKindDonationValuationService)
+    public DonationsController(
+        HopeHarborContext db,
+        IInKindDonationValuationService inKindDonationValuationService,
+        IDonorImpactForecastingService donorImpactForecastingService)
     {
         _db = db;
         _inKindDonationValuationService = inKindDonationValuationService;
+        _donorImpactForecastingService = donorImpactForecastingService;
     }
 
     [HttpGet]
@@ -216,6 +232,38 @@ public class DonationsController : ControllerBase
         await _db.SaveChangesAsync();
 
         return CreatedAtAction(nameof(Get), new { id = donation.DonationId }, donation);
+    }
+
+    [HttpPost("self-serve/impact-forecast")]
+    [Authorize(Roles = AuthRoles.Donor + "," + AuthRoles.Admin)]
+    public async Task<IActionResult> ForecastSelfServeImpact([FromBody] DonorImpactForecastRequest request, CancellationToken cancellationToken)
+    {
+        if (request.Amount <= 0m)
+            return BadRequest(new { message = "Amount must be greater than zero." });
+
+        var forecast = await _donorImpactForecastingService.ForecastAsync(_db, new DonorImpactForecastInput
+        {
+            Amount = request.Amount,
+            IsRecurring = request.IsRecurring,
+            ChannelSource = string.IsNullOrWhiteSpace(request.ChannelSource) ? "Donor Portal" : request.ChannelSource,
+            CampaignName = string.IsNullOrWhiteSpace(request.CampaignName) ? "Donor Portal" : request.CampaignName,
+            CurrencyCode = string.IsNullOrWhiteSpace(request.CurrencyCode) ? "USD" : request.CurrencyCode
+        }, cancellationToken);
+
+        return Ok(new
+        {
+            estimatedResidentsSupportedThisMonth = forecast.EstimatedResidentsSupportedThisMonth,
+            estimatedAllocationPhp = new
+            {
+                education = forecast.EducationAmount,
+                wellbeing = forecast.WellbeingAmount,
+                operations = forecast.OperationsAmount,
+                outreach = forecast.OutreachAmount
+            },
+            topArea = forecast.TopArea,
+            impactMessage = forecast.ImpactMessage,
+            modelVersion = forecast.ModelVersion
+        });
     }
 
     [HttpPut("{id}")]

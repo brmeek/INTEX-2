@@ -83,6 +83,7 @@ builder.Services.AddScoped<IResidentReintegrationScoringService, ResidentReinteg
 builder.Services.AddScoped<ISocialMediaConversionScoringService, SocialMediaConversionScoringService>();
 builder.Services.AddScoped<ISafehouseEducationForecastingService, SafehouseEducationForecastingService>();
 builder.Services.AddScoped<IInKindDonationValuationService, InKindDonationValuationService>();
+builder.Services.AddScoped<IDonorImpactForecastingService, DonorImpactForecastingService>();
 
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddRoles<IdentityRole>()
