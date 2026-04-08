@@ -45,8 +45,6 @@ const Footer = () => {
               Resources
             </h4>
             <nav className="space-y-2.5">
-              <span className="block font-body text-sm text-white/70">Annual Report</span>
-              <span className="block font-body text-sm text-white/70">Financial Statements</span>
               <Link to="/privacy" className="block font-body text-sm text-white/70 hover:text-white transition-colors">
                 Privacy Policy
               </Link>
