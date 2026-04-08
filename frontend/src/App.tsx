@@ -17,6 +17,7 @@ import ImpactDashboard from "./pages/ImpactDashboard";
 import LoginPage from "./pages/LoginPage";
 import DonorLoginPage from "./pages/DonorLoginPage";
 import DonorPortalPage from "./pages/DonorPortalPage";
+import ManageMfaPage from "./pages/ManageMfaPage";
 import RegisterPage from "./pages/RegisterPage";
 import LogoutPage from "./pages/LogoutPage";
 import NotFound from "./pages/NotFound";
@@ -94,6 +95,7 @@ const App = () => {
               <Route path="/donor/login" element={<DonorLoginPage />} />
               <Route path="/portal" element={<PortalRedirect />} />
               <Route path="/donor" element={<ProtectedRoute requireRole="Donor"><DonorPortalPage /></ProtectedRoute>} />
+              <Route path="/account/security" element={<ProtectedRoute><ManageMfaPage /></ProtectedRoute>} />
 
               {/* Admin (Authenticated) */}
               <Route path="/admin" element={<ProtectedRoute requireRole="Admin"><AdminDashboard /></ProtectedRoute>} />

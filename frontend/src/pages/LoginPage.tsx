@@ -9,6 +9,8 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [twoFactorRecoveryCode, setTwoFactorRecoveryCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { isAuthenticated, refreshAuthSession } = useAuth();
@@ -21,7 +23,13 @@ const LoginPage = () => {
     setError("");
     setLoading(true);
     try {
-      await loginUser(email, password, true);
+      await loginUser(
+        email,
+        password,
+        true,
+        twoFactorCode || undefined,
+        twoFactorRecoveryCode || undefined
+      );
       await refreshAuthSession();
       navigate("/portal");
     } catch (err) {
@@ -107,6 +115,32 @@ const LoginPage = () => {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+              </div>
+
+              <div>
+                <label className="block font-body text-sm font-medium text-foreground mb-1.5">
+                  Authenticator code (if enabled)
+                </label>
+                <input
+                  type="text"
+                  value={twoFactorCode}
+                  onChange={(e) => setTwoFactorCode(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-border bg-secondary font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+                  placeholder="123456"
+                />
+              </div>
+
+              <div>
+                <label className="block font-body text-sm font-medium text-foreground mb-1.5">
+                  Recovery code (if needed)
+                </label>
+                <input
+                  type="text"
+                  value={twoFactorRecoveryCode}
+                  onChange={(e) => setTwoFactorRecoveryCode(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-border bg-secondary font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+                  placeholder="recovery-code"
+                />
               </div>
             </div>
 

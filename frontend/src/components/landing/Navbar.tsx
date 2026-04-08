@@ -126,6 +126,13 @@ const Navbar = () => {
                 Donate Now
               </Button>
             </Link>
+            {isAuthenticated && (
+              <Link to="/account/security">
+                <Button variant="outline" size="sm" className="font-body">
+                  Security
+                </Button>
+              </Link>
+            )}
           </div>
 
           <button
@@ -187,6 +194,13 @@ const Navbar = () => {
                 </Button>
               </Link>
             </div>
+            {isAuthenticated && (
+              <Link to="/account/security" className="mt-3 block">
+                <Button variant="outline" size="sm" className="w-full font-body">
+                  Security
+                </Button>
+              </Link>
+            )}
             <p className="px-1 pt-2 text-xs text-muted-foreground">
               {isLoading ? "Loading..." : isAuthenticated ? authSession?.username ?? authSession?.email ?? "Signed in" : "Not signed in"}
             </p>
