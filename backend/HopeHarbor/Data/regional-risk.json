@@ -1,0 +1,7 @@
+{
+  "regions": [
+    { "region": "National Capital Region", "risk_score": 82 },
+    { "region": "Central Visayas", "risk_score": 65 },
+    { "region": "Davao Region", "risk_score": 74 }
+  ]
+}
