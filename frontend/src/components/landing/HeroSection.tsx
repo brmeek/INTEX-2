@@ -303,9 +303,6 @@ const HeroSection = () => {
 
       <div className="relative container pb-20 pt-40 md:pb-28 md:pt-48">
         <div className="max-w-2xl">
-          <p className="font-body text-teal-light text-sm tracking-widest uppercase mb-4">
-            A 501(c)(3) Nonprofit Organization
-          </p>
           <h1 className="font-heading text-4xl md:text-5xl lg:text-[3.5rem] font-bold text-white leading-[1.15] mb-6">
             Every girl deserves
             <br />
