@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using HopeHarbor.Data;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 
 namespace HopeHarbor.Controllers;
 
@@ -80,7 +81,7 @@ public class AuthController : ControllerBase
             return BadRequest(new { message });
         }
 
-        var addRoleResult = await userManager.AddToRoleAsync(user, "Donor");
+        var addRoleResult = await userManager.AddToRoleAsync(user, AuthRoles.Donor);
         if (!addRoleResult.Succeeded)
         {
             var message = addRoleResult.Errors.FirstOrDefault()?.Description ?? "Could not assign donor role.";
@@ -97,18 +98,41 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Logout(SignInManager<ApplicationUser> signInManager)
     {
         await signInManager.SignOutAsync();
-        return Ok(new { message = "Logged out." });
+        return Ok("Logged out successfully.");
     }
 
     [HttpGet("me")]
-    [Authorize]
+    [AllowAnonymous]
     public async Task<IActionResult> Me(UserManager<ApplicationUser> userManager)
     {
+        if (User.Identity?.IsAuthenticated != true)
+        {
+            return Ok(new
+            {
+                isAuthenticated = false,
+                username = (string?)null,
+                email = (string?)null,
+                roles = Array.Empty<string>()
+            });
+        }
+
         var user = await userManager.GetUserAsync(User);
         if (user is null)
             return Unauthorized();
 
-        var roles = await userManager.GetRolesAsync(user);
-        return Ok(new { email = user.Email, roles });
+        var roles = User.Claims
+            .Where(c => c.Type == ClaimTypes.Role)
+            .Select(c => c.Value)
+            .Distinct()
+            .OrderBy(r => r)
+            .ToArray();
+
+        return Ok(new
+        {
+            isAuthenticated = true,
+            username = user.UserName,
+            email = user.Email,
+            roles
+        });
     }
 }

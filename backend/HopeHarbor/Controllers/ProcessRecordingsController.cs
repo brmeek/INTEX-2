@@ -33,7 +33,7 @@ public class ProcessRecordingsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthPolicies.ManageCatalog)]
     public async Task<IActionResult> Create([FromBody] ProcessRecording recording)
     {
         recording.CreatedAt = DateTime.UtcNow;
@@ -43,7 +43,7 @@ public class ProcessRecordingsController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthPolicies.ManageCatalog)]
     public async Task<IActionResult> Update(int id, [FromBody] ProcessRecording recording)
     {
         var existing = await _db.ProcessRecordings.FindAsync(id);
@@ -55,7 +55,7 @@ public class ProcessRecordingsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthPolicies.ManageCatalog)]
     public async Task<IActionResult> Delete(int id)
     {
         var item = await _db.ProcessRecordings.FindAsync(id);

@@ -35,7 +35,7 @@ public class SupportersController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthPolicies.ManageCatalog)]
     public async Task<IActionResult> Create([FromBody] Supporter supporter)
     {
         _db.Supporters.Add(supporter);
@@ -44,7 +44,7 @@ public class SupportersController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthPolicies.ManageCatalog)]
     public async Task<IActionResult> Update(int id, [FromBody] Supporter supporter)
     {
         var existing = await _db.Supporters.FindAsync(id);
@@ -56,7 +56,7 @@ public class SupportersController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthPolicies.ManageCatalog)]
     public async Task<IActionResult> Delete(int id)
     {
         var item = await _db.Supporters.FindAsync(id);

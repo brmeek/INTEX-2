@@ -34,7 +34,7 @@ public class InterventionPlansController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthPolicies.ManageCatalog)]
     public async Task<IActionResult> Create([FromBody] InterventionPlan plan)
     {
         plan.CreatedAt = DateTime.UtcNow;
@@ -45,7 +45,7 @@ public class InterventionPlansController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthPolicies.ManageCatalog)]
     public async Task<IActionResult> Update(int id, [FromBody] InterventionPlan plan)
     {
         var existing = await _db.InterventionPlans.FindAsync(id);
@@ -58,7 +58,7 @@ public class InterventionPlansController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthPolicies.ManageCatalog)]
     public async Task<IActionResult> Delete(int id)
     {
         var item = await _db.InterventionPlans.FindAsync(id);

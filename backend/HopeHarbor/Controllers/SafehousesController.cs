@@ -29,7 +29,7 @@ public class SafehousesController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthPolicies.ManageCatalog)]
     public async Task<IActionResult> Create([FromBody] Safehouse safehouse)
     {
         _db.Safehouses.Add(safehouse);
@@ -38,7 +38,7 @@ public class SafehousesController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthPolicies.ManageCatalog)]
     public async Task<IActionResult> Update(int id, [FromBody] Safehouse safehouse)
     {
         var existing = await _db.Safehouses.FindAsync(id);
@@ -50,7 +50,7 @@ public class SafehousesController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthPolicies.ManageCatalog)]
     public async Task<IActionResult> Delete(int id)
     {
         var item = await _db.Safehouses.FindAsync(id);

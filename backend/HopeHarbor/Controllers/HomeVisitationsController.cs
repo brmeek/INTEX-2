@@ -34,7 +34,7 @@ public class HomeVisitationsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthPolicies.ManageCatalog)]
     public async Task<IActionResult> Create([FromBody] HomeVisitation visitation)
     {
         _db.HomeVisitations.Add(visitation);
@@ -43,7 +43,7 @@ public class HomeVisitationsController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthPolicies.ManageCatalog)]
     public async Task<IActionResult> Update(int id, [FromBody] HomeVisitation visitation)
     {
         var existing = await _db.HomeVisitations.FindAsync(id);
@@ -55,7 +55,7 @@ public class HomeVisitationsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthPolicies.ManageCatalog)]
     public async Task<IActionResult> Delete(int id)
     {
         var item = await _db.HomeVisitations.FindAsync(id);

@@ -58,7 +58,7 @@ public class DonationsController : ControllerBase
     }
 
     [HttpGet("self-serve/summary")]
-    [Authorize(Roles = "Donor,Admin")]
+    [Authorize(Roles = AuthRoles.Donor + "," + AuthRoles.Admin)]
     public async Task<IActionResult> GetSelfServeSummary()
     {
         var email = User.FindFirstValue(ClaimTypes.Email)
@@ -105,7 +105,7 @@ public class DonationsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthPolicies.ManageCatalog)]
     public async Task<IActionResult> Create([FromBody] Donation donation)
     {
         _db.Donations.Add(donation);
@@ -114,7 +114,7 @@ public class DonationsController : ControllerBase
     }
 
     [HttpPost("self-serve")]
-    [Authorize(Roles = "Donor,Admin")]
+    [Authorize(Roles = AuthRoles.Donor + "," + AuthRoles.Admin)]
     public async Task<IActionResult> CreateSelfServe([FromBody] DonorDonationRequest request)
     {
         var email = User.FindFirstValue(ClaimTypes.Email)
@@ -178,7 +178,7 @@ public class DonationsController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthPolicies.ManageCatalog)]
     public async Task<IActionResult> Update(int id, [FromBody] Donation donation)
     {
         var existing = await _db.Donations.FindAsync(id);
@@ -190,7 +190,7 @@ public class DonationsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthPolicies.ManageCatalog)]
     public async Task<IActionResult> Delete(int id)
     {
         var item = await _db.Donations.FindAsync(id);
