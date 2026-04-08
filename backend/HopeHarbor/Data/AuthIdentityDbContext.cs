@@ -5,7 +5,5 @@ namespace HopeHarbor.Data;
 
 public class AuthIdentityDbContext : IdentityDbContext<ApplicationUser>
 {
-    public AuthIdentityDbContext(DbContextOptions<AuthIdentityDbContext> options) : base(options)
-    {
-    }
+    public AuthIdentityDbContext(DbContextOptions<AuthIdentityDbContext> options) : base(options) { }
 }

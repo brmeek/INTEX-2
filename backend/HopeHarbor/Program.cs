@@ -33,7 +33,7 @@ var (identityConnectionString, identityConnectionSource) = ResolvePostgresConnec
     builder.Configuration,
     fullEnvKey: "ConnectionStrings__IdentityConnection",
     prefix: "IdentityPostgres",
-    connectionStringKey: "IdentityPostgresConnection",
+    connectionStringKey: "IdentityConnection",
     fallback: postgresConnectionString);
 
 if (string.IsNullOrWhiteSpace(identityConnectionString))
@@ -82,19 +82,9 @@ builder.Services.Configure<IdentityOptions>(opts =>
 builder.Services.ConfigureApplicationCookie(opts =>
 {
     opts.Cookie.HttpOnly = true;
-    opts.Cookie.SameSite = SameSiteMode.None;
     opts.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    opts.ExpireTimeSpan = TimeSpan.FromHours(8);
-    opts.Events.OnRedirectToLogin = ctx =>
-    {
-        ctx.Response.StatusCode = 401;
-        return Task.CompletedTask;
-    };
-    opts.Events.OnRedirectToAccessDenied = ctx =>
-    {
-        ctx.Response.StatusCode = 403;
-        return Task.CompletedTask;
-    };
+    opts.Cookie.SameSite = SameSiteMode.Lax;
+    opts.SlidingExpiration = true;
 });
 
 builder.Services.AddCors(options =>
