@@ -21,7 +21,6 @@ public class HopeHarborContext : DbContext
     public DbSet<DonationAllocation> DonationAllocations => Set<DonationAllocation>();
     public DbSet<PartnerAssignment> PartnerAssignments => Set<PartnerAssignment>();
     public DbSet<ProcessRecording> ProcessRecordings => Set<ProcessRecording>();
-    public DbSet<RegionalRiskSnapshot> RegionalRiskSnapshots => Set<RegionalRiskSnapshot>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -44,12 +43,5 @@ public class HopeHarborContext : DbContext
             .WithMany(p => p.Assignments)
             .HasForeignKey(pa => pa.PartnerId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        builder.Entity<RegionalRiskSnapshot>()
-            .HasIndex(r => r.Region)
-            .IsUnique();
-
-        builder.Entity<RegionalRiskSnapshot>()
-            .HasIndex(r => r.UpdatedAtUtc);
     }
 }

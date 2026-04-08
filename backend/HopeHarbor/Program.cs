@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using HopeHarbor.Data;
 using HopeHarbor.Infrastructure;
-using HopeHarbor.Services;
 using Npgsql;
 using System.Net;
 
@@ -63,8 +62,6 @@ builder.Services.AddControllers()
 builder.Services.AddOpenApi();
 builder.Services.Configure<ContactEmailOptions>(builder.Configuration.GetSection("ContactEmail"));
 builder.Services.AddScoped<IContactEmailSender, ContactEmailSender>();
-builder.Services.AddScoped<RegionalRiskSyncService>();
-builder.Services.AddHostedService<RegionalRiskRefreshWorker>();
 
 builder.Services.AddDbContext<HopeHarborContext>(opts =>
     opts.UseNpgsql(postgresConnectionString));

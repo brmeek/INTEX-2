@@ -9,8 +9,6 @@ import {
 interface DonationTrend { year: number; month: number; total: number; count: number }
 interface SafehousePerf { safehouseId: number; safehouseName: string; region: string; capacity: number; residentCount: number; activeResidents: number }
 interface OutcomeData { byStatus: { status: string; count: number }[]; byCategory: { category: string; count: number }[]; reintegrationRate: number }
-interface RegionalRiskItem { region: string; risk_score: number; source_pipeline?: string; updated_at?: string }
-interface LiveHeatmapData { regions: RegionalRiskItem[]; last_updated?: string }
 
 const COLORS = ["#2B4570", "#3D8B8B", "#E07A5F", "#D4B896", "#8BA58E", "#5B7B9A", "#C49A6C"];
 
@@ -18,7 +16,6 @@ const ReportsPage = () => {
   const [trends, setTrends] = useState<DonationTrend[]>([]);
   const [safehouses, setSafehouses] = useState<SafehousePerf[]>([]);
   const [outcomes, setOutcomes] = useState<OutcomeData | null>(null);
-  const [liveHeatmap, setLiveHeatmap] = useState<LiveHeatmapData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,38 +29,11 @@ const ReportsPage = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    let mounted = true;
-
-    const loadLiveHeatmap = () => {
-      api.get<LiveHeatmapData>("/api/heatmap/live")
-        .then((data) => {
-          if (mounted) setLiveHeatmap(data);
-        })
-        .catch(() => {});
-    };
-
-    loadLiveHeatmap();
-    const intervalId = window.setInterval(loadLiveHeatmap, 60_000);
-
-    return () => {
-      mounted = false;
-      window.clearInterval(intervalId);
-    };
-  }, []);
-
   const trendData = trends.map((t) => ({
     label: `${t.year}-${String(t.month).padStart(2, "0")}`,
     total: Math.round(t.total),
     count: t.count,
   }));
-
-  const getRiskBand = (riskScore: number) => {
-    if (riskScore >= 80) return { label: "Very High", color: "bg-red-600" };
-    if (riskScore >= 60) return { label: "High", color: "bg-orange-500" };
-    if (riskScore >= 40) return { label: "Moderate", color: "bg-yellow-500" };
-    return { label: "Low", color: "bg-emerald-600" };
-  };
 
   return (
     <AdminLayout title="Reports & Analytics" subtitle="Aggregated insights and trends">
@@ -163,44 +133,6 @@ const ReportsPage = () => {
             </div>
           </div>
 
-          {/* Live Regional Abuse Risk (Phase 1) */}
-          <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-              <h3 className="font-heading text-lg font-bold text-foreground">Live Regional Abuse Risk (Phase 1)</h3>
-              <p className="font-body text-xs text-muted-foreground">
-                Last updated: {liveHeatmap?.last_updated ? new Date(liveHeatmap.last_updated).toLocaleString() : "No updates yet"}
-              </p>
-            </div>
-
-            {!liveHeatmap?.regions?.length ? (
-              <p className="font-body text-sm text-muted-foreground">
-                No live risk data available yet. Once the 5-minute backend sync runs, regions will appear here.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {liveHeatmap.regions.map((r) => {
-                  const riskBand = getRiskBand(r.risk_score);
-                  return (
-                    <div key={r.region} className="rounded-lg border border-border p-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <div>
-                          <p className="font-body text-sm font-semibold text-foreground">{r.region}</p>
-                          <p className="font-body text-xs text-muted-foreground">{riskBand.label} Risk</p>
-                        </div>
-                        <p className="font-heading text-xl font-bold text-foreground">{Math.round(r.risk_score)}</p>
-                      </div>
-                      <div className="mt-2 h-2 w-full rounded-full bg-muted">
-                        <div
-                          className={`h-2 rounded-full ${riskBand.color}`}
-                          style={{ width: `${Math.max(0, Math.min(100, r.risk_score))}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
         </div>
       )}
     </AdminLayout>
