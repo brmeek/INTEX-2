@@ -1,6 +1,6 @@
 # IS 455 — ML Pipeline Overview (Submission-Aligned)
 ### Philippine NGO: At-Risk Girls Program
-**Team Project | 5 Machine Learning Pipelines**
+**Team Project | 6 Machine Learning Pipelines**
 
 ---
 
@@ -15,6 +15,7 @@ Final submission-ready notebooks are in:
 3. `social-media-donation-conversion.ipynb`
 4. `safehouse-multi-metric-success-forecasting.ipynb`
 5. `in-kind-donation-value-prediction.ipynb`
+6. `donor-impact-allocation-forecasting.ipynb`
 
 ---
 
@@ -27,6 +28,7 @@ Final submission-ready notebooks are in:
 | 3 | Social Media Donation Conversion | Outreach / Fundraising | `log1p(donation_referrals)` + `log1p(value)` | Predictive + Explanatory |
 | 4 | Safehouse Multi-Metric Success Forecasting | Operations | `avg_education_progress`, `avg_health_score`, `incident_count`, `process_recording_count`, `home_visitation_count` (+ education threshold class) | Predictive + Explanatory |
 | 5 | In-Kind Donation Value Prediction | Donor / Resource | `log1p(total_value_php)` | Predictive + Explanatory |
+| 6 | Donor Impact Allocation Forecasting | Donor Transparency / Impact | Program-area allocation shares + estimated residents supported | Predictive + Explanatory |
 
 ---
 
@@ -97,6 +99,11 @@ Final submission-ready notebooks are in:
 - Uses CV for small sample context.
 - Includes descriptive explanatory OLS and intake prediction function.
 
+### Pipeline 6 — Donor Impact Allocation Forecasting
+- Predicts likely allocation shares across major program areas for a new monetary donation.
+- Converts donation amount into estimated residents-supported proxy using historical monthly cost-per-active-resident calibration.
+- Includes explanatory OLS on education allocation share with donor/channel/campaign controls.
+
 ---
 
 ## Textbook Alignment Summary
@@ -119,7 +126,7 @@ They also align with the textbook’s core distinction between:
 ## Remaining Work (Non-Notebook)
 
 To be fully complete in final judging context, connect notebook model outputs to the deployed web app:
-- API endpoint or service call for each pipeline prediction function (including Pipeline 4 multi-target + composite-score functions)
+- API endpoint or service call for each pipeline prediction function (including Pipeline 4 multi-target + composite-score functions and Pipeline 6 donor-impact allocation function)
 - Dashboard/interactive form integration
 - Demonstrable end-user workflow in video
 
@@ -129,7 +136,7 @@ Notebook-level IS 455 pipeline requirements are satisfied; app-level deployment 
 
 ## Website Integration Readiness (Prepared, Not Yet Implemented)
 
-All five pipelines are prepared for implementation in the website. They are notebook-ready with defined prediction functions and can now be wired to backend endpoints/UI components.
+All six pipelines are prepared for implementation in the website. They are notebook-ready with defined prediction functions and can now be wired to backend endpoints/UI components.
 
 | Pipeline | Prediction Function(s) | Website Location | Display/Behavior |
 |---|---|---|---|
@@ -138,6 +145,7 @@ All five pipelines are prepared for implementation in the website. They are note
 | Pipeline 3 — Social Media Conversion | `predict_social_referrals(...)` | Reports & Analytics (or dedicated social planning page) | Staff enters draft post attributes and sees predicted donation referrals before publishing. |
 | Pipeline 4 — Safehouse Multi-Metric Success Forecasting | `predict_safehouse_success_metrics(...)`, `predict_safehouse_success_with_score(...)` | Admin Dashboard safehouse summary cards | Monthly run. Show next-month predicted education score + alert flag, with optional expanded metrics and composite `1-10` performance score. |
 | Pipeline 5 — In-Kind Donation Value | `predict_inkind_value(...)` | Donors & Contributions donation intake form | On form entry, instantly show estimated peso value for new in-kind donations. |
+| Pipeline 6 — Donor Impact Allocation Forecasting | `predict_donor_impact(...)` | Donor Dashboard | For a proposed donation amount, show estimated program-area use and estimated residents supported with transparency messaging. |
 
 ### Implementation Notes
 - **Prepared status:** model logic is ready; integration endpoints and UI wiring are the remaining tasks.
