@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ShieldCheck, FileText, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_URL || "";
 
@@ -62,31 +62,22 @@ const TransparencySection = () => {
             </h2>
             <div className="space-y-4 font-body text-muted-foreground leading-relaxed max-w-xl">
               <p>
-                We publish annual financial reports, submit to independent audits,
-                and maintain strict data-protection policies. Because the girls we
-                serve are minors and survivors of abuse, privacy isn't a feature —
-                it's a foundational requirement.
+                We believe accountability is shown through consistent action:
+                careful stewardship of every donation, thoughtful program
+                planning, and decisions that stay centered on survivor care.
               </p>
               <p>
-                Donors receive regular updates on how their contributions are being
-                used, tied to real program outcomes — without ever compromising
-                resident safety or anonymity.
+                We track where support is most needed, measure how resources are
+                being used, and stay intentional about directing funds toward
+                the services that create real stability for the girls we serve.
+              </p>
+              <p>
+                Transparency matters, but so does dignity. We share impact in a
+                way that builds trust while protecting the safety and privacy of
+                every resident.
               </p>
             </div>
-            <div className="flex flex-wrap gap-4 mt-8">
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-sm font-body text-foreground border border-border">
-                <FileText className="h-4 w-4 text-muted-foreground" />
-                2025 Annual Report
-              </span>
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-sm font-body text-foreground border border-border">
-                <ShieldCheck className="h-4 w-4 text-muted-foreground" />
-                Independent Audit
-              </span>
-            </div>
-          </div>
-
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-secondary rounded-2xl p-6 border border-border">
+            <div className="mt-8 max-w-xl bg-secondary rounded-2xl p-6 border border-border">
               <Lock className="h-6 w-6 text-accent mb-4" />
               <h3 className="font-heading text-lg font-bold text-foreground mb-2">
                 Privacy First
@@ -100,24 +91,26 @@ const TransparencySection = () => {
                 to="/privacy"
                 className="inline-block mt-4 font-body text-xs font-semibold text-accent hover:text-teal-light transition-colors"
               >
-                Read our privacy commitment →
+                Read our privacy commitment &rarr;
               </Link>
             </div>
+          </div>
 
-            <div className="bg-navy rounded-2xl p-6">
+          <div className="lg:col-span-2 lg:pt-10">
+            <div className="bg-navy rounded-2xl p-8 md:p-10 min-h-[320px] lg:min-h-[420px] flex flex-col justify-center">
               <p className="font-body text-xs text-teal-light font-semibold tracking-widest uppercase mb-3">
                 Where Your Money Goes
               </p>
-              <div className="space-y-3">
+              <div className="space-y-5">
                 {moneyGoes.length > 0 ? moneyGoes.map((item) => (
                   <div key={item.programArea}>
                     <div className="flex justify-between text-sm font-body text-white/80 mb-1">
                       <span>{item.programArea}</span>
                       <span className="font-semibold text-white">
-                        PHP {Math.round(item.amountAllocated).toLocaleString()}
+                        {`${Math.round(item.sharePct)}%`}
                       </span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-white/10">
+                    <div className="h-2.5 rounded-full bg-white/10">
                       <div
                         className="h-full rounded-full bg-teal"
                         style={{ width: `${item.sharePct}%` }}

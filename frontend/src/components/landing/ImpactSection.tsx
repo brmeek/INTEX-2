@@ -40,7 +40,7 @@ const ImpactSection = () => {
       },
       { value: "24/7", label: "On-site care at every home" },
       {
-        value: impactData ? `PHP ${Math.round(impactData.totalRaisedThisYear).toLocaleString()}` : "-",
+        value: impactData ? `₱${Math.round(impactData.totalRaisedThisYear).toLocaleString()}` : "-",
         label: "Raised this year",
       },
       {
