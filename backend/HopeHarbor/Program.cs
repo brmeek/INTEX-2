@@ -69,6 +69,12 @@ builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AuthIdentityDbContext>();
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(AuthPolicies.ManageCatalog, policy =>
+        policy.RequireRole(AuthRoles.Admin));
+});
+
 builder.Services.Configure<IdentityOptions>(opts =>
 {
     opts.Password.RequireDigit = false;
@@ -108,35 +114,8 @@ using (var scope = app.Services.CreateScope())
     var identityDb = scope.ServiceProvider.GetRequiredService<AuthIdentityDbContext>();
     identityDb.Database.EnsureCreated();
 
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    foreach (var role in new[] { "Admin", "Donor" })
-    {
-        if (!await roleManager.RoleExistsAsync(role))
-            await roleManager.CreateAsync(new IdentityRole(role));
-    }
-
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    var admin = await userManager.FindByEmailAsync("admin@hopeharbor.org");
-    if (admin == null)
-    {
-        admin = new ApplicationUser { UserName = "admin@hopeharbor.org", Email = "admin@hopeharbor.org", EmailConfirmed = true };
-        await userManager.CreateAsync(admin, "HopeHarbor2025!");
-    }
-    if (!await userManager.IsInRoleAsync(admin, "Admin"))
-    {
-        await userManager.AddToRoleAsync(admin, "Admin");
-    }
-
-    var donor = await userManager.FindByEmailAsync("donor@hopeharbor.org");
-    if (donor == null)
-    {
-        donor = new ApplicationUser { UserName = "donor@hopeharbor.org", Email = "donor@hopeharbor.org", EmailConfirmed = true };
-        await userManager.CreateAsync(donor, "HopeHarborDonor2025!");
-    }
-    if (!await userManager.IsInRoleAsync(donor, "Donor"))
-    {
-        await userManager.AddToRoleAsync(donor, "Donor");
-    }
+    await AuthIdentityGenerator.GenerateDefaultIdentityAsync(
+        scope.ServiceProvider, builder.Configuration);
 }
 
 if (app.Environment.IsDevelopment())
