@@ -66,6 +66,26 @@ const AdminDashboard = () => {
       ]
     : [];
 
+  const getForecastStatus = (forecast: DashboardData["safehouseEducationForecasts"][number]) => {
+    const reason = (forecast.alertReason || "").toLowerCase();
+    if (reason.includes("insufficient history")) {
+      return {
+        label: "Data Limited",
+        className: "bg-slate-100 text-slate-700",
+      };
+    }
+    if (forecast.alertFlag) {
+      return {
+        label: "At Risk",
+        className: "bg-red-100 text-red-700",
+      };
+    }
+    return {
+      label: "On Track",
+      className: "bg-emerald-100 text-emerald-700",
+    };
+  };
+
   return (
     <AdminLayout title="Dashboard" subtitle="Overview of operations">
       {loading ? (
@@ -185,6 +205,11 @@ const AdminDashboard = () => {
                 {" "}across {data.safehouseForecastEvaluation.observationCount} historical month-ahead forecasts
                 (from {data.safehouseForecastEvaluation.safehouseCount} safehouses).
               </p>
+              <p className="font-body text-xs text-muted-foreground mt-1">
+                Status legend: <span className="font-semibold text-foreground">On Track</span> = no risk triggers,
+                <span className="font-semibold text-foreground"> At Risk</span> = low projected score or declining trajectory,
+                <span className="font-semibold text-foreground"> Data Limited</span> = insufficient history for trend confidence.
+              </p>
             </div>
 
             {data.safehouseEducationForecasts.length === 0 ? (
@@ -193,15 +218,20 @@ const AdminDashboard = () => {
               <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {data.safehouseEducationForecasts.map((f) => (
                   <div key={f.safehouseId} className="rounded-xl border border-border p-4 bg-secondary/30">
+                    {(() => {
+                      const status = getForecastStatus(f);
+                      return (
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="font-body text-sm font-semibold text-foreground">{f.safehouseName || `Safehouse ${f.safehouseId}`}</p>
                         <p className="font-body text-xs text-muted-foreground">{f.region || "Unknown region"} · Forecast month: {f.forecastForMonth}</p>
                       </div>
-                      <span className={`text-[10px] font-semibold px-2 py-1 rounded-full ${f.alertFlag ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"}`}>
-                        {f.alertFlag ? "Alert" : "On Track"}
+                      <span className={`text-[10px] font-semibold px-2 py-1 rounded-full ${status.className}`}>
+                        {status.label}
                       </span>
                     </div>
+                      );
+                    })()}
 
                     <div className="mt-3 space-y-1">
                       <p className="font-body text-sm">

@@ -12,13 +12,19 @@ namespace HopeHarbor.Controllers;
 [Authorize]
 public class ResidentsController : ControllerBase
 {
+    private static int _readinessRefreshInProgress;
     private readonly HopeHarborContext _db;
     private readonly IResidentReintegrationScoringService _residentReintegrationScoringService;
+    private readonly IServiceScopeFactory _scopeFactory;
 
-    public ResidentsController(HopeHarborContext db, IResidentReintegrationScoringService residentReintegrationScoringService)
+    public ResidentsController(
+        HopeHarborContext db,
+        IResidentReintegrationScoringService residentReintegrationScoringService,
+        IServiceScopeFactory scopeFactory)
     {
         _db = db;
         _residentReintegrationScoringService = residentReintegrationScoringService;
+        _scopeFactory = scopeFactory;
     }
 
     [HttpGet]
@@ -137,11 +143,38 @@ public class ResidentsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> RefreshAllReadinessScores(CancellationToken cancellationToken)
     {
-        var scoredCount = await _residentReintegrationScoringService.ScoreAllAsync(_db, cancellationToken);
+        if (Interlocked.CompareExchange(ref _readinessRefreshInProgress, 1, 0) == 1)
+        {
+            return Conflict(new
+            {
+                message = "Readiness refresh is already running.",
+                startedAtUtc = DateTime.UtcNow
+            });
+        }
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                using var scope = _scopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<HopeHarborContext>();
+                var scoringService = scope.ServiceProvider.GetRequiredService<IResidentReintegrationScoringService>();
+                await scoringService.ScoreAllAsync(db, CancellationToken.None);
+            }
+            catch
+            {
+                // Keep this endpoint resilient even if background scoring fails.
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _readinessRefreshInProgress, 0);
+            }
+        });
+
         return Ok(new
         {
-            message = "Resident reintegration readiness scores refreshed.",
-            scoredCount,
+            message = "Resident reintegration readiness refresh started.",
+            inProgress = true,
             scoredAtUtc = DateTime.UtcNow
         });
     }

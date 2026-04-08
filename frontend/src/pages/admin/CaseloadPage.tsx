@@ -104,12 +104,17 @@ const CaseloadPage = () => {
   const handleRefreshReadiness = async () => {
     setRefreshingReadiness(true);
     try {
-      const result = await api.post<{ scoredCount: number }>("/api/residents/readiness/refresh", {});
+      const result = await api.post<{ scoredCount?: number; message?: string; inProgress?: boolean }>("/api/residents/readiness/refresh", {});
       toast({
         title: "Readiness refreshed",
-        description: `Updated readiness scores for ${result.scoredCount} residents.`,
+        description: result.inProgress
+          ? (result.message ?? "Refresh started in the background. Scores will update shortly.")
+          : `Updated readiness scores for ${result.scoredCount ?? 0} residents.`,
       });
       await load(page);
+      setTimeout(() => {
+        load(page);
+      }, 2500);
     } catch (e) {
       toast({ title: "Error", description: String(e), variant: "destructive" });
     } finally {
@@ -176,6 +181,16 @@ const CaseloadPage = () => {
           </Button>
         </div>
 
+        <div className="bg-white rounded-xl p-4 shadow-soft border border-border">
+          <p className="font-body text-xs text-muted-foreground">
+            Label guide: <span className="font-semibold text-foreground">Readiness (Current Level)</span> shows the resident's present risk/readiness state.
+            <span className="font-semibold text-foreground"> Trend (Recent Direction)</span> shows whether the trajectory is improving, stable, or declining over recent months.
+          </p>
+          <p className="font-body text-xs text-muted-foreground mt-1">
+            Example: <span className="font-semibold text-foreground">Stable + At Risk</span> means consistently low readiness that is not rapidly worsening.
+          </p>
+        </div>
+
         {/* Form */}
         {showForm && (
           <div className="bg-white rounded-xl p-6 shadow-card border border-border">
@@ -222,8 +237,8 @@ const CaseloadPage = () => {
                 <table className="w-full">
                   <thead><tr className="border-b border-border bg-muted/50">
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Name</th>
-                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Readiness</th>
-                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Trend</th>
+                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Readiness (Current Level)</th>
+                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Trend (Recent Direction)</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Category</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Safehouse</th>
