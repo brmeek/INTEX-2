@@ -297,52 +297,15 @@ const DonorsAdminPage = () => {
           </div>
         )}
 
-        {/* Table */}
+        {/* Data views */}
         <div className="bg-card rounded-xl shadow-soft border border-border overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-32"><div className="animate-spin h-6 w-6 border-4 border-accent border-t-transparent rounded-full" /></div>
           ) : tab === "supporters" ? (
             <>
-              <div className="md:hidden space-y-3 p-3">
-                {supporters.map((s) => (
-                  <div key={s.supporterId} className="rounded-lg border border-border bg-background p-4 space-y-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-body text-sm font-semibold text-foreground">{s.supporterName}</p>
-                        <p className="font-body text-xs text-muted-foreground mt-1 break-all">{s.email || "—"}</p>
-                      </div>
-                      <span className={`text-xs font-body px-2 py-1 rounded-full ${s.status === "Active" ? "bg-teal/10 text-teal" : "bg-muted text-muted-foreground"}`}>{s.status}</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <span className="text-xs font-body px-2 py-1 rounded-full bg-secondary">{s.supporterType}</span>
-                      {s.riskTier ? (
-                        <span className={`text-xs font-body px-2 py-1 rounded-full ${getRiskPillClass(s.riskTier)}`}>
-                          {s.riskTier} ({((s.churnProbability ?? 0) * 100).toFixed(2)}%)
-                        </span>
-                      ) : (
-                        <span className="text-xs font-body text-muted-foreground">Not scored</span>
-                      )}
-                    </div>
-                    <p className="font-body text-sm text-foreground">
-                      Total Given: {s.totalGiven != null ? `â‚±${s.totalGiven.toLocaleString()}` : "â€”"}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      <Button onClick={() => openEdit(s)} variant="ghost" size="sm" className="text-xs font-body h-7">Edit</Button>
-                      <Button
-                        onClick={() => setSupporterToDelete(s)}
-                        disabled={deletePending}
-                        variant="ghost"
-                        size="sm"
-                        className="text-xs font-body h-7 text-destructive"
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {/* Desktop table */}
               <div className="hidden md:block overflow-x-auto">
-                <table className="w-full min-w-[920px]">
+                <table className="w-full">
                   <thead><tr className="border-b border-border bg-muted/50">
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Name</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Risk</th>
@@ -395,6 +358,39 @@ const DonorsAdminPage = () => {
                   </tbody>
                 </table>
               </div>
+              {/* Mobile cards */}
+              <div className="md:hidden divide-y divide-border">
+                {supporters.map((s) => (
+                  <div key={s.supporterId} className="p-4 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="font-body text-sm font-semibold text-foreground">{s.supporterName}</p>
+                        <p className="font-body text-xs text-muted-foreground">{s.email || "No email"}</p>
+                      </div>
+                      <span className={`text-xs font-body px-2 py-1 rounded-full ${getRiskPillClass(s.riskTier)}`}>
+                        {s.riskTier ? `${s.riskTier} ${((s.churnProbability ?? 0) * 100).toFixed(1)}%` : "Not scored"}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs font-body">
+                      <p><span className="text-muted-foreground">Type:</span> {s.supporterType}</p>
+                      <p><span className="text-muted-foreground">Status:</span> {s.status}</p>
+                      <p className="col-span-2"><span className="text-muted-foreground">Total given:</span> {s.totalGiven != null ? `₱${s.totalGiven.toLocaleString()}` : "—"}</p>
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <Button onClick={() => openEdit(s)} variant="outline" size="sm" className="flex-1 text-xs font-body">Edit</Button>
+                      <Button
+                        onClick={() => setSupporterToDelete(s)}
+                        disabled={deletePending}
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 text-xs font-body text-destructive"
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
               <div className="px-4 py-3 border-t border-border flex items-center justify-between">
                 <p className="font-body text-xs text-muted-foreground">{totalS} supporters</p>
                 <div className="flex gap-1">
@@ -406,27 +402,9 @@ const DonorsAdminPage = () => {
             </>
           ) : (
             <>
-              <div className="md:hidden space-y-3 p-3">
-                {donations.map((d) => (
-                  <div key={d.donationId} className="rounded-lg border border-border bg-background p-4 space-y-2">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-body text-sm font-semibold text-foreground">{d.supporter?.supporterName || "â€”"}</p>
-                        <p className="font-body text-xs text-muted-foreground">{d.donationDate}</p>
-                      </div>
-                      <span className="text-xs font-body px-2 py-1 rounded-full bg-secondary">{d.donationType}</span>
-                    </div>
-                    <p className="font-body text-sm text-foreground">
-                      {d.amount != null ? `â‚±${d.amount.toLocaleString()}` : d.estimatedValue != null ? `~â‚±${d.estimatedValue.toLocaleString()}` : "â€”"}
-                    </p>
-                    <p className="font-body text-xs text-muted-foreground">
-                      Campaign: {d.campaignName || "â€”"} · Channel: {d.channelSource || "â€”"} · Recurring: {d.isRecurring ? "Yes" : "No"}
-                    </p>
-                  </div>
-                ))}
-              </div>
+              {/* Desktop table */}
               <div className="hidden md:block overflow-x-auto">
-                <table className="w-full min-w-[900px]">
+                <table className="w-full">
                   <thead><tr className="border-b border-border bg-muted/50">
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Date</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Supporter</th>
@@ -450,6 +428,28 @@ const DonorsAdminPage = () => {
                     ))}
                   </tbody>
                 </table>
+              </div>
+              {/* Mobile cards */}
+              <div className="md:hidden divide-y divide-border">
+                {donations.map((d) => (
+                  <div key={d.donationId} className="p-4 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="font-body text-sm font-semibold text-foreground">{d.supporter?.supporterName || "Anonymous"}</p>
+                        <p className="font-body text-xs text-muted-foreground">{new Date(d.donationDate).toLocaleDateString()}</p>
+                      </div>
+                      <span className="font-body text-sm font-semibold text-foreground">
+                        {d.amount != null ? `₱${d.amount.toLocaleString()}` : d.estimatedValue != null ? `~₱${d.estimatedValue.toLocaleString()}` : "—"}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs font-body">
+                      <p><span className="text-muted-foreground">Type:</span> {d.donationType}</p>
+                      <p><span className="text-muted-foreground">Recurring:</span> {d.isRecurring ? "Yes" : "No"}</p>
+                      <p className="col-span-2"><span className="text-muted-foreground">Campaign:</span> {d.campaignName || "—"}</p>
+                      <p className="col-span-2"><span className="text-muted-foreground">Channel:</span> {d.channelSource || "—"}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
               <div className="px-4 py-3 border-t border-border flex items-center justify-between">
                 <p className="font-body text-xs text-muted-foreground">{totalD} donations</p>

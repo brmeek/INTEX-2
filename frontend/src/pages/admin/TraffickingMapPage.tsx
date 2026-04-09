@@ -264,6 +264,7 @@ const TraffickingMapPage = () => {
       {loading ? (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin h-8 w-8 border-4 border-accent border-t-transparent rounded-full" />
+          <span className="sr-only">Loading needs assessment data</span>
         </div>
       ) : (
         <div className="space-y-6">
@@ -281,10 +282,12 @@ const TraffickingMapPage = () => {
           </div>
 
           {/* Controls */}
-          <div className="bg-card rounded-xl p-4 shadow-soft border border-border flex flex-wrap items-center gap-4">
+          <fieldset className="bg-card rounded-xl p-4 shadow-soft border border-border flex flex-wrap items-center gap-4">
+            <legend className="font-body text-sm font-medium text-foreground">Map display controls</legend>
             <div className="flex items-center gap-2">
-              <label className="font-body text-sm font-medium text-foreground">Color by:</label>
+              <label htmlFor="map-metric" className="font-body text-sm font-medium text-foreground">Color by:</label>
               <select
+                id="map-metric"
                 value={metric}
                 onChange={(e) => setMetric(e.target.value as MetricKey)}
                 className="px-3 py-1.5 rounded-lg border border-border bg-background font-body text-sm"
@@ -294,8 +297,9 @@ const TraffickingMapPage = () => {
                 <option value="serviceGaps">Service Gap Index</option>
               </select>
             </div>
-            <label className="flex items-center gap-2 font-body text-sm cursor-pointer">
+            <label htmlFor="toggle-provinces" className="flex items-center gap-2 font-body text-sm cursor-pointer">
               <input
+                id="toggle-provinces"
                 type="checkbox"
                 checked={showProvinces}
                 onChange={(e) => setShowProvinces(e.target.checked)}
@@ -303,8 +307,9 @@ const TraffickingMapPage = () => {
               />
               Show Provinces
             </label>
-            <label className="flex items-center gap-2 font-body text-sm cursor-pointer">
+            <label htmlFor="toggle-safehouses" className="flex items-center gap-2 font-body text-sm cursor-pointer">
               <input
+                id="toggle-safehouses"
                 type="checkbox"
                 checked={showSafehouses}
                 onChange={(e) => setShowSafehouses(e.target.checked)}
@@ -312,7 +317,7 @@ const TraffickingMapPage = () => {
               />
               Show Safehouses ({safehouses.length})
             </label>
-          </div>
+          </fieldset>
 
           {/* Metric explainer */}
           <div className="bg-card rounded-xl p-5 shadow-soft border border-border">
@@ -338,14 +343,18 @@ const TraffickingMapPage = () => {
               </div>
             </div>
           </div>
+          <p className="font-body text-xs text-muted-foreground">
+            Map accessibility note: province and safehouse details are also provided in text cards below, so information is available without relying on map interaction alone.
+          </p>
 
           {/* Map */}
-          <div className="relative bg-card rounded-xl shadow-soft border border-border overflow-hidden" style={{ height: "600px" }}>
+          <div className="relative bg-card rounded-xl shadow-soft border border-border overflow-hidden h-[430px] md:h-[600px]">
             <MapContainer
               center={[12.5, 122.0]}
               zoom={6}
               scrollWheelZoom={true}
               style={{ height: "100%", width: "100%", borderRadius: "0.75rem" }}
+              aria-label="Interactive map of Philippines provinces with risk scores, incident counts, service gaps, and safehouse markers"
             >
               <ResizeHandler />
               <TileLayer
@@ -444,7 +453,9 @@ const TraffickingMapPage = () => {
                   <p className="font-body text-sm text-muted-foreground">{selectedProvince.region}</p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setSelectedProvince(null)}
+                  aria-label={`Close details for ${selectedProvince.name}`}
                   className="text-muted-foreground hover:text-foreground text-sm font-body"
                 >
                   Close
@@ -578,6 +589,28 @@ const TraffickingMapPage = () => {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Accessible summary list */}
+          <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
+            <h3 className="font-heading text-lg font-bold text-foreground mb-1">Top high-risk uncovered provinces</h3>
+            <p className="font-body text-xs text-muted-foreground mb-4">
+              Text-only summary to support keyboard and screen-reader users.
+            </p>
+            {coverageAnalysis.highRiskUncovered.length === 0 ? (
+              <p className="font-body text-sm text-muted-foreground">No uncovered provinces currently exceed high-risk thresholds.</p>
+            ) : (
+              <ul className="space-y-2">
+                {coverageAnalysis.highRiskUncovered
+                  .sort((a, b) => b.riskScore - a.riskScore)
+                  .slice(0, 8)
+                  .map((p) => (
+                    <li key={p.name} className="font-body text-sm text-foreground">
+                      <span className="font-semibold">{p.name}</span> ({p.region}) - risk {p.riskScore}, incidents {p.reportedIncidents}, service gap {p.serviceGaps}
+                    </li>
+                  ))}
+              </ul>
+            )}
           </div>
 
           {/* Expansion & Funding Report */}

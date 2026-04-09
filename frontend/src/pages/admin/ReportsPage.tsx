@@ -37,6 +37,7 @@ const ReportsPage = () => {
     count: t.count,
   }));
   const donationLineColor = theme === "dark" ? "#7dd3fc" : "#2B4570";
+  const latestTrend = trendData[trendData.length - 1];
 
   return (
     <AdminLayout title="Reports & Analytics" subtitle="Aggregated insights and trends">
@@ -49,7 +50,13 @@ const ReportsPage = () => {
           {/* Donation Trends */}
           <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
             <h3 className="font-heading text-lg font-bold text-foreground mb-4">Donation Trends Over Time</h3>
-            <ResponsiveContainer width="100%" height={300}>
+            <p className="font-body text-xs text-muted-foreground mb-3">
+              {latestTrend
+                ? `Latest month ${latestTrend.label}: ₱${latestTrend.total.toLocaleString()} across ${latestTrend.count.toLocaleString()} donations.`
+                : "No donation trend data available yet."}
+            </p>
+            <div role="img" aria-label="Line chart showing monthly donation totals and donation counts over time">
+              <ResponsiveContainer width="100%" height={240}>
               <LineChart data={trendData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
                 <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
@@ -59,7 +66,8 @@ const ReportsPage = () => {
                 <Line type="monotone" dataKey="total" stroke={donationLineColor} strokeWidth={2} name="Amount (₱)" dot={false} />
                 <Line type="monotone" dataKey="count" stroke="#3D8B8B" strokeWidth={2} name="# Donations" dot={false} />
               </LineChart>
-            </ResponsiveContainer>
+              </ResponsiveContainer>
+            </div>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-6">
@@ -68,14 +76,16 @@ const ReportsPage = () => {
               <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
                 <h3 className="font-heading text-lg font-bold text-foreground mb-1">Residents by Status</h3>
                 <p className="font-body text-xs text-muted-foreground mb-4">Reintegration rate: {outcomes.reintegrationRate}%</p>
-                <ResponsiveContainer width="100%" height={250}>
+                <div role="img" aria-label="Pie chart showing resident count by case status">
+                  <ResponsiveContainer width="100%" height={220}>
                   <PieChart>
                     <Pie data={outcomes.byStatus} dataKey="count" nameKey="status" cx="50%" cy="50%" outerRadius={90} label={({ status, count }) => `${status}: ${count}`} labelLine={false}>
                       {outcomes.byStatus.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                     </Pie>
                     <Tooltip />
                   </PieChart>
-                </ResponsiveContainer>
+                  </ResponsiveContainer>
+                </div>
               </div>
             )}
 
@@ -83,15 +93,17 @@ const ReportsPage = () => {
             {outcomes && (
               <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
                 <h3 className="font-heading text-lg font-bold text-foreground mb-4">Residents by Case Category</h3>
-                <ResponsiveContainer width="100%" height={250}>
+                <div role="img" aria-label="Horizontal bar chart showing resident count by case category">
+                  <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={outcomes.byCategory} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
                     <XAxis type="number" tick={{ fontSize: 10 }} />
-                    <YAxis dataKey="category" type="category" tick={{ fontSize: 10 }} width={120} />
+                    <YAxis dataKey="category" type="category" tick={{ fontSize: 10 }} width={90} />
                     <Tooltip />
                     <Bar dataKey="count" fill="#3D8B8B" radius={[0, 4, 4, 0]} />
                   </BarChart>
-                </ResponsiveContainer>
+                  </ResponsiveContainer>
+                </div>
               </div>
             )}
           </div>
@@ -99,7 +111,7 @@ const ReportsPage = () => {
           {/* Safehouse Performance */}
           <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
             <h3 className="font-heading text-lg font-bold text-foreground mb-4">Safehouse Performance</h3>
-            <div className="overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border bg-muted/50">
@@ -133,6 +145,23 @@ const ReportsPage = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="md:hidden divide-y divide-border">
+              {safehouses.map((s) => (
+                <div key={s.safehouseId} className="py-3">
+                  <p className="font-body text-sm font-semibold text-foreground">{s.safehouseName || `Safehouse ${s.safehouseId}`}</p>
+                  <p className="font-body text-xs text-muted-foreground">{s.region || "Unknown region"}</p>
+                  <div className="mt-2 grid grid-cols-2 gap-2 text-xs font-body">
+                    <p><span className="text-muted-foreground">Capacity:</span> {s.capacity || "—"}</p>
+                    <p><span className="text-muted-foreground">Residents:</span> {s.residentCount}</p>
+                    <p><span className="text-muted-foreground">Active:</span> {s.activeResidents}</p>
+                    <p>
+                      <span className="text-muted-foreground">Occupancy:</span>{" "}
+                      {s.capacity ? `${Math.round((s.residentCount / s.capacity) * 100)}%` : "—"}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
