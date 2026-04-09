@@ -207,6 +207,212 @@ export function getRiskLabel(score: number): string {
   return "Minimal";
 }
 
+export const REGION_TO_ZONE: Record<string, string> = {
+  NCR: "Luzon",
+  "Central Luzon": "Luzon",
+  CALABARZON: "Luzon",
+  "Ilocos Region": "Luzon",
+  "Cagayan Valley": "Luzon",
+  CAR: "Luzon",
+  "Bicol Region": "Luzon",
+  MIMAROPA: "Luzon",
+  "Western Visayas": "Visayas",
+  "Central Visayas": "Visayas",
+  "Eastern Visayas": "Visayas",
+  "Zamboanga Peninsula": "Mindanao",
+  "Northern Mindanao": "Mindanao",
+  "Davao Region": "Mindanao",
+  SOCCSKSARGEN: "Mindanao",
+  Caraga: "Mindanao",
+  BARMM: "Mindanao",
+};
+
+export const ALL_ZONES = ["Luzon", "Visayas", "Mindanao"] as const;
+
+export interface ProvinceEntry {
+  name: string;
+  zone: string;
+}
+
+export const ALL_PROVINCES: ProvinceEntry[] = [
+  // Luzon — 38 provinces
+  { name: "Abra", zone: "Luzon" },
+  { name: "Apayao", zone: "Luzon" },
+  { name: "Benguet", zone: "Luzon" },
+  { name: "Ifugao", zone: "Luzon" },
+  { name: "Kalinga", zone: "Luzon" },
+  { name: "Mountain Province", zone: "Luzon" },
+  { name: "Batanes", zone: "Luzon" },
+  { name: "Cagayan", zone: "Luzon" },
+  { name: "Isabela", zone: "Luzon" },
+  { name: "Nueva Vizcaya", zone: "Luzon" },
+  { name: "Quirino", zone: "Luzon" },
+  { name: "Ilocos Norte", zone: "Luzon" },
+  { name: "Ilocos Sur", zone: "Luzon" },
+  { name: "La Union", zone: "Luzon" },
+  { name: "Pangasinan", zone: "Luzon" },
+  { name: "Aurora", zone: "Luzon" },
+  { name: "Bataan", zone: "Luzon" },
+  { name: "Bulacan", zone: "Luzon" },
+  { name: "Nueva Ecija", zone: "Luzon" },
+  { name: "Pampanga", zone: "Luzon" },
+  { name: "Tarlac", zone: "Luzon" },
+  { name: "Zambales", zone: "Luzon" },
+  { name: "Batangas", zone: "Luzon" },
+  { name: "Cavite", zone: "Luzon" },
+  { name: "Laguna", zone: "Luzon" },
+  { name: "Quezon", zone: "Luzon" },
+  { name: "Rizal", zone: "Luzon" },
+  { name: "Marinduque", zone: "Luzon" },
+  { name: "Occidental Mindoro", zone: "Luzon" },
+  { name: "Oriental Mindoro", zone: "Luzon" },
+  { name: "Palawan", zone: "Luzon" },
+  { name: "Romblon", zone: "Luzon" },
+  { name: "Albay", zone: "Luzon" },
+  { name: "Camarines Norte", zone: "Luzon" },
+  { name: "Camarines Sur", zone: "Luzon" },
+  { name: "Catanduanes", zone: "Luzon" },
+  { name: "Masbate", zone: "Luzon" },
+  { name: "Sorsogon", zone: "Luzon" },
+  // Visayas — 16 provinces
+  { name: "Aklan", zone: "Visayas" },
+  { name: "Antique", zone: "Visayas" },
+  { name: "Capiz", zone: "Visayas" },
+  { name: "Guimaras", zone: "Visayas" },
+  { name: "Iloilo", zone: "Visayas" },
+  { name: "Negros Occidental", zone: "Visayas" },
+  { name: "Bohol", zone: "Visayas" },
+  { name: "Cebu", zone: "Visayas" },
+  { name: "Negros Oriental", zone: "Visayas" },
+  { name: "Siquijor", zone: "Visayas" },
+  { name: "Biliran", zone: "Visayas" },
+  { name: "Eastern Samar", zone: "Visayas" },
+  { name: "Leyte", zone: "Visayas" },
+  { name: "Northern Samar", zone: "Visayas" },
+  { name: "Samar", zone: "Visayas" },
+  { name: "Southern Leyte", zone: "Visayas" },
+  // Mindanao — 28 provinces
+  { name: "Zamboanga del Norte", zone: "Mindanao" },
+  { name: "Zamboanga del Sur", zone: "Mindanao" },
+  { name: "Zamboanga Sibugay", zone: "Mindanao" },
+  { name: "Bukidnon", zone: "Mindanao" },
+  { name: "Camiguin", zone: "Mindanao" },
+  { name: "Lanao del Norte", zone: "Mindanao" },
+  { name: "Misamis Occidental", zone: "Mindanao" },
+  { name: "Misamis Oriental", zone: "Mindanao" },
+  { name: "Davao de Oro", zone: "Mindanao" },
+  { name: "Davao del Norte", zone: "Mindanao" },
+  { name: "Davao del Sur", zone: "Mindanao" },
+  { name: "Davao Occidental", zone: "Mindanao" },
+  { name: "Davao Oriental", zone: "Mindanao" },
+  { name: "Cotabato", zone: "Mindanao" },
+  { name: "Sarangani", zone: "Mindanao" },
+  { name: "South Cotabato", zone: "Mindanao" },
+  { name: "Sultan Kudarat", zone: "Mindanao" },
+  { name: "Agusan del Norte", zone: "Mindanao" },
+  { name: "Agusan del Sur", zone: "Mindanao" },
+  { name: "Dinagat Islands", zone: "Mindanao" },
+  { name: "Surigao del Norte", zone: "Mindanao" },
+  { name: "Surigao del Sur", zone: "Mindanao" },
+  { name: "Basilan", zone: "Mindanao" },
+  { name: "Lanao del Sur", zone: "Mindanao" },
+  { name: "Maguindanao del Norte", zone: "Mindanao" },
+  { name: "Maguindanao del Sur", zone: "Mindanao" },
+  { name: "Sulu", zone: "Mindanao" },
+  { name: "Tawi-Tawi", zone: "Mindanao" },
+];
+
+export const CITY_TO_PROVINCE: Record<string, string> = {
+  Manila: "Rizal",
+  "Quezon City": "Rizal",
+  Makati: "Rizal",
+  Taguig: "Rizal",
+  Pasig: "Rizal",
+  Marikina: "Rizal",
+  Mandaluyong: "Rizal",
+  "Cebu City": "Cebu",
+  Cebu: "Cebu",
+  "Davao City": "Davao del Sur",
+  Davao: "Davao del Sur",
+  "Zamboanga City": "Zamboanga del Sur",
+  Zamboanga: "Zamboanga del Sur",
+  "General Santos": "South Cotabato",
+  GenSan: "South Cotabato",
+  "Cagayan de Oro": "Misamis Oriental",
+  CDO: "Misamis Oriental",
+  "Iloilo City": "Iloilo",
+  Iloilo: "Iloilo",
+  Bacolod: "Negros Occidental",
+  Tacloban: "Leyte",
+  Angeles: "Pampanga",
+  Olongapo: "Zambales",
+  Baguio: "Benguet",
+  Butuan: "Agusan del Norte",
+  "Cotabato City": "Maguindanao del Norte",
+  Cotabato: "Cotabato",
+  Tuguegarao: "Cagayan",
+  Legazpi: "Albay",
+  Naga: "Camarines Sur",
+  "Puerto Princesa": "Palawan",
+  Dumaguete: "Negros Oriental",
+  Tagbilaran: "Bohol",
+  Pagadian: "Zamboanga del Sur",
+  Dipolog: "Zamboanga del Norte",
+  "San Fernando": "La Union",
+  Laoag: "Ilocos Norte",
+  Vigan: "Ilocos Sur",
+  Calamba: "Laguna",
+  Antipolo: "Rizal",
+  "San Jose del Monte": "Bulacan",
+  Malolos: "Bulacan",
+  Cabanatuan: "Nueva Ecija",
+  Iligan: "Lanao del Norte",
+  Marawi: "Lanao del Sur",
+  Koronadal: "South Cotabato",
+  Kidapawan: "Cotabato",
+  Urdaneta: "Pangasinan",
+  Dagupan: "Pangasinan",
+  "Batangas City": "Batangas",
+  Batangas: "Batangas",
+  Lucena: "Quezon",
+  Cavite: "Cavite",
+  "Imus": "Cavite",
+  "Dasmariñas": "Cavite",
+  Biñan: "Laguna",
+  "Santa Rosa": "Laguna",
+  Meycauayan: "Bulacan",
+  Tarlac: "Tarlac",
+  "Roxas City": "Capiz",
+  "Kalibo": "Aklan",
+  "Catbalogan": "Samar",
+  "Surigao City": "Surigao del Norte",
+  "Tandag": "Surigao del Sur",
+  "Bayugan": "Agusan del Sur",
+  Digos: "Davao del Sur",
+  Panabo: "Davao del Norte",
+  Tagum: "Davao del Norte",
+  Mati: "Davao Oriental",
+  "Jolo": "Sulu",
+  "Bongao": "Tawi-Tawi",
+  "Isabela City": "Basilan",
+};
+
+export function mapSafehousesToProvinces(
+  safehouses: { location: string | null; region: string | null }[]
+): Set<string> {
+  const provinceNames = new Set(ALL_PROVINCES.map((p) => p.name));
+  const covered = new Set<string>();
+  for (const s of safehouses) {
+    const loc = s.location?.trim() ?? "";
+    if (CITY_TO_PROVINCE[loc]) {
+      covered.add(CITY_TO_PROVINCE[loc]);
+    } else if (provinceNames.has(loc)) {
+      covered.add(loc);
+    }
+  }
+  return covered;
+}
+
 export function getServiceGapColor(score: number): string {
   if (score >= 80) return "#7c2d12";
   if (score >= 65) return "#c2410c";
