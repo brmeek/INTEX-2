@@ -20,7 +20,7 @@ public class DonationAllocation
     public int? SafehouseId { get; set; }
 
     [Column("program_area")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? ProgramArea { get; set; }
 
     [Column("amount_allocated")]
@@ -30,5 +30,6 @@ public class DonationAllocation
     public DateOnly? AllocationDate { get; set; }
 
     [Column("allocation_notes")]
+    [StringLength(2000)]
     public string? AllocationNotes { get; set; }
 }

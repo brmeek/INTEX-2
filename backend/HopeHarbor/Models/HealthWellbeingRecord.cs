@@ -50,5 +50,6 @@ public class HealthWellbeingRecord
     public bool? PsychologicalCheckupDone { get; set; }
 
     [Column("notes")]
+    [StringLength(2000)]
     public string? Notes { get; set; }
 }

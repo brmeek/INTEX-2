@@ -17,13 +17,15 @@ public class InterventionPlan
     public Resident? Resident { get; set; }
 
     [Column("plan_category")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? PlanCategory { get; set; }
 
     [Column("plan_description")]
+    [StringLength(2000)]
     public string? PlanDescription { get; set; }
 
     [Column("services_provided")]
+    [StringLength(2000)]
     public string? ServicesProvided { get; set; }
 
     [Column("target_value")]
@@ -33,7 +35,7 @@ public class InterventionPlan
     public DateOnly? TargetDate { get; set; }
 
     [Column("status")]
-    [MaxLength(50)]
+    [StringLength(50)]
     public string? Status { get; set; }
 
     [Column("case_conference_date")]

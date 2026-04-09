@@ -11,30 +11,30 @@ public class SocialMediaConversionPrediction
     public int PredictionId { get; set; }
 
     [Column("platform")]
-    [MaxLength(50)]
+    [StringLength(50)]
     public string Platform { get; set; } = "Facebook";
 
     [Column("post_type")]
-    [MaxLength(50)]
+    [StringLength(50)]
     public string PostType { get; set; } = "Impact Story";
 
     [Column("media_type")]
-    [MaxLength(50)]
+    [StringLength(50)]
     public string MediaType { get; set; } = "Image";
 
     [Column("sentiment_tone")]
-    [MaxLength(50)]
+    [StringLength(50)]
     public string SentimentTone { get; set; } = "Hopeful";
 
     [Column("content_topic")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string ContentTopic { get; set; } = "Program Impact";
 
     [Column("has_call_to_action")]
     public bool HasCallToAction { get; set; }
 
     [Column("call_to_action_type")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? CallToActionType { get; set; }
 
     [Column("is_boosted")]
@@ -53,7 +53,7 @@ public class SocialMediaConversionPrediction
     public bool FeaturesResidentStory { get; set; }
 
     [Column("campaign_name")]
-    [MaxLength(255)]
+    [StringLength(255)]
     public string? CampaignName { get; set; }
 
     [Column("predicted_log_referrals")]
@@ -63,11 +63,11 @@ public class SocialMediaConversionPrediction
     public decimal PredictedReferrals { get; set; }
 
     [Column("prediction_confidence")]
-    [MaxLength(20)]
+    [StringLength(20)]
     public string PredictionConfidence { get; set; } = "Medium";
 
     [Column("model_version")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string ModelVersion { get; set; } = "social-media-conversion-v1";
 
     [Column("scored_at_utc")]

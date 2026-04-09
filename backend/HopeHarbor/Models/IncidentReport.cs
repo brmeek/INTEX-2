@@ -23,17 +23,19 @@ public class IncidentReport
     public DateOnly? IncidentDate { get; set; }
 
     [Column("incident_type")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? IncidentType { get; set; }
 
     [Column("severity")]
-    [MaxLength(50)]
+    [StringLength(50)]
     public string? Severity { get; set; }
 
     [Column("description")]
+    [StringLength(2000)]
     public string? Description { get; set; }
 
     [Column("response_taken")]
+    [StringLength(2000)]
     public string? ResponseTaken { get; set; }
 
     [Column("resolved")]
@@ -43,7 +45,7 @@ public class IncidentReport
     public DateOnly? ResolutionDate { get; set; }
 
     [Column("reported_by")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? ReportedBy { get; set; }
 
     [Column("follow_up_required")]

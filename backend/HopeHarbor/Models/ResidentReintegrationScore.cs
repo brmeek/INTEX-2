@@ -17,15 +17,15 @@ public class ResidentReintegrationScore
     public decimal ReadinessScore { get; set; }
 
     [Column("readiness_tier")]
-    [MaxLength(40)]
+    [StringLength(40)]
     public string ReadinessTier { get; set; } = "Needs Monitoring";
 
     [Column("top_concern_feature")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string TopConcernFeature { get; set; } = "none";
 
     [Column("trend_label")]
-    [MaxLength(40)]
+    [StringLength(40)]
     public string TrendLabel { get; set; } = "Insufficient History";
 
     [Column("history_months_used")]
@@ -47,6 +47,6 @@ public class ResidentReintegrationScore
     public DateTime ScoredAtUtc { get; set; }
 
     [Column("model_version")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string ModelVersion { get; set; } = "reintegration-readiness-v1";
 }

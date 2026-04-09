@@ -20,7 +20,7 @@ public class PartnerAssignment
     public int? SafehouseId { get; set; }
 
     [Column("program_area")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? ProgramArea { get; set; }
 
     [Column("assignment_start")]
@@ -30,12 +30,13 @@ public class PartnerAssignment
     public DateOnly? AssignmentEnd { get; set; }
 
     [Column("responsibility_notes")]
+    [StringLength(2000)]
     public string? ResponsibilityNotes { get; set; }
 
     [Column("is_primary")]
     public bool? IsPrimary { get; set; }
 
     [Column("status")]
-    [MaxLength(50)]
+    [StringLength(50)]
     public string? Status { get; set; }
 }

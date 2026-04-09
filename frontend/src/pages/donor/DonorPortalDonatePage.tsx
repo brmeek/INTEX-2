@@ -32,6 +32,10 @@ function getErrorMessage(error: unknown): string {
   return "Unable to load recent donations.";
 }
 
+function formatPeso(value: number): string {
+  return `₱${value.toLocaleString()}`;
+}
+
 export default function DonorPortalDonatePage() {
   const { authSession, isAuthenticated } = useAuth();
   const { toast } = useToast();
@@ -108,7 +112,7 @@ export default function DonorPortalDonatePage() {
       });
       toast({
         title: "Donation recorded",
-        description: `Thank you! Your ${isMonthly ? "monthly" : "one-time"} gift of $${donationAmount} was saved.`,
+        description: `Thank you! Your ${isMonthly ? "monthly" : "one-time"} gift of ${formatPeso(donationAmount)} was saved.`,
       });
       await loadSummary();
       await loadRecentDonations(true);
@@ -162,14 +166,14 @@ export default function DonorPortalDonatePage() {
                   setSelectedAmount(amt);
                   setCustomAmount("");
                 }}
-                className={cn(
-                  "py-2.5 rounded-lg text-sm font-body font-semibold transition-all border",
-                  selectedAmount === amt
-                    ? "bg-navy text-white border-navy shadow-soft"
-                    : "bg-secondary text-foreground border-border hover:border-navy/30"
-                )}
-              >
-                ${amt}
+              className={cn(
+                "py-2.5 rounded-lg text-sm font-body font-semibold transition-all border",
+                selectedAmount === amt
+                  ? "bg-navy text-white border-navy shadow-soft"
+                  : "bg-secondary text-foreground border-border hover:border-navy/30"
+              )}
+            >
+                ₱{amt}
               </button>
             ))}
           </div>
@@ -185,7 +189,7 @@ export default function DonorPortalDonatePage() {
             className="w-full px-4 py-3 rounded-xl border border-border bg-secondary font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent mb-4"
           />
           <Button disabled={!donationAmount || donating} onClick={handleDonate} className="rounded-xl w-full">
-            {donating ? "Processing..." : `Donate $${donationAmount ?? ""}${isMonthly ? " Monthly" : ""}`}
+            {donating ? "Processing..." : `Donate ${donationAmount != null ? formatPeso(donationAmount) : ""}${isMonthly ? " Monthly" : ""}`}
             {!donating && <ArrowRight className="ml-1 h-4 w-4" />}
           </Button>
         </div>
@@ -232,8 +236,8 @@ export default function DonorPortalDonatePage() {
                   <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">
                     {summary?.year ?? new Date().getFullYear()} annual giving OKR
                   </p>
-                  <p className="font-heading text-3xl font-bold text-foreground">${organizationTotal.toLocaleString()}</p>
-                  <p className="font-body text-xs text-muted-foreground">Goal ${annualOkrTarget.toLocaleString()}</p>
+                  <p className="font-heading text-3xl font-bold text-foreground">{formatPeso(organizationTotal)}</p>
+                  <p className="font-body text-xs text-muted-foreground">Goal {formatPeso(annualOkrTarget)}</p>
                 </div>
               </div>
 
@@ -241,13 +245,13 @@ export default function DonorPortalDonatePage() {
                 <div className="flex items-center gap-2">
                   <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#3D8B8B]" />
                   <p className="font-body text-xs text-muted-foreground">
-                    Total donations (all donors): ${organizationTotal.toLocaleString()}
+                    Total donations (all donors): {formatPeso(organizationTotal)}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#2B4570]" />
                   <p className="font-body text-xs text-muted-foreground">
-                    Your contribution: ${donorTotal.toLocaleString()} ({donorProgressPercent}% of goal)
+                    Your contribution: {formatPeso(donorTotal)} ({donorProgressPercent}% of goal)
                   </p>
                 </div>
               </div>
@@ -312,7 +316,7 @@ export default function DonorPortalDonatePage() {
                       <span className="text-xs font-body px-2 py-1 rounded-full bg-secondary">{donation.donationType}</span>
                     </td>
                     <td className="px-4 py-3 font-body text-sm font-semibold text-foreground">
-                      ${donation.amount.toLocaleString()}
+                      {formatPeso(donation.amount)}
                     </td>
                     <td className="px-4 py-3 font-body text-sm text-muted-foreground">
                       {donation.isRecurring ? "Monthly" : "One-Time"}
@@ -330,7 +334,7 @@ export default function DonorPortalDonatePage() {
         {[
           {
             title: "This Year",
-            value: summaryLoading ? "Loading..." : `$${(summary?.donorTotalThisYear ?? 0).toLocaleString()}`,
+            value: summaryLoading ? "Loading..." : formatPeso(summary?.donorTotalThisYear ?? 0),
             icon: Heart,
             note: "Total contributed by you",
           },
@@ -342,7 +346,7 @@ export default function DonorPortalDonatePage() {
           },
           {
             title: "Lifetime Giving",
-            value: summaryLoading ? "Loading..." : `$${(summary?.lifetimeTotal ?? 0).toLocaleString()}`,
+            value: summaryLoading ? "Loading..." : formatPeso(summary?.lifetimeTotal ?? 0),
             icon: BarChart3,
             note: "All-time amount contributed",
           },
