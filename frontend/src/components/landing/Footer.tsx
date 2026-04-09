@@ -88,7 +88,7 @@ const Footer = () => {
                 <Linkedin className="h-5 w-5" />
               </a>
               <a
-                href="https://www.facebook.com/share/1B1dYsfgXX/?mibextid=wwXIfr"
+                href="https://www.instagram.com/marb.building.sucks?igsh=eTVoN3N4bWJjM3lr"
                 target="_blank"
                 rel="noreferrer"
                 className="text-white/70 hover:text-white transition-colors"
