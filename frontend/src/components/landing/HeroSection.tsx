@@ -27,9 +27,9 @@ function spawnBird(w: number, h: number, close = false): Bird {
   if (close) {
     return {
       x: dir === 1 ? -50 : w + 50,
-      y: skyH * 0.25 + Math.random() * skyH * 0.5,
-      speed: 25 + Math.random() * 20,
-      size: 4 + Math.random() * 3,
+      y: skyH * 0.12 + Math.random() * skyH * 0.48,
+      speed: 14 + Math.random() * 10,
+      size: 2.6 + Math.random() * 1.6,
       dir,
       wingPhase: Math.random() * Math.PI * 2,
       wingSpeed: 5 + Math.random() * 3,

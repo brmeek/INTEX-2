@@ -244,9 +244,11 @@ export default function CoverageGapFinder({ readOnly = false }: { readOnly?: boo
             <div className="rounded-2xl border border-border bg-secondary/70 p-6">
               <p className="mb-4 font-body text-base leading-relaxed text-foreground">
                 Each circle marks a zone with{" "}
-                <span className="font-semibold text-navy">uncovered provinces</span>. Larger,
-                darker markers signal regions where the service gap is most urgent. Click a
-                circle or card to sponsor coverage directly.
+                <span className="font-semibold text-accent underline decoration-accent/40 underline-offset-2">
+                  uncovered provinces
+                </span>
+                . Larger, darker markers signal regions where the service gap is most urgent. Click a circle or card to
+                sponsor coverage directly.
               </p>
               <div className="grid gap-3 sm:grid-cols-3">
                 <div className="rounded-xl border border-border bg-card p-4">

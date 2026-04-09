@@ -22,7 +22,9 @@ import PrivacyPage from "./pages/PrivacyPage";
 import ImpactDashboard from "./pages/ImpactDashboard";
 import LoginPage from "./pages/LoginPage";
 import DonorLoginPage from "./pages/DonorLoginPage";
-import DonorPortalPage from "./pages/DonorPortalPage";
+import DonorPortalLayout from "./pages/donor/DonorPortalLayout";
+import DonorPortalDonatePage from "./pages/donor/DonorPortalDonatePage";
+import DonorPortalWhyPage from "./pages/donor/DonorPortalWhyPage";
 import ManageMfaPage from "./pages/ManageMfaPage";
 import RegisterPage from "./pages/RegisterPage";
 import LogoutPage from "./pages/LogoutPage";
@@ -117,7 +119,17 @@ const App = () => {
               <Route path="/logout" element={<LogoutPage />} />
               <Route path="/donor/login" element={<DonorLoginPage />} />
               <Route path="/portal" element={<PortalRedirect />} />
-              <Route path="/donor" element={<ProtectedRoute requireRole="Donor"><DonorPortalPage /></ProtectedRoute>} />
+              <Route
+                path="/donor"
+                element={
+                  <ProtectedRoute requireRole="Donor">
+                    <DonorPortalLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<DonorPortalDonatePage />} />
+                <Route path="why" element={<DonorPortalWhyPage />} />
+              </Route>
               <Route path="/account/security" element={<ProtectedRoute><ManageMfaPage /></ProtectedRoute>} />
 
               {/* Admin (Authenticated) */}
