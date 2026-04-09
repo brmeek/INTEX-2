@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { DeleteConfirmDialog } from "@/components/admin/DeleteConfirmDialog";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Search, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 interface Resident {
@@ -40,6 +41,7 @@ interface Resident {
 
 const CaseloadPage = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [residents, setResidents] = useState<Resident[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -95,6 +97,13 @@ const CaseloadPage = () => {
 
   const executeDeleteResident = async () => {
     if (!residentToDelete) return;
+    if (
+      !window.confirm(
+        `Delete ${residentToDelete.firstName} ${residentToDelete.lastName}? This permanently removes their record from the caseload and cannot be undone.`
+      )
+    ) {
+      return;
+    }
     setDeletePending(true);
     try {
       await api.delete(`/api/residents/${residentToDelete.residentId}`);
@@ -144,33 +153,33 @@ const CaseloadPage = () => {
 
   const inputClass = "w-full px-3 py-2 rounded-lg border border-border bg-secondary font-body text-sm focus:outline-none focus:ring-2 focus:ring-accent";
   const getReadinessPillClass = (tier?: string | null) => {
-    if (tier === "High Readiness") return "bg-emerald-100 text-emerald-700";
-    if (tier === "Needs Monitoring") return "bg-amber-100 text-amber-700";
-    if (tier === "At Risk") return "bg-red-100 text-red-700";
+    if (tier === "High Readiness") return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300";
+    if (tier === "Needs Monitoring") return "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300";
+    if (tier === "At Risk") return "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300";
     return "bg-muted text-muted-foreground";
   };
   const getTrendPillClass = (trend?: string | null) => {
-    if (trend === "Improving") return "bg-emerald-100 text-emerald-700";
-    if (trend === "Stable") return "bg-blue-100 text-blue-700";
-    if (trend === "Early Decline") return "bg-amber-100 text-amber-700";
-    if (trend === "Declining") return "bg-red-100 text-red-700";
+    if (trend === "Improving") return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300";
+    if (trend === "Stable") return "bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300";
+    if (trend === "Early Decline") return "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300";
+    if (trend === "Declining") return "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300";
     return "bg-muted text-muted-foreground";
   };
 
   return (
-    <AdminLayout title="Caseload Inventory" subtitle="Manage resident profiles and case records">
+    <AdminLayout title="Caseload Inventory" subtitle="Clean case list with quick links to resident dashboards">
       <div className="space-y-4">
         {/* Filters */}
         <div className="flex flex-wrap gap-3">
           <div className="relative flex-1 min-w-[200px] max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && load()} placeholder="Search by name..." className="w-full pl-9 pr-3 py-2 rounded-lg border border-border bg-white font-body text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && load()} placeholder="Search by name..." className="w-full pl-9 pr-3 py-2 rounded-lg border border-border bg-background font-body text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
           </div>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-2 rounded-lg border border-border bg-white font-body text-sm">
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-2 rounded-lg border border-border bg-background font-body text-sm">
             <option value="">All Statuses</option>
             <option>Active</option><option>Reintegrated</option><option>Transferred</option><option>Discharged</option>
           </select>
-          <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="px-3 py-2 rounded-lg border border-border bg-white font-body text-sm">
+          <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="px-3 py-2 rounded-lg border border-border bg-background font-body text-sm">
             <option value="">All Categories</option>
             <option>Trafficked</option><option>PhysicalAbuse</option><option>SexualAbuse</option><option>Neglected</option><option>Abandoned</option>
           </select>
@@ -188,19 +197,15 @@ const CaseloadPage = () => {
           </Button>
         </div>
 
-        <div className="bg-white rounded-xl p-4 shadow-soft border border-border">
+        <div className="bg-card rounded-xl p-4 shadow-soft border border-border">
           <p className="font-body text-xs text-muted-foreground">
-            Label guide: <span className="font-semibold text-foreground">Readiness (Current Level)</span> shows the resident's present risk/readiness state.
-            <span className="font-semibold text-foreground"> Trend (Recent Direction)</span> shows whether the trajectory is improving, stable, or declining over recent months.
-          </p>
-          <p className="font-body text-xs text-muted-foreground mt-1">
-            Example: <span className="font-semibold text-foreground">Stable + At Risk</span> means consistently low readiness that is not rapidly worsening.
+            Click any resident to open their case dashboard with readiness and trend charts, recent sessions, and visitation activity.
           </p>
         </div>
 
         {/* Form */}
         {showForm && (
-          <div className="bg-white rounded-xl p-6 shadow-card border border-border">
+          <div className="bg-card rounded-xl p-6 shadow-card border border-border">
             <h3 className="font-heading text-lg font-bold mb-4">{editItem ? "Edit" : "New"} Resident</h3>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
               <input className={inputClass} placeholder="First Name" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} />
@@ -235,7 +240,7 @@ const CaseloadPage = () => {
         )}
 
         {/* Table */}
-        <div className="bg-white rounded-xl shadow-soft border border-border overflow-hidden">
+        <div className="bg-card rounded-xl shadow-soft border border-border overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-32"><div className="animate-spin h-6 w-6 border-4 border-accent border-t-transparent rounded-full" /></div>
           ) : (
@@ -247,15 +252,15 @@ const CaseloadPage = () => {
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Readiness (Current Level)</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Trend (Recent Direction)</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
-                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Category</th>
-                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Safehouse</th>
-                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Social Worker</th>
-                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Admitted</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
                   </tr></thead>
                   <tbody>
                     {residents.map((r) => (
-                      <tr key={r.residentId} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                      <tr
+                        key={r.residentId}
+                        className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
+                        onClick={() => navigate(`/admin/caseload/${r.residentId}`)}
+                      >
                         <td className="px-4 py-3 font-body text-sm font-medium">
                           <div className="flex items-center gap-2">
                             <span>{r.firstName} {r.lastName}</span>
@@ -284,14 +289,27 @@ const CaseloadPage = () => {
                             <span className="text-xs font-body text-muted-foreground">—</span>
                           )}
                         </td>
-                        <td className="px-4 py-3"><span className={`text-xs font-body px-2 py-1 rounded-full ${r.caseStatus === "Active" ? "bg-teal/10 text-teal" : r.caseStatus === "Reintegrated" ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"}`}>{r.caseStatus}</span></td>
-                        <td className="px-4 py-3 font-body text-sm text-muted-foreground">{r.caseCategory}</td>
-                        <td className="px-4 py-3 font-body text-sm text-muted-foreground">{r.safehouse?.safehouseName || r.safehouseId || "—"}</td>
-                        <td className="px-4 py-3 font-body text-sm text-muted-foreground">{r.assignedSocialWorker || "—"}</td>
-                        <td className="px-4 py-3 font-body text-sm text-muted-foreground">{r.admissionDate || "—"}</td>
-                        <td className="px-4 py-3 flex gap-1">
+                        <td className="px-4 py-3"><span className={`text-xs font-body px-2 py-1 rounded-full ${r.caseStatus === "Active" ? "bg-teal/10 text-teal" : r.caseStatus === "Reintegrated" ? "bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-300" : "bg-muted text-muted-foreground"}`}>{r.caseStatus}</span></td>
+                        <td className="px-4 py-3 flex gap-1" onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            onClick={() => navigate(`/admin/caseload/${r.residentId}`)}
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs font-body h-7 gap-1"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            View
+                          </Button>
                           <Button onClick={() => openEdit(r)} variant="ghost" size="sm" className="text-xs font-body h-7">Edit</Button>
-                          <Button onClick={() => setResidentToDelete(r)} variant="ghost" size="sm" className="text-xs font-body h-7 text-destructive">Delete</Button>
+                          <Button
+                            onClick={() => setResidentToDelete(r)}
+                            disabled={deletePending}
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs font-body h-7 text-destructive"
+                          >
+                            Delete
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -310,7 +328,6 @@ const CaseloadPage = () => {
           )}
         </div>
       </div>
-
       <DeleteConfirmDialog
         open={residentToDelete !== null}
         onOpenChange={(open) => {
@@ -320,7 +337,7 @@ const CaseloadPage = () => {
         description={
           residentToDelete ? (
             <>
-              Remove <span className="font-medium text-foreground">{residentToDelete.firstName} {residentToDelete.lastName}</span> from the caseload? This permanently removes their record and cannot be undone.
+              Remove <span className="font-medium text-foreground">{residentToDelete.firstName} {residentToDelete.lastName}</span> from the caseload? This cannot be undone.
             </>
           ) : (
             "This permanently removes the record from the caseload. This cannot be undone."

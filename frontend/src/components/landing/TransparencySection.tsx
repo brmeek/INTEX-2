@@ -48,7 +48,7 @@ const TransparencySection = () => {
   );
 
   return (
-    <section className="py-24 md:py-32 bg-background">
+    <section className="py-24 md:py-32 bg-secondary">
       <div className="container">
         <div className="grid lg:grid-cols-5 gap-16 items-start">
           <div className="lg:col-span-3">
@@ -77,7 +77,7 @@ const TransparencySection = () => {
                 every resident.
               </p>
             </div>
-            <div className="mt-8 max-w-xl bg-secondary rounded-2xl p-6 border border-border">
+            <div className="mt-8 max-w-xl bg-card rounded-2xl p-6 border border-border">
               <Lock className="h-6 w-6 text-accent mb-4" />
               <h3 className="font-heading text-lg font-bold text-foreground mb-2">
                 Privacy First

@@ -142,6 +142,13 @@ const DonorsAdminPage = () => {
 
   const executeDeleteSupporter = async () => {
     if (!supporterToDelete) return;
+    if (
+      !window.confirm(
+        `Delete supporter "${supporterToDelete.supporterName}"? This removes them from the donor list and cannot be undone.`
+      )
+    ) {
+      return;
+    }
     setDeletePending(true);
     try {
       await api.delete(`/api/supporters/${supporterToDelete.supporterId}`);
@@ -163,9 +170,9 @@ const DonorsAdminPage = () => {
 
   const inputClass = "w-full px-3 py-2 rounded-lg border border-border bg-secondary font-body text-sm focus:outline-none focus:ring-2 focus:ring-accent";
   const getRiskPillClass = (riskTier?: string | null) => {
-    if (riskTier === "High") return "bg-red-100 text-red-700";
-    if (riskTier === "Medium") return "bg-amber-100 text-amber-700";
-    if (riskTier === "Low") return "bg-emerald-100 text-emerald-700";
+    if (riskTier === "High") return "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300";
+    if (riskTier === "Medium") return "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300";
+    if (riskTier === "Low") return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300";
     return "bg-muted text-muted-foreground";
   };
 
@@ -174,10 +181,10 @@ const DonorsAdminPage = () => {
       <div className="space-y-4">
         {/* Tabs */}
         <div className="flex gap-1 p-1 bg-secondary rounded-lg w-fit">
-          <button onClick={() => setTab("supporters")} className={`px-4 py-2 rounded-md text-sm font-body font-semibold transition-all ${tab === "supporters" ? "bg-white shadow-soft text-foreground" : "text-muted-foreground"}`}>
+          <button onClick={() => setTab("supporters")} className={`px-4 py-2 rounded-md text-sm font-body font-semibold transition-all ${tab === "supporters" ? "bg-card shadow-soft text-foreground" : "text-muted-foreground"}`}>
             Supporters
           </button>
-          <button onClick={() => setTab("donations")} className={`px-4 py-2 rounded-md text-sm font-body font-semibold transition-all ${tab === "donations" ? "bg-white shadow-soft text-foreground" : "text-muted-foreground"}`}>
+          <button onClick={() => setTab("donations")} className={`px-4 py-2 rounded-md text-sm font-body font-semibold transition-all ${tab === "donations" ? "bg-card shadow-soft text-foreground" : "text-muted-foreground"}`}>
             Donations
           </button>
         </div>
@@ -187,7 +194,7 @@ const DonorsAdminPage = () => {
           <div className="flex flex-wrap gap-3">
             <div className="relative flex-1 min-w-[200px] max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && loadSupporters()} placeholder="Search supporters..." className="w-full pl-9 pr-3 py-2 rounded-lg border border-border bg-white font-body text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && loadSupporters()} placeholder="Search supporters..." className="w-full pl-9 pr-3 py-2 rounded-lg border border-border bg-background font-body text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
             </div>
             <Button onClick={() => { setEditItem(null); setForm({ supporterName: "", supporterType: "Monetary", email: "", phone: "", status: "Active", region: "", notes: "" }); setShowForm(true); }} size="sm" className="bg-accent text-white hover:bg-teal-light font-body gap-1">
               <Plus className="h-4 w-4" /> Add Supporter
@@ -197,7 +204,7 @@ const DonorsAdminPage = () => {
 
         {/* Form Modal */}
         {showForm && tab === "supporters" && (
-          <div className="bg-white rounded-xl p-6 shadow-card border border-border">
+          <div className="bg-card rounded-xl p-6 shadow-card border border-border">
             <h3 className="font-heading text-lg font-bold mb-4">{editItem ? "Edit" : "New"} Supporter</h3>
             <div className="grid sm:grid-cols-2 gap-3 mb-4">
               <input className={inputClass} placeholder="Name" value={form.supporterName} onChange={(e) => setForm({ ...form, supporterName: e.target.value })} />
@@ -219,7 +226,7 @@ const DonorsAdminPage = () => {
         )}
 
         {tab === "donations" && (
-          <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+          <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
             <h3 className="font-heading text-lg font-bold text-foreground mb-1">In-Kind Donation Value Estimator</h3>
             <p className="font-body text-xs text-muted-foreground mb-4">
               Pipeline 5: estimate in-kind donation value instantly during intake.
@@ -256,7 +263,7 @@ const DonorsAdminPage = () => {
         )}
 
         {/* Table */}
-        <div className="bg-white rounded-xl shadow-soft border border-border overflow-hidden">
+        <div className="bg-card rounded-xl shadow-soft border border-border overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-32"><div className="animate-spin h-6 w-6 border-4 border-accent border-t-transparent rounded-full" /></div>
           ) : tab === "supporters" ? (
@@ -300,7 +307,15 @@ const DonorsAdminPage = () => {
                         <td className="px-4 py-3 font-body text-sm">{s.totalGiven != null ? `₱${s.totalGiven.toLocaleString()}` : "—"}</td>
                         <td className="px-4 py-3 flex gap-1">
                           <Button onClick={() => openEdit(s)} variant="ghost" size="sm" className="text-xs font-body h-7">Edit</Button>
-                          <Button onClick={() => setSupporterToDelete(s)} variant="ghost" size="sm" className="text-xs font-body h-7 text-destructive">Delete</Button>
+                          <Button
+                            onClick={() => setSupporterToDelete(s)}
+                            disabled={deletePending}
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs font-body h-7 text-destructive"
+                          >
+                            Delete
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -356,7 +371,6 @@ const DonorsAdminPage = () => {
           )}
         </div>
       </div>
-
       <DeleteConfirmDialog
         open={supporterToDelete !== null}
         onOpenChange={(open) => {

@@ -105,16 +105,16 @@ const CONTENT_TOPICS = ["Program Impact", "Resident Story", "Funding Need", "Eve
 const CTA_TYPES = ["Donate Now", "Learn More", "Share"];
 
 const PLATFORM_META: Record<string, { gradient: string; badge: string; icon: string }> = {
-  Facebook:  { gradient: "from-blue-500 to-blue-600",   badge: "bg-blue-50 text-blue-700 border-blue-200",   icon: "f" },
-  Instagram: { gradient: "from-pink-500 to-purple-500", badge: "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200", icon: "ig" },
-  TikTok:    { gradient: "from-slate-700 to-slate-900", badge: "bg-slate-50 text-slate-700 border-slate-200",     icon: "tt" },
-  YouTube:   { gradient: "from-red-500 to-red-600",     badge: "bg-red-50 text-red-700 border-red-200",           icon: "yt" },
+  Facebook:  { gradient: "from-blue-500 to-blue-600",   badge: "bg-blue-500/10 text-blue-300 border-blue-500/20",   icon: "f" },
+  Instagram: { gradient: "from-pink-500 to-purple-500", badge: "bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/20", icon: "ig" },
+  TikTok:    { gradient: "from-slate-700 to-slate-900", badge: "bg-secondary text-foreground border-border",     icon: "tt" },
+  YouTube:   { gradient: "from-red-500 to-red-600",     badge: "bg-red-500/10 text-red-300 border-red-500/20",           icon: "yt" },
 };
 
 const CONFIDENCE_STYLES: Record<string, string> = {
-  High:   "bg-emerald-50 text-emerald-700 border-emerald-200",
-  Medium: "bg-amber-50 text-amber-700 border-amber-200",
-  Low:    "bg-slate-50 text-slate-600 border-slate-200",
+  High:   "bg-emerald-500/10 text-emerald-300 border-emerald-500/20",
+  Medium: "bg-amber-500/10 text-amber-300 border-amber-500/20",
+  Low:    "bg-secondary text-foreground border-border",
 };
 
 const DAYS_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -367,7 +367,7 @@ function CalendarTab() {
   };
 
   const NavButton = ({ onClick, children }: { onClick: () => void; children: React.ReactNode }) => (
-    <button onClick={onClick} className="p-2 rounded-lg hover:bg-stone-100 transition-colors">
+    <button onClick={onClick} className="p-2 rounded-lg hover:bg-secondary transition-colors">
       {children}
     </button>
   );
@@ -375,16 +375,16 @@ function CalendarTab() {
   return (
     <div className="space-y-5">
       {/* ─── Toolbar ─── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-stone-50 rounded-xl border border-stone-200 px-5 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-card rounded-xl border border-border px-5 py-3">
         <div className="flex items-center gap-3">
-          <div className="flex items-center bg-white rounded-lg border border-stone-200 p-0.5">
+          <div className="flex items-center bg-card rounded-lg border border-border p-0.5">
             {(["day", "week", "month"] as ViewMode[]).map((mode) => (
               <button
                 key={mode}
                 onClick={() => setViewMode(mode)}
                 className={`px-3 py-1.5 text-xs font-body font-medium rounded-md transition-colors capitalize ${
                   viewMode === mode
-                    ? "bg-slate-800 text-white shadow-sm"
+                    ? "bg-navy text-white shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -394,7 +394,7 @@ function CalendarTab() {
           </div>
           <button
             onClick={() => setSelectedDate(localToday())}
-            className="text-[11px] font-body font-semibold text-amber-700 hover:text-amber-800 px-2 py-1 rounded-md hover:bg-amber-50 transition-colors"
+            className="text-[11px] font-body font-semibold text-amber-700 hover:text-amber-800 px-2 py-1 rounded-md hover:bg-amber-500/10 transition-colors"
           >
             Today
           </button>
@@ -408,7 +408,7 @@ function CalendarTab() {
             <strong className="text-amber-600">{weekTotal.toFixed(0)}</strong> predicted referrals
           </span>
           <span className="text-muted-foreground">
-            <strong className="text-stone-700">{formatCurrency(weekDonations)}</strong> est. donations
+            <strong className="text-foreground">{formatCurrency(weekDonations)}</strong> est. donations
           </span>
         </div>
       </div>
@@ -417,7 +417,7 @@ function CalendarTab() {
       {viewMode === "day" && (
         <div className="flex items-center justify-between">
           <NavButton onClick={() => shiftDate(-1)}>
-            <ChevronLeft className="h-5 w-5 text-stone-500" />
+            <ChevronLeft className="h-5 w-5 text-muted-foreground" />
           </NavButton>
           <div className="text-center">
             <h3 className="font-heading text-lg font-bold text-foreground">{fmtFull(selectedDate)}</h3>
@@ -435,7 +435,7 @@ function CalendarTab() {
             </div>
           </div>
           <NavButton onClick={() => shiftDate(1)}>
-            <ChevronRight className="h-5 w-5 text-stone-500" />
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
           </NavButton>
         </div>
       )}
@@ -445,13 +445,13 @@ function CalendarTab() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <NavButton onClick={() => shiftDate(-7)}>
-              <ChevronLeft className="h-5 w-5 text-stone-500" />
+              <ChevronLeft className="h-5 w-5 text-muted-foreground" />
             </NavButton>
             <h3 className="font-heading text-sm font-bold text-foreground">
               {weekDates[0]} – {weekDates[6]}, {new Date(derivedMonday + "T00:00:00").getFullYear()}
             </h3>
             <NavButton onClick={() => shiftDate(7)}>
-              <ChevronRight className="h-5 w-5 text-stone-500" />
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
             </NavButton>
           </div>
           <div className="grid grid-cols-7 gap-2">
@@ -469,7 +469,7 @@ function CalendarTab() {
                       ? "border-amber-300 bg-amber-50/60 ring-2 ring-amber-200/50 shadow-soft"
                       : isToday
                       ? "border-amber-200 bg-amber-50/30 hover:shadow-soft"
-                      : "border-border bg-white hover:border-amber-200 hover:shadow-soft"
+                      : "border-border bg-card hover:border-amber-200 hover:shadow-soft"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -541,13 +541,13 @@ function CalendarTab() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <NavButton onClick={() => shiftMonth(-1)}>
-              <ChevronLeft className="h-5 w-5 text-stone-500" />
+              <ChevronLeft className="h-5 w-5 text-muted-foreground" />
             </NavButton>
             <h3 className="font-heading text-sm font-bold text-foreground">
               {fmtMonthYear(selectedDate)}
             </h3>
             <NavButton onClick={() => shiftMonth(1)}>
-              <ChevronRight className="h-5 w-5 text-stone-500" />
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
             </NavButton>
           </div>
           <div className="grid grid-cols-7 gap-1">
@@ -574,8 +574,8 @@ function CalendarTab() {
                       : isToday
                       ? "border-amber-200 bg-amber-50/30"
                       : posts.length > 0
-                      ? "border-border bg-white hover:border-amber-200"
-                      : "border-transparent bg-stone-50/50 hover:bg-stone-100/60"
+                      ? "border-border bg-card hover:border-amber-200"
+                      : "border-transparent bg-background/60 hover:bg-secondary"
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -612,7 +612,7 @@ function CalendarTab() {
 
       {/* ─── Post Detail Panel (shared across all views) ─── */}
       {selectedDatePosts.length > 0 && (
-        <div className="rounded-2xl border border-stone-200 bg-white shadow-soft overflow-hidden">
+        <div className="rounded-2xl border border-border bg-card shadow-soft overflow-hidden">
           {viewMode !== "day" && (
             <div className="bg-slate-800 px-6 py-3">
               <h4 className="font-heading text-base font-bold text-white">
@@ -641,14 +641,14 @@ function CalendarTab() {
                 <div key={i} className={`group flex gap-4 p-4 rounded-xl border transition-all ${
                   done
                     ? "border-emerald-200 bg-emerald-50/40"
-                    : "border-border bg-white hover:shadow-soft"
+                    : "border-border bg-card hover:shadow-soft"
                 }`}>
                   <button
                     onClick={() => toggleComplete(key)}
                     className={`shrink-0 mt-1 w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
                       done
                         ? "bg-emerald-500 text-white shadow-sm"
-                        : "border-2 border-stone-200 text-stone-300 hover:border-amber-400 hover:text-amber-500"
+                        : "border-2 border-border text-muted-foreground hover:border-amber-400 hover:text-amber-500"
                     }`}
                     title={done ? "Mark incomplete" : "Mark complete"}
                   >
@@ -709,7 +709,7 @@ function CalendarTab() {
 
       {/* Empty state for day view */}
       {viewMode === "day" && selectedDatePosts.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-stone-200 bg-stone-50/50 p-10 text-center">
+        <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
           <p className="font-body text-sm text-muted-foreground">No posts scheduled for this day.</p>
         </div>
       )}
@@ -768,7 +768,7 @@ function ComposerTab() {
 
   return (
     <div className="grid lg:grid-cols-5 gap-6">
-      <div className="lg:col-span-3 bg-white rounded-2xl border border-border shadow-soft p-6">
+      <div className="lg:col-span-3 bg-card rounded-2xl border border-border shadow-soft p-6">
         <div className="flex items-center gap-2 mb-5">
           <div className="w-8 h-8 rounded-lg bg-amber-600 flex items-center justify-center">
             <Send className="h-4 w-4 text-white" />
@@ -857,7 +857,7 @@ function ComposerTab() {
 
       <div className="lg:col-span-2 space-y-4">
         {result ? (
-          <div className="rounded-2xl border border-stone-200 bg-white shadow-soft p-6 space-y-5">
+          <div className="rounded-2xl border border-border bg-card shadow-soft p-6 space-y-5">
             <div className="flex items-center gap-2">
               <Target className="h-5 w-5 text-amber-600" />
               <h3 className="font-heading text-base font-bold text-foreground">Prediction Result</h3>
@@ -878,7 +878,7 @@ function ComposerTab() {
             </p>
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-stone-200 bg-stone-50/50 p-8 flex flex-col items-center justify-center text-center min-h-[260px]">
+          <div className="rounded-2xl border border-dashed border-border bg-card p-8 flex flex-col items-center justify-center text-center min-h-[260px]">
             <div className="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center mb-4">
               <BarChart3 className="h-7 w-7 text-amber-600/60" />
             </div>
@@ -888,8 +888,8 @@ function ComposerTab() {
           </div>
         )}
 
-        <div className="bg-stone-50 rounded-2xl border border-stone-200 p-5">
-          <h4 className="font-body text-xs font-bold text-stone-700 mb-3 flex items-center gap-1.5">
+        <div className="bg-card rounded-2xl border border-border p-5">
+          <h4 className="font-body text-xs font-bold text-foreground mb-3 flex items-center gap-1.5">
             <Megaphone className="h-3.5 w-3.5" /> What Drives Results
           </h4>
           <div className="space-y-2.5">
@@ -909,7 +909,7 @@ function TipRow({ tip }: { tip: string }) {
   return (
     <div className="flex items-start gap-2">
       <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
-      <p className="font-body text-xs text-stone-600 leading-relaxed">{tip}</p>
+      <p className="font-body text-xs text-muted-foreground leading-relaxed">{tip}</p>
     </div>
   );
 }
@@ -978,7 +978,7 @@ function AnalyticsTab() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-border shadow-soft overflow-hidden">
+      <div className="bg-card rounded-2xl border border-border shadow-soft overflow-hidden">
         <div className="bg-slate-800 px-6 py-3 flex items-center justify-between">
           <h3 className="font-heading text-base font-bold text-white flex items-center gap-2">
             <Eye className="h-4 w-4" /> Scored Posts History
@@ -1044,12 +1044,12 @@ function FieldGroup({ label, children }: { label: string; children: React.ReactN
 }
 
 const ACCENT_MAP: Record<string, { bg: string; text: string; border: string }> = {
-  orange:  { bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-100" },
-  rose:    { bg: "bg-rose-50",    text: "text-rose-700",    border: "border-rose-100" },
-  purple:  { bg: "bg-stone-50",   text: "text-stone-700",   border: "border-stone-200" },
-  emerald: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-100" },
-  amber:   { bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-100" },
-  slate:   { bg: "bg-slate-50",   text: "text-slate-600",   border: "border-slate-200" },
+  orange:  { bg: "bg-amber-500/10",   text: "text-amber-300",   border: "border-amber-500/20" },
+  rose:    { bg: "bg-rose-500/10",    text: "text-rose-300",    border: "border-rose-500/20" },
+  purple:  { bg: "bg-secondary",      text: "text-foreground",  border: "border-border" },
+  emerald: { bg: "bg-emerald-500/10", text: "text-emerald-300", border: "border-emerald-500/20" },
+  amber:   { bg: "bg-amber-500/10",   text: "text-amber-300",   border: "border-amber-500/20" },
+  slate:   { bg: "bg-secondary",      text: "text-foreground",  border: "border-border" },
 };
 
 function ResultCard({ label, value, sub, accent }: { label: string; value: string; sub: string; accent: string }) {
@@ -1073,7 +1073,7 @@ function BreakdownCard({ title, items, color }: { title: string; items: { label:
   const maxAvg = Math.max(...items.map((i) => i.avg), 1);
   const gradient = BAR_GRADIENTS[color] ?? BAR_GRADIENTS.orange;
   return (
-    <div className="bg-white rounded-2xl border border-border shadow-soft p-5">
+    <div className="bg-card rounded-2xl border border-border shadow-soft p-5">
       <h4 className="font-heading text-sm font-bold text-foreground mb-4">{title}</h4>
       <div className="space-y-3.5">
         {items.map((item) => (
@@ -1106,16 +1106,16 @@ const PostingCalendarPage = () => {
       <SunsetBanner />
 
       <Tabs defaultValue="calendar" className="space-y-5">
-        <TabsList className="bg-stone-100 border border-stone-200 p-1">
-          <TabsTrigger value="calendar" className="gap-1.5 font-body text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm">
+        <TabsList className="bg-card border border-border p-1">
+          <TabsTrigger value="calendar" className="gap-1.5 font-body text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm">
             <CalendarClock className="h-3.5 w-3.5" />
             Weekly Plan
           </TabsTrigger>
-          <TabsTrigger value="composer" className="gap-1.5 font-body text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger value="composer" className="gap-1.5 font-body text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm">
             <Send className="h-3.5 w-3.5" />
             Post Composer
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="gap-1.5 font-body text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger value="analytics" className="gap-1.5 font-body text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm">
             <TrendingUp className="h-3.5 w-3.5" />
             Analytics
           </TabsTrigger>

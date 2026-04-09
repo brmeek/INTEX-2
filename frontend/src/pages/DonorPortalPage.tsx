@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
-import { Activity, Anchor, ArrowRight, BarChart3, BookOpen, Heart, LineChart, LogOut, Megaphone, ShieldCheck, Sparkles } from "lucide-react";
+import { Navigate } from "react-router-dom";
+import { Activity, Anchor, ArrowRight, BarChart3, BookOpen, Heart, LineChart, Megaphone, ShieldCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import { logoutUser } from "@/lib/authApi";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import CoverageGapFinder from "@/components/donor/CoverageGapFinder";
+import Navbar from "@/components/landing/Navbar";
 
 const donationAmounts = [25, 50, 100, 250, 500];
 const annualOkrTarget = 5000;
@@ -49,8 +49,7 @@ function getErrorMessage(error: unknown): string {
 }
 
 const DonorPortalPage = () => {
-  const { authSession, isAuthenticated, refreshAuthSession } = useAuth();
-  const navigate = useNavigate();
+  const { authSession, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [selectedAmount, setSelectedAmount] = useState<number | null>(100);
   const [customAmount, setCustomAmount] = useState("");
@@ -125,12 +124,6 @@ const DonorPortalPage = () => {
       value: impactForecast?.estimatedAllocationPhp.outreach ?? 0,
     },
   ];
-
-  const handleLogout = async () => {
-    await logoutUser();
-    await refreshAuthSession();
-    navigate("/donor/login");
-  };
 
   const loadSummary = useCallback(async () => {
     setSummaryLoading(true);
@@ -243,31 +236,14 @@ const DonorPortalPage = () => {
 
   return (
     <div className="min-h-screen bg-muted">
-      <header className="bg-navy text-white border-b border-white/10">
-        <div className="container h-20 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5">
-            <Anchor className="h-6 w-6 text-teal-light" />
-            <div>
-              <p className="font-heading text-lg font-bold">Hope Harbor</p>
-              <p className="font-body text-xs text-white/50">Donor Portal</p>
-            </div>
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link to="/">
-              <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10">
-                Public Site
-              </Button>
-            </Link>
-            <Button onClick={handleLogout} size="sm" variant="outline" className="border-white/20 bg-transparent text-white hover:bg-white/10">
-              <LogOut className="mr-1 h-4 w-4" />
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
-      <main className="container py-8 space-y-6">
-        <section className="bg-white border border-border rounded-2xl p-6 shadow-soft">
+      <div className="pt-16 lg:pt-20">
+      <main id="main-content" tabIndex={-1} className="container py-8 space-y-6 outline-none">
+        <section className="bg-card border border-border rounded-2xl p-6 shadow-soft">
+          <p className="font-body text-xs font-semibold tracking-widest uppercase text-accent mb-3">
+            Donor Portal
+          </p>
           <h1 className="font-heading text-3xl font-bold text-foreground">Welcome back, {donorDisplayName}</h1>
         </section>
 
@@ -292,7 +268,7 @@ const DonorPortalPage = () => {
               note: "All-time amount contributed",
             },
           ].map((item) => (
-            <div key={item.title} className="bg-white border border-border rounded-xl p-5 shadow-soft">
+            <div key={item.title} className="bg-card border border-border rounded-xl p-5 shadow-soft">
               <item.icon className="h-5 w-5 text-accent mb-3" />
               <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">{item.title}</p>
               <p className="font-heading text-2xl font-bold text-foreground mt-1">{item.value}</p>
@@ -301,7 +277,7 @@ const DonorPortalPage = () => {
           ))}
         </section>
 
-        <section className="bg-white border border-border rounded-2xl p-6 shadow-soft">
+        <section className="bg-card border border-border rounded-2xl p-6 shadow-soft">
           <div className="flex items-center justify-between gap-3 mb-3">
             <h2 className="font-heading text-xl font-bold text-foreground">Recent donations</h2>
             <div className="flex items-center gap-3">
@@ -359,7 +335,7 @@ const DonorPortalPage = () => {
         </section>
 
         <section className="grid lg:grid-cols-2 gap-6">
-          <div className="bg-white border border-border rounded-2xl p-6 shadow-soft">
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-soft">
             <h2 className="font-heading text-xl font-bold text-foreground mb-2">Make a donation</h2>
             <p className="font-body text-sm text-muted-foreground mb-4">
               Give directly from your donor dashboard.
@@ -420,7 +396,7 @@ const DonorPortalPage = () => {
             </Button>
           </div>
 
-          <div className="bg-white border border-border rounded-2xl p-6 shadow-soft">
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-soft">
             <h2 className="font-heading text-xl font-bold text-foreground mb-2">Donation trends</h2>
             <p className="font-body text-sm text-muted-foreground mb-4">
               OKR metric updates from your donor account activity.
@@ -490,7 +466,7 @@ const DonorPortalPage = () => {
           </div>
         </section>
 
-        <section className="bg-white border border-border rounded-2xl p-6 shadow-soft">
+        <section className="bg-card border border-border rounded-2xl p-6 shadow-soft">
           <div className="flex items-center justify-between gap-3 mb-3">
             <div>
               <h2 className="font-heading text-xl font-bold text-foreground flex items-center gap-2">
@@ -498,7 +474,7 @@ const DonorPortalPage = () => {
                 Your donation impact forecast
               </h2>
               <p className="font-body text-sm text-muted-foreground">
-                Live estimate based on historical allocation patterns.
+                See how your donations can make a change based off historical allocation patterns.
               </p>
             </div>
             {impactForecast?.modelVersion && (
@@ -519,12 +495,12 @@ const DonorPortalPage = () => {
                 placeholder="e.g., 250"
                 value={hypotheticalAmount}
                 onChange={(event) => setHypotheticalAmount(event.target.value)}
-                className="w-full sm:w-56 px-3 py-2 rounded-lg border border-border bg-white font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+                className="w-full sm:w-56 px-3 py-2 rounded-lg border border-border bg-background font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
               />
               <button
                 type="button"
                 onClick={() => setHypotheticalAmount("")}
-                className="px-3 py-2 rounded-lg border border-border bg-white font-body text-xs font-semibold text-muted-foreground hover:text-foreground"
+                className="px-3 py-2 rounded-lg border border-border bg-background font-body text-xs font-semibold text-muted-foreground hover:text-foreground"
               >
                 Use current donation amount
               </button>
@@ -604,6 +580,7 @@ const DonorPortalPage = () => {
           </p>
         </section>
       </main>
+      </div>
     </div>
   );
 };

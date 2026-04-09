@@ -88,7 +88,7 @@ const DonorLoginPage = () => {
               </div>
             </div>
 
-            <div className="rounded-3xl bg-white p-8 md:p-10 shadow-card border border-border">
+            <div className="rounded-3xl bg-card p-8 md:p-10 shadow-card border border-border">
               <div className="flex gap-2 rounded-full bg-secondary p-1 mb-8">
                 <button
                   type="button"
@@ -131,13 +131,13 @@ const DonorLoginPage = () => {
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 {error && (
-                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-body text-sm text-red-700">
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-body text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/50 dark:text-red-200">
                     {error}
                   </div>
                 )}
 
                 {success && (
-                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-body text-sm text-emerald-700">
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-body text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/50 dark:text-emerald-200">
                     {success}
                   </div>
                 )}

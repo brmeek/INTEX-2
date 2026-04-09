@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { CookieConsentProvider } from "@/context/CookieConsentContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { getPortalLandingPath, hasDonorPortalAccess, type PortalTarget } from "@/lib/portalRoutes";
 import InitialLoadingScreen from "./components/InitialLoadingScreen";
 import ScrollToTop from "./components/ScrollToTop";
@@ -31,10 +32,12 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import UsersAdminPage from "./pages/admin/UsersAdminPage";
 import DonorsAdminPage from "./pages/admin/DonorsAdminPage";
 import CaseloadPage from "./pages/admin/CaseloadPage";
+import CaseDetailPage from "./pages/admin/CaseDetailPage";
 import ProcessRecordingsPage from "./pages/admin/ProcessRecordingsPage";
 import VisitationsPage from "./pages/admin/VisitationsPage";
 import PartnersAdminPage from "./pages/admin/PartnersAdminPage";
 import ReportsPage from "./pages/admin/ReportsPage";
+import SocialConversionPlannerPage from "./pages/admin/SocialConversionPlannerPage";
 import TraffickingMapPage from "./pages/admin/TraffickingMapPage";
 import PostingCalendarPage from "./pages/admin/PostingCalendarPage";
 
@@ -88,17 +91,18 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <CookieConsentProvider>
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            {showLoadingScreen && (
-              <InitialLoadingScreen onComplete={handleLoadingComplete} />
-            )}
-            <BrowserRouter>
-              <ScrollToTop />
-              <Routes>
+      <ThemeProvider>
+        <CookieConsentProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              {showLoadingScreen && (
+                <InitialLoadingScreen onComplete={handleLoadingComplete} />
+              )}
+              <BrowserRouter>
+                <ScrollToTop />
+                <Routes>
               {/* Public */}
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<AboutPage />} />
@@ -121,22 +125,25 @@ const App = () => {
               <Route path="/admin/users" element={<ProtectedRoute requireRole="Admin"><UsersAdminPage /></ProtectedRoute>} />
               <Route path="/admin/donors" element={<ProtectedRoute requireRole="Admin"><DonorsAdminPage /></ProtectedRoute>} />
               <Route path="/admin/caseload" element={<ProtectedRoute requireRole="Admin"><CaseloadPage /></ProtectedRoute>} />
+              <Route path="/admin/caseload/:id" element={<ProtectedRoute requireRole="Admin"><CaseDetailPage /></ProtectedRoute>} />
               <Route path="/admin/recordings" element={<ProtectedRoute requireRole="Admin"><ProcessRecordingsPage /></ProtectedRoute>} />
               <Route path="/admin/visitations" element={<ProtectedRoute requireRole="Admin"><VisitationsPage /></ProtectedRoute>} />
               <Route path="/admin/partners" element={<ProtectedRoute requireRole="Admin"><PartnersAdminPage /></ProtectedRoute>} />
               <Route path="/admin/reports" element={<ProtectedRoute requireRole="Admin"><ReportsPage /></ProtectedRoute>} />
+              <Route path="/admin/social-conversion-planner" element={<ProtectedRoute requireRole="Admin"><SocialConversionPlannerPage /></ProtectedRoute>} />
               <Route path="/admin/trafficking-map" element={<ProtectedRoute requireRole="Admin"><TraffickingMapPage /></ProtectedRoute>} />
               <Route path="/admin/posting-calendar" element={<ProtectedRoute requireRole="Admin"><PostingCalendarPage /></ProtectedRoute>} />
 
               <Route path="*" element={<NotFound />} />
-              </Routes>
-              <ChatbotWidget />
-              <QuickExitButton />
-              <CookieConsentBanner />
-            </BrowserRouter>
-          </TooltipProvider>
-        </AuthProvider>
-      </CookieConsentProvider>
+                </Routes>
+                <ChatbotWidget />
+                <QuickExitButton />
+                <CookieConsentBanner />
+              </BrowserRouter>
+            </TooltipProvider>
+          </AuthProvider>
+        </CookieConsentProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };

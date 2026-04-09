@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace HopeHarbor.Data;
 
+// Bootstrap admin: GenerateDefaultIdentity:* via user-secrets, env, or .env (GenerateDefaultIdentity__*).
 public static class AuthIdentityGenerator
 {
     public static async Task GenerateDefaultIdentityAsync(IServiceProvider serviceProvider, IConfiguration configuration)

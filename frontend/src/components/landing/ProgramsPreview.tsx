@@ -24,13 +24,13 @@ const programs = [
 
 const ProgramsPreview = () => {
   return (
-    <section className="py-24 md:py-32 bg-warm-cream">
+    <section className="py-24 md:py-32 bg-secondary">
       <div className="container">
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <p className="font-body text-accent text-sm font-semibold tracking-widest uppercase mb-4">
+        <div className="max-w-2xl mx-auto mb-16 rounded-3xl bg-navy p-8 md:p-10 text-center shadow-elevated">
+          <p className="font-body text-teal-light text-sm font-semibold tracking-widest uppercase mb-4">
             What We Do
           </p>
-          <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground leading-tight">
+          <h2 className="font-heading text-3xl md:text-4xl font-bold text-white leading-tight">
             Three pillars of care
           </h2>
         </div>
@@ -39,7 +39,7 @@ const ProgramsPreview = () => {
           {programs.map((program) => (
             <div
               key={program.title}
-              className="group bg-white rounded-2xl p-8 shadow-soft hover:shadow-card transition-shadow"
+              className="group bg-card rounded-2xl p-8 shadow-soft border border-border hover:shadow-card transition-shadow"
             >
               <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-6">
                 <program.icon className="h-6 w-6 text-accent" />

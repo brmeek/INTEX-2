@@ -1,16 +1,20 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Anchor } from "lucide-react";
+import { Menu, X, Anchor, Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
-import { getDonorPortalPath, getStaffPortalPath } from "@/lib/portalRoutes";
+import { useTheme } from "@/context/useTheme";
+import { getDonorPortalPath, getStaffPortalPath, hasAdminAccess } from "@/lib/portalRoutes";
+import { logoutUser } from "@/lib/authApi";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-  const { authSession } = useAuth();
+  const navigate = useNavigate();
+  const { authSession, isAuthenticated, refreshAuthSession } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -25,12 +29,19 @@ const Navbar = () => {
   const isHome = location.pathname === "/";
   const donorPortalPath = getDonorPortalPath(authSession);
   const staffPortalPath = getStaffPortalPath(authSession);
+  const showStaffPortal = hasAdminAccess(authSession);
   const navLinks = [
     { label: "About", href: "/about" },
     { label: "Impact", href: "/impact" },
     { label: "Get Involved", href: donorPortalPath },
     { label: "Contact", href: "/contact" },
   ];
+
+  const handleLogout = async () => {
+    await logoutUser();
+    await refreshAuthSession();
+    navigate("/");
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
@@ -91,20 +102,38 @@ const Navbar = () => {
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
-            <Link to={staffPortalPath}>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "font-body",
-                  scrolled || !isHome
-                    ? ""
-                    : "text-white/80 hover:text-white hover:bg-white/10"
-                )}
-              >
-                Staff Portal
-              </Button>
-            </Link>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              title={theme === "light" ? "Dark mode" : "Light mode"}
+              aria-label={theme === "light" ? "Dark mode" : "Light mode"}
+              className={cn(
+                "rounded-full",
+                scrolled || !isHome
+                  ? ""
+                  : "text-white/80 hover:text-white hover:bg-white/10"
+              )}
+            >
+              {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            </Button>
+            {showStaffPortal && (
+              <Link to={staffPortalPath}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "font-body",
+                    scrolled || !isHome
+                      ? ""
+                      : "text-white/80 hover:text-white hover:bg-white/10"
+                  )}
+                >
+                  Staff Portal
+                </Button>
+              </Link>
+            )}
             <Link to={donorPortalPath}>
               <Button
                 size="sm"
@@ -113,6 +142,15 @@ const Navbar = () => {
                 Donate Now
               </Button>
             </Link>
+            {isAuthenticated && (
+              <Button
+                size="sm"
+                onClick={handleLogout}
+                className="bg-red-600 text-white hover:bg-red-700 rounded-full font-body font-semibold px-6"
+              >
+                Sign Out
+              </Button>
+            )}
           </div>
 
           <button
@@ -154,13 +192,26 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
-            <div className="pt-3 border-t border-border mt-3 grid grid-cols-2 gap-3">
-              <Link to={staffPortalPath} className="flex-1">
-                <Button variant="outline" size="sm" className="w-full font-body">
-                  Staff Portal
-                </Button>
-              </Link>
-              <Link to={donorPortalPath} className="flex-1">
+            <div className="pt-3 border-t border-border mt-3 flex flex-wrap gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={toggleTheme}
+                title={theme === "light" ? "Dark mode" : "Light mode"}
+                aria-label={theme === "light" ? "Dark mode" : "Light mode"}
+                className="w-full"
+              >
+                {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              </Button>
+              {showStaffPortal && (
+                <Link to={staffPortalPath} className="flex-1 min-w-[120px]">
+                  <Button variant="outline" size="sm" className="w-full font-body">
+                    Staff Portal
+                  </Button>
+                </Link>
+              )}
+              <Link to={donorPortalPath} className="flex-1 min-w-[120px]">
                 <Button
                   size="sm"
                   className="w-full bg-accent text-accent-foreground hover:bg-teal-light font-body font-semibold"
@@ -168,6 +219,15 @@ const Navbar = () => {
                   Donate
                 </Button>
               </Link>
+              {isAuthenticated && (
+                <Button
+                  size="sm"
+                  onClick={handleLogout}
+                  className="flex-1 min-w-[120px] bg-red-600 text-white hover:bg-red-700 font-body font-semibold"
+                >
+                  Sign Out
+                </Button>
+              )}
             </div>
           </div>
         </div>

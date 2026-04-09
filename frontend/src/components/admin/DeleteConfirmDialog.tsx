@@ -21,10 +21,6 @@ export interface DeleteConfirmDialogProps {
   pending?: boolean;
 }
 
-/**
- * In-app delete confirmation — matches admin card styling and sits centered in the viewport
- * (avoids native window.confirm placement).
- */
 export function DeleteConfirmDialog({
   open,
   onOpenChange,
@@ -61,7 +57,7 @@ export function DeleteConfirmDialog({
             disabled={pending}
             onClick={() => void onConfirm()}
           >
-            {pending ? "Deleting…" : confirmLabel}
+            {pending ? "Deleting..." : confirmLabel}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

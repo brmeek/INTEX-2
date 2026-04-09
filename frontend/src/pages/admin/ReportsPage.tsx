@@ -3,6 +3,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useTheme } from "@/context/useTheme";
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
@@ -36,6 +37,7 @@ const toNumber = (value: number | string | null | undefined, fallback = 0) => {
 
 const ReportsPage = () => {
   const { toast } = useToast();
+  const { theme } = useTheme();
   const [trends, setTrends] = useState<DonationTrend[]>([]);
   const [safehouses, setSafehouses] = useState<SafehousePerf[]>([]);
   const [outcomes, setOutcomes] = useState<OutcomeData | null>(null);
@@ -82,6 +84,7 @@ const ReportsPage = () => {
     total: Math.round(t.total),
     count: t.count,
   }));
+  const donationLineColor = theme === "dark" ? "#7dd3fc" : "#2B4570";
 
   const handlePredictDraft = async () => {
     setPredicting(true);
@@ -132,34 +135,34 @@ const ReportsPage = () => {
       ) : (
         <div className="space-y-6">
           {/* Social Planner Predictor */}
-          <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+          <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
             <h3 className="font-heading text-lg font-bold text-foreground mb-1">Social Media Conversion Planner</h3>
             <p className="font-body text-xs text-muted-foreground mb-4">
               Enter draft post details to predict donation referral count before publishing.
             </p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-              <select className="px-3 py-2 rounded-lg border border-border bg-white font-body text-sm" value={plannerForm.platform} onChange={(e) => setPlannerForm((f) => ({ ...f, platform: e.target.value }))}>
+              <select className="px-3 py-2 rounded-lg border border-border bg-background font-body text-sm" value={plannerForm.platform} onChange={(e) => setPlannerForm((f) => ({ ...f, platform: e.target.value }))}>
                 <option>Facebook</option><option>Instagram</option><option>TikTok</option><option>YouTube</option>
               </select>
-              <select className="px-3 py-2 rounded-lg border border-border bg-white font-body text-sm" value={plannerForm.postType} onChange={(e) => setPlannerForm((f) => ({ ...f, postType: e.target.value }))}>
+              <select className="px-3 py-2 rounded-lg border border-border bg-background font-body text-sm" value={plannerForm.postType} onChange={(e) => setPlannerForm((f) => ({ ...f, postType: e.target.value }))}>
                 <option>Impact Story</option><option>Appeal</option><option>Campaign Update</option><option>Event Promo</option>
               </select>
-              <select className="px-3 py-2 rounded-lg border border-border bg-white font-body text-sm" value={plannerForm.mediaType} onChange={(e) => setPlannerForm((f) => ({ ...f, mediaType: e.target.value }))}>
+              <select className="px-3 py-2 rounded-lg border border-border bg-background font-body text-sm" value={plannerForm.mediaType} onChange={(e) => setPlannerForm((f) => ({ ...f, mediaType: e.target.value }))}>
                 <option>Image</option><option>Video</option><option>Carousel</option>
               </select>
-              <select className="px-3 py-2 rounded-lg border border-border bg-white font-body text-sm" value={plannerForm.sentimentTone} onChange={(e) => setPlannerForm((f) => ({ ...f, sentimentTone: e.target.value }))}>
+              <select className="px-3 py-2 rounded-lg border border-border bg-background font-body text-sm" value={plannerForm.sentimentTone} onChange={(e) => setPlannerForm((f) => ({ ...f, sentimentTone: e.target.value }))}>
                 <option>Hopeful</option><option>Urgent</option><option>Celebratory</option><option>Informative</option>
               </select>
-              <select className="px-3 py-2 rounded-lg border border-border bg-white font-body text-sm" value={plannerForm.contentTopic} onChange={(e) => setPlannerForm((f) => ({ ...f, contentTopic: e.target.value }))}>
+              <select className="px-3 py-2 rounded-lg border border-border bg-background font-body text-sm" value={plannerForm.contentTopic} onChange={(e) => setPlannerForm((f) => ({ ...f, contentTopic: e.target.value }))}>
                 <option>Program Impact</option><option>Resident Story</option><option>Funding Need</option><option>Event</option>
               </select>
-              <select className="px-3 py-2 rounded-lg border border-border bg-white font-body text-sm" value={plannerForm.callToActionType} onChange={(e) => setPlannerForm((f) => ({ ...f, callToActionType: e.target.value }))}>
+              <select className="px-3 py-2 rounded-lg border border-border bg-background font-body text-sm" value={plannerForm.callToActionType} onChange={(e) => setPlannerForm((f) => ({ ...f, callToActionType: e.target.value }))}>
                 <option>Donate Now</option><option>Learn More</option><option>Share</option>
               </select>
-              <input className="px-3 py-2 rounded-lg border border-border bg-white font-body text-sm" placeholder="Boost budget (PHP)" value={plannerForm.boostBudgetPhp} onChange={(e) => setPlannerForm((f) => ({ ...f, boostBudgetPhp: e.target.value }))} />
-              <input className="px-3 py-2 rounded-lg border border-border bg-white font-body text-sm" placeholder="Campaign name" value={plannerForm.campaignName} onChange={(e) => setPlannerForm((f) => ({ ...f, campaignName: e.target.value }))} />
-              <input className="px-3 py-2 rounded-lg border border-border bg-white font-body text-sm" placeholder="# hashtags" value={plannerForm.numHashtags} onChange={(e) => setPlannerForm((f) => ({ ...f, numHashtags: e.target.value }))} />
-              <input className="px-3 py-2 rounded-lg border border-border bg-white font-body text-sm" placeholder="Caption length (characters)" value={plannerForm.captionLength} onChange={(e) => setPlannerForm((f) => ({ ...f, captionLength: e.target.value }))} />
+              <input className="px-3 py-2 rounded-lg border border-border bg-background font-body text-sm" placeholder="Boost budget (PHP)" value={plannerForm.boostBudgetPhp} onChange={(e) => setPlannerForm((f) => ({ ...f, boostBudgetPhp: e.target.value }))} />
+              <input className="px-3 py-2 rounded-lg border border-border bg-background font-body text-sm" placeholder="Campaign name" value={plannerForm.campaignName} onChange={(e) => setPlannerForm((f) => ({ ...f, campaignName: e.target.value }))} />
+              <input className="px-3 py-2 rounded-lg border border-border bg-background font-body text-sm" placeholder="# hashtags" value={plannerForm.numHashtags} onChange={(e) => setPlannerForm((f) => ({ ...f, numHashtags: e.target.value }))} />
+              <input className="px-3 py-2 rounded-lg border border-border bg-background font-body text-sm" placeholder="Caption length (characters)" value={plannerForm.captionLength} onChange={(e) => setPlannerForm((f) => ({ ...f, captionLength: e.target.value }))} />
             </div>
             <div className="flex flex-wrap items-center gap-4 mb-4 text-sm font-body">
               <label className="flex items-center gap-2">
@@ -204,7 +207,7 @@ const ReportsPage = () => {
           </div>
 
           {/* Donation Trends */}
-          <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+          <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
             <h3 className="font-heading text-lg font-bold text-foreground mb-4">Donation Trends Over Time</h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={trendData}>
@@ -213,7 +216,7 @@ const ReportsPage = () => {
                 <YAxis tick={{ fontSize: 10 }} />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="total" stroke="#2B4570" strokeWidth={2} name="Amount (₱)" dot={false} />
+                <Line type="monotone" dataKey="total" stroke={donationLineColor} strokeWidth={2} name="Amount (₱)" dot={false} />
                 <Line type="monotone" dataKey="count" stroke="#3D8B8B" strokeWidth={2} name="# Donations" dot={false} />
               </LineChart>
             </ResponsiveContainer>
@@ -222,7 +225,7 @@ const ReportsPage = () => {
           <div className="grid lg:grid-cols-2 gap-6">
             {/* Status Pie */}
             {outcomes && (
-              <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+              <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
                 <h3 className="font-heading text-lg font-bold text-foreground mb-1">Residents by Status</h3>
                 <p className="font-body text-xs text-muted-foreground mb-4">Reintegration rate: {outcomes.reintegrationRate}%</p>
                 <ResponsiveContainer width="100%" height={250}>
@@ -238,7 +241,7 @@ const ReportsPage = () => {
 
             {/* Category Bar */}
             {outcomes && (
-              <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+              <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
                 <h3 className="font-heading text-lg font-bold text-foreground mb-4">Residents by Case Category</h3>
                 <ResponsiveContainer width="100%" height={250}>
                   <BarChart data={outcomes.byCategory} layout="vertical">
@@ -254,7 +257,7 @@ const ReportsPage = () => {
           </div>
 
           {/* Safehouse Performance */}
-          <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+          <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
             <h3 className="font-heading text-lg font-bold text-foreground mb-4">Safehouse Performance</h3>
             <div className="overflow-x-auto">
               <table className="w-full">
