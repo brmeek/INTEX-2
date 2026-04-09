@@ -17,7 +17,7 @@ public class Donation
     public Supporter? Supporter { get; set; }
 
     [Column("donation_type")]
-    [MaxLength(50)]
+    [StringLength(50)]
     public string? DonationType { get; set; }
 
     [Column("donation_date")]
@@ -27,15 +27,15 @@ public class Donation
     public bool? IsRecurring { get; set; }
 
     [Column("campaign_name")]
-    [MaxLength(255)]
+    [StringLength(255)]
     public string? CampaignName { get; set; }
 
     [Column("channel_source")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? ChannelSource { get; set; }
 
     [Column("currency_code")]
-    [MaxLength(10)]
+    [StringLength(10)]
     public string? CurrencyCode { get; set; }
 
     [Column("amount")]
@@ -45,10 +45,11 @@ public class Donation
     public decimal? EstimatedValue { get; set; }
 
     [Column("impact_unit")]
-    [MaxLength(50)]
+    [StringLength(50)]
     public string? ImpactUnit { get; set; }
 
     [Column("notes")]
+    [StringLength(2000)]
     public string? Notes { get; set; }
 
     [Column("referral_post_id")]

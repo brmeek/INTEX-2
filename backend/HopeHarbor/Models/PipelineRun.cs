@@ -11,15 +11,15 @@ public class PipelineRun
     public int RunId { get; set; }
 
     [Column("pipeline_name")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string PipelineName { get; set; } = string.Empty;
 
     [Column("trigger_source")]
-    [MaxLength(50)]
+    [StringLength(50)]
     public string TriggerSource { get; set; } = string.Empty;
 
     [Column("status")]
-    [MaxLength(20)]
+    [StringLength(20)]
     public string Status { get; set; } = "Running";
 
     [Column("started_at_utc")]
@@ -32,14 +32,15 @@ public class PipelineRun
     public int? RowsScored { get; set; }
 
     [Column("model_version")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? ModelVersion { get; set; }
 
     [Column("initiated_by")]
-    [MaxLength(255)]
+    [StringLength(255)]
     public string? InitiatedBy { get; set; }
 
     [Column("error_message")]
+    [StringLength(2000)]
     public string? ErrorMessage { get; set; }
 }
 

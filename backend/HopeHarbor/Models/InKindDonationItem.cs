@@ -17,28 +17,28 @@ public class InKindDonationItem
     public Donation? Donation { get; set; }
 
     [Column("item_name")]
-    [MaxLength(255)]
+    [StringLength(255)]
     public string? ItemName { get; set; }
 
     [Column("item_category")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? ItemCategory { get; set; }
 
     [Column("quantity")]
     public int? Quantity { get; set; }
 
     [Column("unit_of_measure")]
-    [MaxLength(50)]
+    [StringLength(50)]
     public string? UnitOfMeasure { get; set; }
 
     [Column("estimated_unit_value")]
     public decimal? EstimatedUnitValue { get; set; }
 
     [Column("intended_use")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? IntendedUse { get; set; }
 
     [Column("received_condition")]
-    [MaxLength(50)]
+    [StringLength(50)]
     public string? ReceivedCondition { get; set; }
 }

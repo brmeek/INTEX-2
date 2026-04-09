@@ -12,39 +12,39 @@ public class Supporter
     public int SupporterId { get; set; }
 
     [Column("display_name")]
-    [MaxLength(255)]
+    [StringLength(255)]
     public string? SupporterName { get; set; }
 
     [Column("supporter_type")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? SupporterType { get; set; }
 
     [Column("organization_name")]
-    [MaxLength(255)]
+    [StringLength(255)]
     public string? OrganizationName { get; set; }
 
     [Column("first_name")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? FirstName { get; set; }
 
     [Column("last_name")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? LastName { get; set; }
 
     [Column("relationship_type")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? RelationshipType { get; set; }
 
     [Column("email")]
-    [MaxLength(255)]
+    [StringLength(255)]
     public string? Email { get; set; }
 
     [Column("phone")]
-    [MaxLength(50)]
+    [StringLength(50)]
     public string? Phone { get; set; }
 
     [Column("status")]
-    [MaxLength(50)]
+    [StringLength(50)]
     public string? Status { get; set; }
 
     [Column("first_donation_date")]
@@ -57,21 +57,22 @@ public class Supporter
     public decimal? TotalGiven { get; set; }
 
     [Column("region")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? Region { get; set; }
 
     [Column("country")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? Country { get; set; }
 
     [Column("created_at")]
     public DateTime? CreatedAt { get; set; }
 
     [Column("acquisition_channel")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? AcquisitionChannel { get; set; }
 
     [NotMapped]
+    [StringLength(2000)]
     public string? Notes { get; set; }
 
     public ICollection<Donation>? Donations { get; set; }

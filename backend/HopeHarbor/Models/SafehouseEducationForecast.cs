@@ -35,13 +35,13 @@ public class SafehouseEducationForecast
     public bool AlertFlag { get; set; }
 
     [Column("alert_reason")]
-    [MaxLength(120)]
+    [StringLength(120)]
     public string AlertReason { get; set; } = "None";
 
     [Column("scored_at_utc")]
     public DateTime ScoredAtUtc { get; set; }
 
     [Column("model_version")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string ModelVersion { get; set; } = "safehouse-education-forecast-v1";
 }

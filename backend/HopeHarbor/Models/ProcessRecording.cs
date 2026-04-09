@@ -20,24 +20,27 @@ public class ProcessRecording
     public DateOnly? SessionDate { get; set; }
 
     [Column("social_worker")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? SocialWorker { get; set; }
 
     [Column("session_type")]
-    [MaxLength(50)]
+    [StringLength(50)]
     public string? SessionType { get; set; }
 
     [Column("emotional_state_observed")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? EmotionalState { get; set; }
 
     [Column("session_narrative")]
+    [StringLength(2000)]
     public string? NarrativeSummary { get; set; }
 
     [Column("interventions_applied")]
+    [StringLength(2000)]
     public string? InterventionsApplied { get; set; }
 
     [Column("follow_up_actions")]
+    [StringLength(2000)]
     public string? FollowUpActions { get; set; }
 
     [NotMapped]
