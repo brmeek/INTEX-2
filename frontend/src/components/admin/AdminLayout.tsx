@@ -22,7 +22,6 @@ import Navbar from "@/components/landing/Navbar";
 
 const adminToolLinks = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { label: "Users", href: "/admin/users", icon: Shield },
   { label: "Reports & Calculator", href: "/admin/reports", icon: BarChart3 },
   { label: "Social Media Conversion Planner", href: "/admin/social-conversion-planner", icon: Megaphone },
   { label: "Posting Calendar", href: "/admin/posting-calendar", icon: CalendarClock },
@@ -30,6 +29,7 @@ const adminToolLinks = [
 ];
 
 const metricLinks = [
+  { label: "Users", href: "/admin/users", icon: Shield },
   { label: "Donors", href: "/admin/donors", icon: Heart },
   { label: "Caseload", href: "/admin/caseload", icon: ClipboardList },
   { label: "Process Recording", href: "/admin/recordings", icon: FileText },
