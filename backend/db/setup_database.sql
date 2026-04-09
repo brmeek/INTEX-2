@@ -11,6 +11,20 @@ DROP TABLE IF EXISTS "AspNetRoleClaims" CASCADE;
 DROP TABLE IF EXISTS "AspNetUsers" CASCADE;
 DROP TABLE IF EXISTS "AspNetRoles" CASCADE;
 
+DROP TABLE IF EXISTS donor_churn_scores CASCADE;
+DROP TABLE IF EXISTS resident_reintegration_scores CASCADE;
+DROP TABLE IF EXISTS safehouse_education_forecasts CASCADE;
+DROP TABLE IF EXISTS social_media_conversion_predictions CASCADE;
+DROP TABLE IF EXISTS pipeline_runs CASCADE;
+DROP TABLE IF EXISTS social_media_posts CASCADE;
+DROP TABLE IF EXISTS public_impact_snapshots CASCADE;
+DROP TABLE IF EXISTS regional_risk_snapshots CASCADE;
+DROP TABLE IF EXISTS safehouse_monthly_metrics CASCADE;
+DROP TABLE IF EXISTS process_recordings CASCADE;
+DROP TABLE IF EXISTS residents CASCADE;
+DROP TABLE IF EXISTS safehouses CASCADE;
+DROP TABLE IF EXISTS supporters CASCADE;
+
 DROP TABLE IF EXISTS partner_assignments CASCADE;
 DROP TABLE IF EXISTS donation_allocations CASCADE;
 DROP TABLE IF EXISTS in_kind_donation_items CASCADE;
@@ -235,6 +249,305 @@ INSERT INTO partners (partner_id, partner_name, partner_type, role_type, contact
 (29, 'June Cortez', 'Individual', 'Education', 'June Cortez', 'june-cortez@smart.com.ph', '+63 955 652 3167', 'Luzon', 'Inactive', '2023-07-15', '2025-12-31', 'Secondary contractor'),
 (30, 'Lara Soriano', 'Individual', 'Logistics', 'Lara Soriano', 'lara-soriano@eastern.com.ph', '+63 921 348 8749', 'Mindanao', 'Inactive', '2023-08-04', '2025-12-31', 'Secondary contractor');
 
+
+-- Table: safehouses
+CREATE TABLE safehouses (
+    safehouse_id integer NOT NULL,
+    safehouse_code character varying(50),
+    name character varying(255),
+    region character varying(100),
+    city character varying(100),
+    province character varying(100),
+    country character varying(100),
+    open_date date,
+    status character varying(50),
+    capacity_girls integer,
+    capacity_staff integer,
+    current_occupancy integer,
+    notes text,
+    PRIMARY KEY (safehouse_id)
+);
+
+-- Table: supporters
+CREATE TABLE supporters (
+    supporter_id integer NOT NULL,
+    supporter_type character varying(100),
+    display_name character varying(255),
+    organization_name character varying(255),
+    first_name character varying(100),
+    last_name character varying(100),
+    relationship_type character varying(50),
+    region character varying(100),
+    country character varying(100),
+    email character varying(255),
+    phone character varying(50),
+    status character varying(50),
+    created_at timestamp(6) without time zone,
+    first_donation_date date,
+    acquisition_channel character varying(100),
+    PRIMARY KEY (supporter_id)
+);
+
+-- Table: residents
+CREATE TABLE residents (
+    resident_id integer NOT NULL,
+    case_control_no character varying(50),
+    internal_code character varying(50),
+    safehouse_id integer,
+    case_status character varying(50),
+    sex character(1),
+    date_of_birth date,
+    birth_status character varying(50),
+    place_of_birth character varying(100),
+    religion character varying(100),
+    case_category character varying(100),
+    sub_cat_orphaned boolean,
+    sub_cat_trafficked boolean,
+    sub_cat_child_labor boolean,
+    sub_cat_physical_abuse boolean,
+    sub_cat_sexual_abuse boolean,
+    sub_cat_osaec boolean,
+    sub_cat_cicl boolean,
+    sub_cat_at_risk boolean,
+    sub_cat_street_child boolean,
+    sub_cat_child_with_hiv boolean,
+    is_pwd boolean,
+    pwd_type character varying(100),
+    has_special_needs boolean,
+    special_needs_diagnosis character varying(255),
+    family_is_4ps boolean,
+    family_solo_parent boolean,
+    family_indigenous boolean,
+    family_parent_pwd boolean,
+    family_informal_settler boolean,
+    date_of_admission date,
+    age_upon_admission character varying(50),
+    present_age character varying(50),
+    length_of_stay character varying(50),
+    referral_source character varying(100),
+    referring_agency_person character varying(255),
+    date_colb_registered date,
+    date_colb_obtained date,
+    assigned_social_worker character varying(100),
+    initial_case_assessment text,
+    date_case_study_prepared date,
+    reintegration_type character varying(100),
+    reintegration_status character varying(100),
+    initial_risk_level character varying(50),
+    current_risk_level character varying(50),
+    date_enrolled date,
+    date_closed date,
+    created_at timestamp(6) without time zone,
+    notes_restricted text,
+    PRIMARY KEY (resident_id),
+    CONSTRAINT residents_safehouse_id_fkey FOREIGN KEY (safehouse_id) REFERENCES safehouses (safehouse_id)
+);
+
+-- Table: process_recordings
+CREATE TABLE process_recordings (
+    recording_id integer NOT NULL,
+    resident_id integer,
+    session_date date,
+    social_worker character varying(100),
+    session_type character varying(100),
+    session_duration_minutes integer,
+    emotional_state_observed character varying(100),
+    emotional_state_end character varying(100),
+    session_narrative text,
+    interventions_applied text,
+    follow_up_actions text,
+    progress_noted boolean,
+    concerns_flagged boolean,
+    referral_made boolean,
+    notes_restricted text,
+    PRIMARY KEY (recording_id),
+    CONSTRAINT process_recordings_resident_id_fkey FOREIGN KEY (resident_id) REFERENCES residents (resident_id)
+);
+
+-- Table: donor_churn_scores
+CREATE TABLE donor_churn_scores (
+    supporter_id integer NOT NULL,
+    churn_probability numeric(6,4) NOT NULL,
+    churn_predicted boolean NOT NULL,
+    risk_tier character varying(20) NOT NULL,
+    scored_at_utc timestamp(6) without time zone NOT NULL,
+    model_version character varying(100) NOT NULL,
+    days_since_last_donation integer NOT NULL,
+    has_recurring_donation boolean NOT NULL,
+    num_campaigns_participated integer NOT NULL,
+    giving_trajectory numeric(8,4) NOT NULL,
+    skipped_most_recent_campaign boolean NOT NULL,
+    PRIMARY KEY (supporter_id),
+    CONSTRAINT donor_churn_scores_supporter_id_fkey FOREIGN KEY (supporter_id) REFERENCES supporters (supporter_id) ON DELETE CASCADE
+);
+
+-- Table: resident_reintegration_scores
+CREATE TABLE resident_reintegration_scores (
+    resident_id integer NOT NULL,
+    readiness_score numeric(6,4) NOT NULL,
+    readiness_tier character varying(40) NOT NULL,
+    top_concern_feature character varying(100) NOT NULL,
+    trend_label character varying(40) NOT NULL,
+    history_months_used integer NOT NULL,
+    month_over_month_change numeric(8,4),
+    first_vs_latest_change numeric(8,4),
+    initial_vs_latest_change numeric(8,4),
+    trajectory_slope numeric(8,4),
+    scored_at_utc timestamp(6) without time zone NOT NULL,
+    model_version character varying(100) NOT NULL,
+    PRIMARY KEY (resident_id),
+    CONSTRAINT resident_reintegration_scores_resident_id_fkey FOREIGN KEY (resident_id) REFERENCES residents (resident_id) ON DELETE CASCADE
+);
+
+-- Table: safehouse_education_forecasts
+CREATE TABLE safehouse_education_forecasts (
+    safehouse_id integer NOT NULL,
+    forecast_for_month date NOT NULL,
+    predicted_education_score numeric(6,2) NOT NULL,
+    latest_observed_score numeric(6,2) NOT NULL,
+    previous_observed_score numeric(6,2),
+    trajectory_slope numeric(8,4),
+    history_months_used integer NOT NULL,
+    alert_flag boolean NOT NULL,
+    alert_reason character varying(120) NOT NULL,
+    scored_at_utc timestamp(6) without time zone NOT NULL,
+    model_version character varying(100) NOT NULL,
+    PRIMARY KEY (safehouse_id),
+    CONSTRAINT safehouse_education_forecasts_safehouse_id_fkey FOREIGN KEY (safehouse_id) REFERENCES safehouses (safehouse_id) ON DELETE CASCADE
+);
+
+-- Table: social_media_conversion_predictions
+CREATE TABLE social_media_conversion_predictions (
+    prediction_id integer NOT NULL,
+    platform character varying(50) NOT NULL,
+    post_type character varying(50) NOT NULL,
+    media_type character varying(50) NOT NULL,
+    sentiment_tone character varying(50) NOT NULL,
+    content_topic character varying(100) NOT NULL,
+    has_call_to_action boolean NOT NULL,
+    call_to_action_type character varying(100),
+    is_boosted boolean NOT NULL,
+    boost_budget_php numeric(12,2) NOT NULL,
+    num_hashtags integer NOT NULL,
+    caption_length integer NOT NULL,
+    features_resident_story boolean NOT NULL,
+    campaign_name character varying(255),
+    predicted_log_referrals numeric(8,4) NOT NULL,
+    predicted_referrals numeric(12,2) NOT NULL,
+    prediction_confidence character varying(20) NOT NULL,
+    model_version character varying(100) NOT NULL,
+    scored_at_utc timestamp(6) without time zone NOT NULL,
+    PRIMARY KEY (prediction_id)
+);
+
+-- Table: pipeline_runs
+CREATE TABLE pipeline_runs (
+    run_id integer GENERATED BY DEFAULT AS IDENTITY NOT NULL,
+    pipeline_name character varying(100) NOT NULL,
+    trigger_source character varying(50) NOT NULL,
+    status character varying(20) NOT NULL,
+    started_at_utc timestamp(6) without time zone NOT NULL,
+    finished_at_utc timestamp(6) without time zone,
+    rows_scored integer,
+    model_version character varying(100),
+    initiated_by character varying(255),
+    error_message text,
+    PRIMARY KEY (run_id)
+);
+
+-- Table: safehouse_monthly_metrics
+CREATE TABLE safehouse_monthly_metrics (
+    metric_id integer NOT NULL,
+    safehouse_id integer,
+    month_start date,
+    month_end date,
+    active_residents integer,
+    avg_education_progress numeric(10,5),
+    avg_health_score numeric(10,5),
+    process_recording_count integer,
+    home_visitation_count integer,
+    incident_count integer,
+    notes text,
+    PRIMARY KEY (metric_id),
+    CONSTRAINT safehouse_monthly_metrics_safehouse_id_fkey FOREIGN KEY (safehouse_id) REFERENCES safehouses (safehouse_id)
+);
+
+-- Table: social_media_posts
+CREATE TABLE social_media_posts (
+    post_id integer NOT NULL,
+    platform character varying(50),
+    platform_post_id character varying(100),
+    post_url text,
+    created_at timestamp(6) without time zone,
+    day_of_week character varying(20),
+    post_hour integer,
+    post_type character varying(50),
+    media_type character varying(50),
+    caption text,
+    hashtags text,
+    num_hashtags integer,
+    mentions_count integer,
+    has_call_to_action boolean,
+    call_to_action_type character varying(50),
+    content_topic character varying(100),
+    sentiment_tone character varying(50),
+    caption_length integer,
+    features_resident_story boolean,
+    campaign_name character varying(100),
+    is_boosted boolean,
+    boost_budget_php numeric(18,2),
+    impressions integer,
+    reach integer,
+    likes integer,
+    comments integer,
+    shares integer,
+    saves integer,
+    click_throughs integer,
+    video_views integer,
+    engagement_rate numeric(10,5),
+    profile_visits integer,
+    donation_referrals integer,
+    estimated_donation_value_php numeric(18,2),
+    follower_count_at_post integer,
+    watch_time_seconds numeric(18,2),
+    avg_view_duration_seconds numeric(18,2),
+    subscriber_count_at_post integer,
+    forwards integer,
+    PRIMARY KEY (post_id)
+);
+
+-- Table: public_impact_snapshots
+CREATE TABLE public_impact_snapshots (
+    snapshot_id integer NOT NULL,
+    snapshot_date date,
+    headline character varying(255),
+    summary_text text,
+    metric_payload_json text,
+    is_published boolean,
+    published_at timestamp(6) without time zone,
+    PRIMARY KEY (snapshot_id)
+);
+
+-- Table: regional_risk_snapshots
+CREATE TABLE regional_risk_snapshots (
+    regional_risk_snapshot_id integer NOT NULL,
+    region character varying(100) NOT NULL,
+    risk_score numeric NOT NULL,
+    source_pipeline character varying(100),
+    updated_at_utc timestamp(6) with time zone NOT NULL,
+    PRIMARY KEY (regional_risk_snapshot_id)
+);
+
+CREATE INDEX IF NOT EXISTS ix_donor_churn_scores_risk_tier ON donor_churn_scores(risk_tier);
+CREATE INDEX IF NOT EXISTS ix_donor_churn_scores_churn_probability ON donor_churn_scores(churn_probability DESC);
+CREATE INDEX IF NOT EXISTS ix_resident_reintegration_scores_tier ON resident_reintegration_scores(readiness_tier);
+CREATE INDEX IF NOT EXISTS ix_resident_reintegration_scores_score ON resident_reintegration_scores(readiness_score DESC);
+CREATE INDEX IF NOT EXISTS ix_resident_reintegration_scores_trend ON resident_reintegration_scores(trend_label);
+CREATE INDEX IF NOT EXISTS ix_safehouse_education_forecasts_alert ON safehouse_education_forecasts(alert_flag);
+CREATE INDEX IF NOT EXISTS ix_safehouse_education_forecasts_score ON safehouse_education_forecasts(predicted_education_score);
+CREATE INDEX IF NOT EXISTS ix_social_media_conversion_predictions_scored_at ON social_media_conversion_predictions(scored_at_utc DESC);
+CREATE INDEX IF NOT EXISTS ix_pipeline_runs_pipeline_started ON pipeline_runs(pipeline_name, started_at_utc DESC);
+CREATE INDEX IF NOT EXISTS ix_pipeline_runs_status_started ON pipeline_runs(status, started_at_utc DESC);
 
 -- Table: donations
 CREATE TABLE donations (

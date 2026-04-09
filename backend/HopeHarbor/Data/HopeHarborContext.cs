@@ -25,6 +25,7 @@ public class HopeHarborContext : DbContext
     public DbSet<ResidentReintegrationScore> ResidentReintegrationScores => Set<ResidentReintegrationScore>();
     public DbSet<SocialMediaConversionPrediction> SocialMediaConversionPredictions => Set<SocialMediaConversionPrediction>();
     public DbSet<SafehouseEducationForecast> SafehouseEducationForecasts => Set<SafehouseEducationForecast>();
+    public DbSet<PipelineRun> PipelineRuns => Set<PipelineRun>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -18,6 +18,16 @@ else
 }
 
 var builder = WebApplication.CreateBuilder(args);
+var runStartupSchemaChecks = ResolveStartupFlag(
+    envKey: "RUN_STARTUP_SCHEMA_CHECKS",
+    configKey: "Startup__RunSchemaChecks",
+    defaultValue: false);
+var runStartupScoring = ResolveStartupFlag(
+    envKey: "RUN_STARTUP_SCORING",
+    configKey: "Startup__RunScoring",
+    defaultValue: builder.Environment.IsDevelopment());
+Console.WriteLine($"Startup schema/table checks enabled: {runStartupSchemaChecks}");
+Console.WriteLine($"Startup scoring enabled: {runStartupScoring}");
 // Always resolve DB connections from environment variables (.env / process env).
 // Do not read connection strings from appsettings to avoid accidental bad host fallbacks.
 var allowConfiguredConnectionStrings = false;
@@ -84,6 +94,8 @@ builder.Services.AddScoped<ISocialMediaConversionScoringService, SocialMediaConv
 builder.Services.AddScoped<ISafehouseEducationForecastingService, SafehouseEducationForecastingService>();
 builder.Services.AddScoped<IInKindDonationValuationService, InKindDonationValuationService>();
 builder.Services.AddScoped<IDonorImpactForecastingService, DonorImpactForecastingService>();
+builder.Services.AddScoped<IPipelineRunTracker, PipelineRunTracker>();
+builder.Services.AddHostedService<NightlyPipelineRefreshService>();
 
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddRoles<IdentityRole>()
@@ -138,14 +150,29 @@ if (!app.Environment.IsDevelopment())
 using (var scope = app.Services.CreateScope())
 {
     var appDb = scope.ServiceProvider.GetRequiredService<HopeHarborContext>();
-    appDb.Database.EnsureCreated();
-    await EnsureDonorChurnScoresTableAsync(appDb);
-    await EnsureResidentReadinessScoresTableAsync(appDb);
-    await EnsureSocialMediaConversionPredictionsTableAsync(appDb);
-    await EnsureSafehouseEducationForecastsTableAsync(appDb);
+    await EnsurePipelineRunsTableAsync(appDb);
+    if (runStartupSchemaChecks)
+    {
+        appDb.Database.EnsureCreated();
+        await EnsureDonorChurnScoresTableAsync(appDb);
+        await EnsureResidentReadinessScoresTableAsync(appDb);
+        await EnsureSocialMediaConversionPredictionsTableAsync(appDb);
+        await EnsureSafehouseEducationForecastsTableAsync(appDb);
+    }
+    else
+    {
+        Console.WriteLine("Skipping startup app database schema/table checks.");
+    }
 
     var identityDb = scope.ServiceProvider.GetRequiredService<AuthIdentityDbContext>();
-    identityDb.Database.EnsureCreated();
+    if (runStartupSchemaChecks)
+    {
+        identityDb.Database.EnsureCreated();
+    }
+    else
+    {
+        Console.WriteLine("Skipping startup identity database schema checks.");
+    }
 
     await AuthIdentityGenerator.GenerateDefaultIdentityAsync(
         scope.ServiceProvider, builder.Configuration);
@@ -175,6 +202,12 @@ app.MapControllers();
 
 _ = Task.Run(async () =>
 {
+    if (!runStartupScoring)
+    {
+        Console.WriteLine("Skipping startup scoring.");
+        return;
+    }
+
     try
     {
         using var startupScope = app.Services.CreateScope();
@@ -182,11 +215,55 @@ _ = Task.Run(async () =>
         var donorChurnScoringService = startupScope.ServiceProvider.GetRequiredService<IDonorChurnScoringService>();
         var residentReintegrationScoringService = startupScope.ServiceProvider.GetRequiredService<IResidentReintegrationScoringService>();
         var safehouseEducationForecastingService = startupScope.ServiceProvider.GetRequiredService<ISafehouseEducationForecastingService>();
+        var pipelineRunTracker = startupScope.ServiceProvider.GetRequiredService<IPipelineRunTracker>();
 
-        var donorCount = await donorChurnScoringService.ScoreAllAsync(startupDb);
-        var residentCount = await residentReintegrationScoringService.ScoreAllAsync(startupDb);
-        var safehouseCount = await safehouseEducationForecastingService.ScoreAllAsync(startupDb);
-        Console.WriteLine($"Startup scoring complete. Donors scored: {donorCount}, residents scored: {residentCount}, safehouses scored: {safehouseCount}");
+        async Task<int?> RunStartupPipelineAsync(
+            string pipelineName,
+            string modelVersion,
+            Func<CancellationToken, Task<int>> scoreFunc,
+            CancellationToken cancellationToken)
+        {
+            var runId = await pipelineRunTracker.StartAsync(
+                pipelineName,
+                "startup",
+                "system",
+                modelVersion,
+                cancellationToken);
+
+            try
+            {
+                var rowsScored = await scoreFunc(cancellationToken);
+                await pipelineRunTracker.CompleteSuccessAsync(runId, rowsScored, cancellationToken);
+                return rowsScored;
+            }
+            catch (Exception ex)
+            {
+                await pipelineRunTracker.CompleteFailureAsync(runId, ex, cancellationToken);
+                Console.WriteLine($"Startup scoring pipeline '{pipelineName}' failed: {ex.Message}");
+                return null;
+            }
+        }
+
+        var donorCount = await RunStartupPipelineAsync(
+            pipelineName: "donor_churn",
+            modelVersion: "donor-churn-v1",
+            scoreFunc: ct => donorChurnScoringService.ScoreAllAsync(startupDb, ct),
+            cancellationToken: CancellationToken.None);
+
+        var residentCount = await RunStartupPipelineAsync(
+            pipelineName: "resident_reintegration",
+            modelVersion: "reintegration-readiness-v1",
+            scoreFunc: ct => residentReintegrationScoringService.ScoreAllAsync(startupDb, ct),
+            cancellationToken: CancellationToken.None);
+
+        var safehouseCount = await RunStartupPipelineAsync(
+            pipelineName: "safehouse_education_forecast",
+            modelVersion: "safehouse-education-forecast-v2",
+            scoreFunc: ct => safehouseEducationForecastingService.ScoreAllAsync(startupDb, ct),
+            cancellationToken: CancellationToken.None);
+
+        Console.WriteLine(
+            $"Startup scoring complete. Donors scored: {donorCount?.ToString() ?? "failed"}, residents scored: {residentCount?.ToString() ?? "failed"}, safehouses scored: {safehouseCount?.ToString() ?? "failed"}");
     }
     catch (Exception ex)
     {
@@ -269,6 +346,17 @@ static string? GetEnvironmentValue(string key)
 {
     return Environment.GetEnvironmentVariable(key)
            ?? Environment.GetEnvironmentVariable(key.Replace("__", ":"));
+}
+
+static bool ResolveStartupFlag(string envKey, string configKey, bool defaultValue)
+{
+    if (bool.TryParse(Environment.GetEnvironmentVariable(envKey), out var envValue))
+        return envValue;
+
+    if (bool.TryParse(GetEnvironmentValue(configKey), out var configValue))
+        return configValue;
+
+    return defaultValue;
 }
 
 static bool IsAllowedDevelopmentOrigin(string origin)
@@ -450,6 +538,31 @@ static async Task EnsureSafehouseEducationForecastsTableAsync(HopeHarborContext 
             ON safehouse_education_forecasts(alert_flag);
         CREATE INDEX IF NOT EXISTS ix_safehouse_education_forecasts_score
             ON safehouse_education_forecasts(predicted_education_score);
+    """;
+
+    await db.Database.ExecuteSqlRawAsync(sql);
+}
+
+static async Task EnsurePipelineRunsTableAsync(HopeHarborContext db)
+{
+    var sql = """
+        CREATE TABLE IF NOT EXISTS pipeline_runs (
+            run_id INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+            pipeline_name VARCHAR(100) NOT NULL,
+            trigger_source VARCHAR(50) NOT NULL,
+            status VARCHAR(20) NOT NULL,
+            started_at_utc TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+            finished_at_utc TIMESTAMP WITHOUT TIME ZONE NULL,
+            rows_scored INT NULL,
+            model_version VARCHAR(100) NULL,
+            initiated_by VARCHAR(255) NULL,
+            error_message TEXT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS ix_pipeline_runs_pipeline_started
+            ON pipeline_runs(pipeline_name, started_at_utc DESC);
+        CREATE INDEX IF NOT EXISTS ix_pipeline_runs_status_started
+            ON pipeline_runs(status, started_at_utc DESC);
     """;
 
     await db.Database.ExecuteSqlRawAsync(sql);
