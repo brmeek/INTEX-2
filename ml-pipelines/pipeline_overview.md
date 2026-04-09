@@ -65,7 +65,7 @@ Final submission-ready notebooks are in:
   - `predict_safehouse_success_metrics(...)` for multi-target forecasts
   - `predict_safehouse_success_with_score(...)` for multi-target forecasts + composite `1-10` performance score
 - Deployment notes section added in all notebooks.
-- **Current status:** web/API integration is still pending and should be wired to app endpoints/components.
+- **Current status:** web/API integration is implemented for all six pipelines in the deployed application.
 
 ---
 
@@ -130,13 +130,13 @@ To be fully complete in final judging context, connect notebook model outputs to
 - Dashboard/interactive form integration
 - Demonstrable end-user workflow in video
 
-Notebook-level IS 455 pipeline requirements are satisfied; app-level deployment integration remains the final implementation step.
+Notebook-level IS 455 pipeline requirements are satisfied and app-level deployment integration is implemented.
 
 ---
 
-## Website Integration Readiness (Prepared, Not Yet Implemented)
+## Website Integration Status (Implemented)
 
-All six pipelines are prepared for implementation in the website. They are notebook-ready with defined prediction functions and can now be wired to backend endpoints/UI components.
+All six pipelines are implemented in the website with backend endpoints/services and UI components wired.
 
 | Pipeline | Prediction Function(s) | Website Location | Display/Behavior |
 |---|---|---|---|
@@ -148,6 +148,6 @@ All six pipelines are prepared for implementation in the website. They are noteb
 | Pipeline 6 — Donor Impact Allocation Forecasting | `predict_donor_impact(...)` | Donor Dashboard | For a proposed donation amount, show estimated program-area use and estimated residents supported with transparency messaging. |
 
 ### Implementation Notes
-- **Prepared status:** model logic is ready; integration endpoints and UI wiring are the remaining tasks.
-- **Recommended rollout:** start with Pipeline 5 (form-level real-time estimate) and Pipeline 1 (dashboard risk flag), then add Pipeline 2/4 scoring views, then Pipeline 3 planning tool.
+- **Status:** model logic and integration endpoints/UI wiring are implemented.
+- **Rollout completed:** all listed pipeline integrations are active in admin/donor workflows.
 - **Production guardrails:** log inputs/outputs, monitor drift/performance monthly, and expose "decision support only" language in admin views.
