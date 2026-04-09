@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using HopeHarbor.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace HopeHarbor.Controllers;
 
@@ -31,6 +32,7 @@ public class ContactController : ControllerBase
 
     [HttpPost]
     [AllowAnonymous]
+    [EnableRateLimiting("public-anon")]
     public async Task<IActionResult> SendMessage(
         [FromBody] ContactRequest request,
         [FromServices] IContactEmailSender emailSender,

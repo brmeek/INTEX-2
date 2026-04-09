@@ -142,8 +142,7 @@ const LoginPage = () => {
                 </Button>
 
                 <p className="font-body text-xs text-muted-foreground text-center">
-                  Admin credentials: <span className="font-mono">admin@hopeharbor.org</span> /{" "}
-                  <span className="font-mono">HopeHarbor2025!</span>
+                  Need staff access? Contact the system administrator.
                 </p>
               </form>
             </div>

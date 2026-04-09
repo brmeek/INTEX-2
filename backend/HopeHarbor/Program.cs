@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using HopeHarbor.Data;
 using HopeHarbor.Infrastructure;
 using HopeHarbor.Services;
 using Npgsql;
 using System.Net;
+using System.Threading.RateLimiting;
 
 var dotEnvPath = FindDotEnvPath();
 if (dotEnvPath != null)
@@ -18,6 +20,10 @@ else
 }
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.AddServerHeader = false;
+});
 var runStartupSchemaChecks = ResolveStartupFlag(
     envKey: "RUN_STARTUP_SCHEMA_CHECKS",
     configKey: "Startup__RunSchemaChecks",
@@ -119,6 +125,10 @@ builder.Services.Configure<IdentityOptions>(opts =>
     opts.Password.RequireNonAlphanumeric = false;
     opts.Password.RequiredUniqueChars = 1;
     opts.Password.RequiredLength = 14;
+    opts.Lockout.AllowedForNewUsers = true;
+    opts.Lockout.MaxFailedAccessAttempts = 5;
+    opts.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    opts.User.RequireUniqueEmail = true;
 });
 
 builder.Services.ConfigureApplicationCookie(opts =>
@@ -137,6 +147,48 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
+    });
+});
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.ContentType = "application/json";
+        await context.HttpContext.Response.WriteAsync(
+            """{"message":"Too many requests. Please try again later."}""",
+            cancellationToken);
+    };
+
+    options.AddPolicy("auth-anon", httpContext =>
+    {
+        var partitionKey = GetRateLimitPartitionKey(httpContext);
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 8,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0,
+                AutoReplenishment = true
+            });
+    });
+
+    options.AddPolicy("public-anon", httpContext =>
+    {
+        var partitionKey = GetRateLimitPartitionKey(httpContext);
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 30,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0,
+                AutoReplenishment = true
+            });
     });
 });
 
@@ -186,6 +238,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseSecurityHeaders(app.Environment);
 app.UseCors();
+app.UseRateLimiter();
 
 var wwwroot = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
 if (Directory.Exists(wwwroot))
@@ -357,6 +410,11 @@ static bool ResolveStartupFlag(string envKey, string configKey, bool defaultValu
         return configValue;
 
     return defaultValue;
+}
+
+static string GetRateLimitPartitionKey(HttpContext context)
+{
+    return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 }
 
 static bool IsAllowedDevelopmentOrigin(string origin)

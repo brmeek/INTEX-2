@@ -136,70 +136,10 @@ ON CONFLICT ("Id") DO UPDATE SET
     "Name" = EXCLUDED."Name",
     "NormalizedName" = EXCLUDED."NormalizedName";
 
--- Seed default admin identity user
-DO $$
-DECLARE
-    admin_user_id text;
-BEGIN
-    SELECT "Id"
-    INTO admin_user_id
-    FROM "AspNetUsers"
-    WHERE "NormalizedUserName" = 'ADMIN@HOPEHARBOR.ORG'
-    LIMIT 1;
-
-    IF admin_user_id IS NULL THEN
-        admin_user_id := 'user-admin';
-        INSERT INTO "AspNetUsers" (
-            "Id",
-            "UserName",
-            "NormalizedUserName",
-            "Email",
-            "NormalizedEmail",
-            "EmailConfirmed",
-            "PasswordHash",
-            "SecurityStamp",
-            "ConcurrencyStamp",
-            "PhoneNumber",
-            "PhoneNumberConfirmed",
-            "TwoFactorEnabled",
-            "LockoutEnd",
-            "LockoutEnabled",
-            "AccessFailedCount"
-        ) VALUES (
-            admin_user_id,
-            'admin@hopeharbor.org',
-            'ADMIN@HOPEHARBOR.ORG',
-            'admin@hopeharbor.org',
-            'ADMIN@HOPEHARBOR.ORG',
-            TRUE,
-            'AQAAAAIAAYagAAAAEBUrlMQBl0V8Li6CvYwAZfKAsA+f7xGHhElHtlINfGfk0M2pkOJeHckb1cnmwi5vgQ==',
-            'seed-admin-security-stamp',
-            'seed-admin-concurrency-stamp',
-            NULL,
-            FALSE,
-            FALSE,
-            NULL,
-            TRUE,
-            0
-        );
-    ELSE
-        UPDATE "AspNetUsers"
-        SET
-            "UserName" = 'admin@hopeharbor.org',
-            "NormalizedUserName" = 'ADMIN@HOPEHARBOR.ORG',
-            "Email" = 'admin@hopeharbor.org',
-            "NormalizedEmail" = 'ADMIN@HOPEHARBOR.ORG',
-            "EmailConfirmed" = TRUE,
-            "PasswordHash" = 'AQAAAAIAAYagAAAAEBUrlMQBl0V8Li6CvYwAZfKAsA+f7xGHhElHtlINfGfk0M2pkOJeHckb1cnmwi5vgQ==',
-            "LockoutEnabled" = TRUE,
-            "AccessFailedCount" = 0
-        WHERE "Id" = admin_user_id;
-    END IF;
-
-    INSERT INTO "AspNetUserRoles" ("UserId", "RoleId")
-    VALUES (admin_user_id, 'role-admin')
-    ON CONFLICT ("UserId", "RoleId") DO NOTHING;
-END $$;
+-- Admin user is intentionally not seeded here.
+-- Provision admin credentials through environment configuration:
+--   GenerateDefaultIdentity__AdminEmail
+--   GenerateDefaultIdentity__AdminPassword
 
 
 -- Table: partners

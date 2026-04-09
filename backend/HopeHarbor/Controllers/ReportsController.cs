@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.RateLimiting;
 using HopeHarbor.Data;
 using HopeHarbor.Models;
 using HopeHarbor.Services;
@@ -155,6 +156,7 @@ public class ReportsController : ControllerBase
 
     [HttpGet("impact")]
     [AllowAnonymous]
+    [EnableRateLimiting("public-anon")]
     public async Task<IActionResult> Impact([FromQuery] string? year)
     {
         var currentYear = DateTime.Today.Year;
