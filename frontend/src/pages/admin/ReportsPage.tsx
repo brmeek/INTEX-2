@@ -3,13 +3,42 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { api } from "@/lib/api";
 import { useTheme } from "@/context/useTheme";
 import {
-  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
 } from "recharts";
 
-interface DonationTrend { year: number; month: number; total: number; count: number }
-interface SafehousePerf { safehouseId: number; safehouseName: string; region: string; capacity: number; residentCount: number; activeResidents: number }
-interface OutcomeData { byStatus: { status: string; count: number }[]; byCategory: { category: string; count: number }[]; reintegrationRate: number }
+interface DonationTrend {
+  year: number;
+  month: number;
+  total: number;
+  count: number;
+}
+
+interface SafehousePerf {
+  safehouseId: number;
+  safehouseName: string;
+  region: string;
+  capacity: number;
+  residentCount: number;
+  activeResidents: number;
+}
+
+interface OutcomeData {
+  byStatus: { status: string; count: number }[];
+  byCategory: { category: string; count: number }[];
+  reintegrationRate: number;
+}
 
 const COLORS = ["#2B4570", "#3D8B8B", "#E07A5F", "#D4B896", "#8BA58E", "#5B7B9A", "#C49A6C"];
 
@@ -19,9 +48,7 @@ const ReportsPage = () => {
   const [safehouses, setSafehouses] = useState<SafehousePerf[]>([]);
   const [outcomes, setOutcomes] = useState<OutcomeData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isMobile, setIsMobile] = useState<boolean>(
-    typeof window !== "undefined" ? window.innerWidth < 768 : false
-  );
+  const [isMobile, setIsMobile] = useState<boolean>(typeof window !== "undefined" ? window.innerWidth < 768 : false);
 
   useEffect(() => {
     Promise.all([
@@ -66,6 +93,7 @@ const ReportsPage = () => {
     if (!isMobile) return value;
     return value.length > 12 ? `${value.slice(0, 12)}...` : value;
   };
+
   const latestTrend = trendData[trendData.length - 1];
 
   return (
@@ -76,25 +104,32 @@ const ReportsPage = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Donation Trends */}
-          <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
-            <h3 className="font-heading text-lg font-bold text-foreground mb-4">Donation Trends Over Time</h3>
+          <div className="bg-card rounded-xl p-4 sm:p-6 shadow-soft border border-border">
+            <h3 className="font-heading text-base sm:text-lg font-bold text-foreground mb-4">Donation Trends Over Time</h3>
             <p className="font-body text-xs text-muted-foreground mb-3">
               {latestTrend
-                ? `Latest month ${latestTrend.label}: ₱${latestTrend.total.toLocaleString()} across ${latestTrend.count.toLocaleString()} donations.`
+                ? `Latest month ${latestTrend.label}: PHP ${latestTrend.total.toLocaleString()} across ${latestTrend.count.toLocaleString()} donations.`
                 : "No donation trend data available yet."}
             </p>
-            <div role="img" aria-label="Line chart showing monthly donation totals and donation counts over time">
-              <ResponsiveContainer width="100%" height={240}>
-              <LineChart data={trendData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
-                <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
-                <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="total" stroke={donationLineColor} strokeWidth={2} name="Amount (₱)" dot={false} />
-                <Line type="monotone" dataKey="count" stroke="#3D8B8B" strokeWidth={2} name="# Donations" dot={false} />
-              </LineChart>
+            <div role="img" aria-label="Line chart showing monthly donation totals and donation counts over time" className="h-[220px] sm:h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={trendData}
+                  margin={isMobile ? { top: 8, right: 8, left: -20, bottom: 0 } : { top: 8, right: 16, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fontSize: isMobile ? 9 : 10 }}
+                    tickFormatter={formatMonthLabel}
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis tick={{ fontSize: isMobile ? 9 : 10 }} />
+                  <Tooltip />
+                  {!isMobile && <Legend />}
+                  <Line type="monotone" dataKey="total" stroke={donationLineColor} strokeWidth={isMobile ? 1.75 : 2} name="Amount (PHP)" dot={false} />
+                  <Line type="monotone" dataKey="count" stroke="#3D8B8B" strokeWidth={isMobile ? 1.75 : 2} name="# Donations" dot={false} />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
@@ -104,42 +139,101 @@ const ReportsPage = () => {
               <div className="bg-card rounded-xl p-4 sm:p-6 shadow-soft border border-border">
                 <h3 className="font-heading text-base sm:text-lg font-bold text-foreground mb-1">Residents by Status</h3>
                 <p className="font-body text-xs text-muted-foreground mb-4">Reintegration rate: {outcomes.reintegrationRate}%</p>
-                <div role="img" aria-label="Pie chart showing resident count by case status">
-                  <ResponsiveContainer width="100%" height={220}>
-                  <PieChart>
-                    <Pie data={outcomes.byStatus} dataKey="count" nameKey="status" cx="50%" cy="50%" outerRadius={90} label={({ status, count }) => `${status}: ${count}`} labelLine={false}>
-                      {outcomes.byStatus.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
+                <div role="img" aria-label="Pie chart showing resident count by case status" className="h-[220px] sm:h-[250px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={outcomes.byStatus}
+                        dataKey="count"
+                        nameKey="status"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={isMobile ? 72 : 90}
+                        label={isMobile ? false : ({ status, count }) => `${status}: ${count}`}
+                        labelLine={false}
+                      >
+                        {outcomes.byStatus.map((_, i) => (
+                          <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
                   </ResponsiveContainer>
+                </div>
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {outcomes.byStatus.map((item, i) => (
+                    <div key={item.status} className="flex items-center justify-between gap-2 text-xs font-body">
+                      <span className="inline-flex items-center gap-2 text-muted-foreground">
+                        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                        {item.status}
+                      </span>
+                      <span className="font-semibold text-foreground">{item.count}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
 
             {outcomes && (
-              <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
-                <h3 className="font-heading text-lg font-bold text-foreground mb-4">Residents by Case Category</h3>
-                <div role="img" aria-label="Horizontal bar chart showing resident count by case category">
-                  <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={outcomes.byCategory} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
-                    <XAxis type="number" tick={{ fontSize: 10 }} />
-                    <YAxis dataKey="category" type="category" tick={{ fontSize: 10 }} width={90} />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#3D8B8B" radius={[0, 4, 4, 0]} />
-                  </BarChart>
+              <div className="bg-card rounded-xl p-4 sm:p-6 shadow-soft border border-border">
+                <h3 className="font-heading text-base sm:text-lg font-bold text-foreground mb-4">Residents by Case Category</h3>
+                <div role="img" aria-label="Horizontal bar chart showing resident count by case category" className="h-[220px] sm:h-[250px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={outcomes.byCategory}
+                      layout="vertical"
+                      margin={isMobile ? { top: 8, right: 8, left: 8, bottom: 0 } : { top: 8, right: 16, left: 8, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+                      <XAxis type="number" tick={{ fontSize: isMobile ? 9 : 10 }} />
+                      <YAxis
+                        dataKey="category"
+                        type="category"
+                        tick={{ fontSize: isMobile ? 9 : 10 }}
+                        width={isMobile ? 90 : 120}
+                        tickFormatter={truncateCategoryLabel}
+                      />
+                      <Tooltip />
+                      <Bar dataKey="count" fill="#3D8B8B" radius={[0, 4, 4, 0]} />
+                    </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Safehouse Performance */}
-          <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
-            <h3 className="font-heading text-lg font-bold text-foreground mb-4">Safehouse Performance</h3>
+          <div className="bg-card rounded-xl p-4 sm:p-6 shadow-soft border border-border">
+            <h3 className="font-heading text-base sm:text-lg font-bold text-foreground mb-4">Safehouse Performance</h3>
+            <div className="md:hidden space-y-3">
+              {safehouses.map((s) => {
+                const occupancyPct = s.capacity ? Math.round((s.residentCount / s.capacity) * 100) : null;
+                return (
+                  <div key={s.safehouseId} className="rounded-lg border border-border bg-background p-4 space-y-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-body text-sm font-semibold text-foreground">{s.safehouseName || `Safehouse ${s.safehouseId}`}</p>
+                        <p className="font-body text-xs text-muted-foreground">{s.region || "Unknown region"}</p>
+                      </div>
+                      <span className="text-xs font-body px-2 py-1 rounded-full bg-secondary">Active: {s.activeResidents}</span>
+                    </div>
+                    <p className="font-body text-xs text-muted-foreground">Capacity: {s.capacity || "-"} � Residents: {s.residentCount}</p>
+                    {occupancyPct != null ? (
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 flex-1 rounded-full bg-muted">
+                          <div className="h-full rounded-full bg-teal" style={{ width: `${Math.min(100, occupancyPct)}%` }} />
+                        </div>
+                        <span className="font-body text-xs text-muted-foreground">{occupancyPct}%</span>
+                      </div>
+                    ) : (
+                      <span className="font-body text-xs text-muted-foreground">Occupancy unavailable</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
             <div className="hidden md:block overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[760px]">
                 <thead>
                   <tr className="border-b border-border bg-muted/50">
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Safehouse</th>
@@ -166,29 +260,14 @@ const ReportsPage = () => {
                             </div>
                             <span className="font-body text-xs text-muted-foreground">{Math.round((s.residentCount / s.capacity) * 100)}%</span>
                           </div>
-                        ) : "-"}
+                        ) : (
+                          "-"
+                        )}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
-            <div className="md:hidden divide-y divide-border">
-              {safehouses.map((s) => (
-                <div key={s.safehouseId} className="py-3">
-                  <p className="font-body text-sm font-semibold text-foreground">{s.safehouseName || `Safehouse ${s.safehouseId}`}</p>
-                  <p className="font-body text-xs text-muted-foreground">{s.region || "Unknown region"}</p>
-                  <div className="mt-2 grid grid-cols-2 gap-2 text-xs font-body">
-                    <p><span className="text-muted-foreground">Capacity:</span> {s.capacity || "—"}</p>
-                    <p><span className="text-muted-foreground">Residents:</span> {s.residentCount}</p>
-                    <p><span className="text-muted-foreground">Active:</span> {s.activeResidents}</p>
-                    <p>
-                      <span className="text-muted-foreground">Occupancy:</span>{" "}
-                      {s.capacity ? `${Math.round((s.residentCount / s.capacity) * 100)}%` : "—"}
-                    </p>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
