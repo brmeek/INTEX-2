@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { Activity, Anchor, ArrowRight, BarChart3, BookOpen, Heart, LineChart, Megaphone, ShieldCheck, Sparkles } from "lucide-react";
+import { Activity, Anchor, ArrowRight, BarChart3, BookOpen, Heart, LineChart, Megaphone, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
@@ -573,12 +573,6 @@ const DonorPortalPage = () => {
 
         <CoverageGapFinder />
 
-        <section className="bg-secondary border border-border rounded-xl p-4 flex items-start gap-3">
-          <ShieldCheck className="h-4 w-4 text-accent mt-0.5" />
-          <p className="font-body text-xs text-muted-foreground">
-            Access is role-restricted. Donor and staff accounts can use this portal, but staff-only admin dashboards remain separate.
-          </p>
-        </section>
       </main>
       </div>
     </div>

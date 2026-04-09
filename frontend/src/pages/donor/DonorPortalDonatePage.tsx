@@ -127,106 +127,6 @@ export default function DonorPortalDonatePage() {
 
   return (
     <div className="space-y-6">
-      <section className="grid md:grid-cols-3 gap-4">
-        {[
-          {
-            title: "This Year",
-            value: summaryLoading ? "Loading..." : `$${(summary?.donorTotalThisYear ?? 0).toLocaleString()}`,
-            icon: Heart,
-            note: "Total contributed by you",
-          },
-          {
-            title: "Donations This Year",
-            value: summaryLoading ? "Loading..." : `${(summary?.donationCountThisYear ?? 0).toLocaleString()}`,
-            icon: LineChart,
-            note: "Recorded donations this year",
-          },
-          {
-            title: "Lifetime Giving",
-            value: summaryLoading ? "Loading..." : `$${(summary?.lifetimeTotal ?? 0).toLocaleString()}`,
-            icon: BarChart3,
-            note: "All-time amount contributed",
-          },
-        ].map((item) => (
-          <div key={item.title} className="bg-card border border-border rounded-xl p-5 shadow-soft">
-            <item.icon className="h-5 w-5 text-accent mb-3" />
-            <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">{item.title}</p>
-            <p className="font-heading text-2xl font-bold text-foreground mt-1">{item.value}</p>
-            <p className="font-body text-xs text-muted-foreground mt-1">{item.note}</p>
-          </div>
-        ))}
-      </section>
-
-      <section className="bg-card border border-border rounded-2xl p-6 shadow-soft">
-        <div className="flex items-center justify-between gap-3 mb-3">
-          <h2 className="font-heading text-xl font-bold text-foreground">Recent donations</h2>
-          <div className="flex items-center gap-3">
-            <p className="font-body text-xs text-muted-foreground">Latest 10 contributions</p>
-            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => loadRecentDonations(true)}>
-              Refresh
-            </Button>
-          </div>
-        </div>
-        {recentDonationsLoading ? (
-          <p className="font-body text-sm text-muted-foreground">Loading recent donations...</p>
-        ) : recentDonationsError ? (
-          <div className="space-y-2">
-            <p className="font-body text-sm text-destructive">
-              Failed to load recent donations: {recentDonationsError}
-            </p>
-            <p className="font-body text-xs text-muted-foreground">
-              Check browser network for `GET /api/donations/self-serve/recent?take=10`.
-            </p>
-          </div>
-        ) : recentDonations.length === 0 ? (
-          <p className="font-body text-sm text-muted-foreground">No donations recorded yet.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border bg-muted/50">
-                  <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Amount
-                  </th>
-                  <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Frequency
-                  </th>
-                  <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Channel
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentDonations.map((donation) => (
-                  <tr
-                    key={donation.donationId}
-                    className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
-                  >
-                    <td className="px-4 py-3 font-body text-sm">{donation.donationDate ?? "-"}</td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs font-body px-2 py-1 rounded-full bg-secondary">{donation.donationType}</span>
-                    </td>
-                    <td className="px-4 py-3 font-body text-sm font-semibold text-foreground">
-                      ${donation.amount.toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3 font-body text-sm text-muted-foreground">
-                      {donation.isRecurring ? "Monthly" : "One-Time"}
-                    </td>
-                    <td className="px-4 py-3 font-body text-sm text-muted-foreground">{donation.channelSource}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-
       <section className="grid lg:grid-cols-2 gap-6">
         <div className="bg-card border border-border rounded-2xl p-6 shadow-soft">
           <h2 className="font-heading text-xl font-bold text-foreground mb-2">Make a donation</h2>
@@ -253,7 +153,7 @@ export default function DonorPortalDonatePage() {
               One-Time
             </button>
           </div>
-          <div className="grid grid-cols-3 gap-2 mb-3">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-3">
             {donationAmounts.map((amt) => (
               <button
                 key={amt}
@@ -328,7 +228,7 @@ export default function DonorPortalDonatePage() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 min-w-0">
                   <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">
                     {summary?.year ?? new Date().getFullYear()} annual giving OKR
                   </p>
@@ -354,6 +254,106 @@ export default function DonorPortalDonatePage() {
             </div>
           )}
         </div>
+      </section>
+
+      <section className="bg-card border border-border rounded-2xl p-6 shadow-soft">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <h2 className="font-heading text-xl font-bold text-foreground">Recent donations</h2>
+          <div className="flex items-center gap-3">
+            <p className="font-body text-xs text-muted-foreground">Latest 10 contributions</p>
+            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => loadRecentDonations(true)}>
+              Refresh
+            </Button>
+          </div>
+        </div>
+        {recentDonationsLoading ? (
+          <p className="font-body text-sm text-muted-foreground">Loading recent donations...</p>
+        ) : recentDonationsError ? (
+          <div className="space-y-2">
+            <p className="font-body text-sm text-destructive">
+              Failed to load recent donations: {recentDonationsError}
+            </p>
+            <p className="font-body text-xs text-muted-foreground">
+              Check browser network for `GET /api/donations/self-serve/recent?take=10`.
+            </p>
+          </div>
+        ) : recentDonations.length === 0 ? (
+          <p className="font-body text-sm text-muted-foreground">No donations recorded yet.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Amount
+                  </th>
+                  <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Frequency
+                  </th>
+                  <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Channel
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentDonations.map((donation) => (
+                  <tr
+                    key={donation.donationId}
+                    className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
+                  >
+                    <td className="px-4 py-3 font-body text-sm">{donation.donationDate ?? "-"}</td>
+                    <td className="px-4 py-3">
+                      <span className="text-xs font-body px-2 py-1 rounded-full bg-secondary">{donation.donationType}</span>
+                    </td>
+                    <td className="px-4 py-3 font-body text-sm font-semibold text-foreground">
+                      ${donation.amount.toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3 font-body text-sm text-muted-foreground">
+                      {donation.isRecurring ? "Monthly" : "One-Time"}
+                    </td>
+                    <td className="px-4 py-3 font-body text-sm text-muted-foreground">{donation.channelSource}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className="grid md:grid-cols-3 gap-4">
+        {[
+          {
+            title: "This Year",
+            value: summaryLoading ? "Loading..." : `$${(summary?.donorTotalThisYear ?? 0).toLocaleString()}`,
+            icon: Heart,
+            note: "Total contributed by you",
+          },
+          {
+            title: "Donations This Year",
+            value: summaryLoading ? "Loading..." : `${(summary?.donationCountThisYear ?? 0).toLocaleString()}`,
+            icon: LineChart,
+            note: "Recorded donations this year",
+          },
+          {
+            title: "Lifetime Giving",
+            value: summaryLoading ? "Loading..." : `$${(summary?.lifetimeTotal ?? 0).toLocaleString()}`,
+            icon: BarChart3,
+            note: "All-time amount contributed",
+          },
+        ].map((item) => (
+          <div key={item.title} className="bg-card border border-border rounded-xl p-5 shadow-soft">
+            <item.icon className="h-5 w-5 text-accent mb-3" />
+            <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">{item.title}</p>
+            <p className="font-heading text-2xl font-bold text-foreground mt-1">{item.value}</p>
+            <p className="font-body text-xs text-muted-foreground mt-1">{item.note}</p>
+          </div>
+        ))}
       </section>
     </div>
   );
