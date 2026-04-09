@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
+import { DeleteConfirmDialog } from "@/components/admin/DeleteConfirmDialog";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
@@ -51,6 +52,8 @@ const DonorsAdminPage = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<Supporter | null>(null);
+  const [supporterToDelete, setSupporterToDelete] = useState<Supporter | null>(null);
+  const [deletePending, setDeletePending] = useState(false);
   const [form, setForm] = useState({ supporterName: "", supporterType: "Monetary", email: "", phone: "", status: "Active", region: "", notes: "" });
   const [inKindEstimateForm, setInKindEstimateForm] = useState({
     itemCategory: "Supplies",
@@ -137,14 +140,18 @@ const DonorsAdminPage = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to remove this supporter?")) return;
+  const executeDeleteSupporter = async () => {
+    if (!supporterToDelete) return;
+    setDeletePending(true);
     try {
-      await api.delete(`/api/supporters/${id}`);
+      await api.delete(`/api/supporters/${supporterToDelete.supporterId}`);
       toast({ title: "Deleted", description: "Supporter removed." });
+      setSupporterToDelete(null);
       loadSupporters();
     } catch (e) {
       toast({ title: "Error", description: String(e), variant: "destructive" });
+    } finally {
+      setDeletePending(false);
     }
   };
 
@@ -293,7 +300,7 @@ const DonorsAdminPage = () => {
                         <td className="px-4 py-3 font-body text-sm">{s.totalGiven != null ? `₱${s.totalGiven.toLocaleString()}` : "—"}</td>
                         <td className="px-4 py-3 flex gap-1">
                           <Button onClick={() => openEdit(s)} variant="ghost" size="sm" className="text-xs font-body h-7">Edit</Button>
-                          <Button onClick={() => handleDelete(s.supporterId)} variant="ghost" size="sm" className="text-xs font-body h-7 text-destructive">Delete</Button>
+                          <Button onClick={() => setSupporterToDelete(s)} variant="ghost" size="sm" className="text-xs font-body h-7 text-destructive">Delete</Button>
                         </td>
                       </tr>
                     ))}
@@ -349,6 +356,25 @@ const DonorsAdminPage = () => {
           )}
         </div>
       </div>
+
+      <DeleteConfirmDialog
+        open={supporterToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open && !deletePending) setSupporterToDelete(null);
+        }}
+        title="Delete this supporter?"
+        description={
+          supporterToDelete ? (
+            <>
+              Remove <span className="font-medium text-foreground">{supporterToDelete.supporterName}</span> from the donor list. This cannot be undone.
+            </>
+          ) : (
+            "This removes them from the donor list. This cannot be undone."
+          )
+        }
+        pending={deletePending}
+        onConfirm={executeDeleteSupporter}
+      />
     </AdminLayout>
   );
 };

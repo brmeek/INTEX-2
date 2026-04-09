@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
+import { DeleteConfirmDialog } from "@/components/admin/DeleteConfirmDialog";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -48,6 +49,8 @@ const UsersAdminPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [editUser, setEditUser] = useState<AdminUser | null>(null);
   const [form, setForm] = useState<UserFormState>(defaultForm);
+  const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
+  const [deletePending, setDeletePending] = useState(false);
 
   const loadUsers = async (targetPage = 1) => {
     setLoading(true);
@@ -150,20 +153,23 @@ const UsersAdminPage = () => {
     }
   };
 
-  const handleDelete = async (user: AdminUser) => {
-    if (!confirm(`Delete user ${user.email}? This action cannot be undone.`)) return;
-
+  const executeDeleteUser = async () => {
+    if (!userToDelete) return;
+    setDeletePending(true);
     try {
-      await api.delete(`/api/admin/users/${user.id}`);
+      await api.delete(`/api/admin/users/${userToDelete.id}`);
       toast({ title: "Deleted", description: "User removed." });
       const canStayOnPage = page > 1 && users.length === 1;
       await loadUsers(canStayOnPage ? page - 1 : page);
+      setUserToDelete(null);
     } catch (error) {
       toast({
         title: "Error",
         description: getErrorMessage(error),
         variant: "destructive",
       });
+    } finally {
+      setDeletePending(false);
     }
   };
 
@@ -284,7 +290,7 @@ const UsersAdminPage = () => {
                           <Button onClick={() => openEdit(user)} variant="ghost" size="sm" className="text-xs font-body h-7">
                             Edit
                           </Button>
-                          <Button onClick={() => handleDelete(user)} variant="ghost" size="sm" className="text-xs font-body h-7 text-destructive">
+                          <Button onClick={() => setUserToDelete(user)} variant="ghost" size="sm" className="text-xs font-body h-7 text-destructive">
                             Delete
                           </Button>
                         </td>
@@ -316,6 +322,28 @@ const UsersAdminPage = () => {
           )}
         </div>
       </div>
+
+      <DeleteConfirmDialog
+        open={userToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open && !deletePending) setUserToDelete(null);
+        }}
+        title="Delete this user?"
+        description={
+          <>
+            This removes portal access
+            {userToDelete?.email ? (
+              <>
+                {" "}
+                for <span className="font-medium text-foreground">{userToDelete.email}</span>
+              </>
+            ) : null}
+            . This cannot be undone.
+          </>
+        }
+        pending={deletePending}
+        onConfirm={executeDeleteUser}
+      />
     </AdminLayout>
   );
 };
