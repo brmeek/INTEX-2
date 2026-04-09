@@ -114,7 +114,7 @@ function SponsorModal({ gap, onClose, onDonate, donating }: SponsorModalProps) {
   );
 }
 
-export default function CoverageGapFinder() {
+export default function CoverageGapFinder({ readOnly = false }: { readOnly?: boolean }) {
   const { toast } = useToast();
   const [safehouses, setSafehouses] = useState<SafehouseApi[]>([]);
   const [loading, setLoading] = useState(true);
@@ -186,7 +186,7 @@ export default function CoverageGapFinder() {
           <div className="text-left">
             <h2 className="font-heading text-lg font-bold text-foreground">Coverage Gap Finder</h2>
             <p className="font-body text-xs text-muted-foreground">
-              {uncoveredCount} of {ALL_PROVINCES.length} provinces without a nearby safehouse
+              {uncoveredCount} of {ALL_PROVINCES.length} provinces lack safehouse coverage
             </p>
           </div>
         </div>
@@ -195,37 +195,34 @@ export default function CoverageGapFinder() {
 
       {expanded && (
         <div className="px-6 pb-6 space-y-4">
-          {/* Explainer */}
-          <div className="bg-secondary/60 rounded-xl p-5 border border-border">
-            <p className="font-body text-sm text-foreground mb-3">
-              This map highlights zones across the Philippines with provinces where survivors of trafficking and abuse
-              have <span className="font-semibold">no nearby safehouse</span> to turn to. Each circle represents
-              a high-need zone — the larger and redder the circle, the more urgent the need.
-            </p>
-            <div className="grid sm:grid-cols-3 gap-3 mb-3">
-              <div className="bg-white rounded-lg p-3 border border-border">
-                <p className="font-heading text-xs font-bold text-foreground mb-1">Risk Score</p>
-                <p className="font-body text-xs text-muted-foreground">
-                  Measures vulnerability to trafficking and abuse based on poverty, migration patterns, and enforcement gaps. Higher means greater danger.
-                </p>
-              </div>
-              <div className="bg-white rounded-lg p-3 border border-border">
-                <p className="font-heading text-xs font-bold text-foreground mb-1">Service Gap</p>
-                <p className="font-body text-xs text-muted-foreground">
-                  How underserved the area is — lack of shelters, counseling, legal aid, and medical care for survivors. Higher means fewer resources.
-                </p>
-              </div>
-              <div className="bg-white rounded-lg p-3 border border-border">
-                <p className="font-heading text-xs font-bold text-foreground mb-1">Why Sponsor?</p>
-                <p className="font-body text-xs text-muted-foreground">
-                  Your donation helps build a safehouse where survivors can access shelter, recovery programs, and a path to independence.
-                </p>
+          {!readOnly && (
+            <div className="bg-secondary/60 rounded-xl p-5 border border-border">
+              <p className="font-body text-sm text-foreground mb-3">
+                Each circle marks a zone with <span className="font-semibold">uncovered provinces</span> — the
+                larger and redder it is, the more urgent the need. Click a circle or card to sponsor directly.
+              </p>
+              <div className="grid sm:grid-cols-3 gap-3">
+                <div className="bg-white rounded-lg p-3 border border-border">
+                  <p className="font-heading text-xs font-bold text-foreground mb-1">Risk Score</p>
+                  <p className="font-body text-xs text-muted-foreground">
+                    Composite vulnerability rating based on poverty, migration, and enforcement capacity.
+                  </p>
+                </div>
+                <div className="bg-white rounded-lg p-3 border border-border">
+                  <p className="font-heading text-xs font-bold text-foreground mb-1">Service Gap</p>
+                  <p className="font-body text-xs text-muted-foreground">
+                    Availability of shelters, counseling, legal aid, and medical services for survivors.
+                  </p>
+                </div>
+                <div className="bg-white rounded-lg p-3 border border-border">
+                  <p className="font-heading text-xs font-bold text-foreground mb-1">Why Sponsor?</p>
+                  <p className="font-body text-xs text-muted-foreground">
+                    Your gift funds a safehouse offering shelter, recovery programs, and a path to independence.
+                  </p>
+                </div>
               </div>
             </div>
-            <p className="font-body text-xs text-muted-foreground">
-              Click any circle on the map or a card below to sponsor that zone directly.
-            </p>
-          </div>
+          )}
 
           {/* Map */}
           <div className="relative rounded-xl overflow-hidden border border-border" style={{ height: 380 }}>
@@ -254,14 +251,14 @@ export default function CoverageGapFinder() {
                     weight: 2,
                     dashArray: "6 4",
                   }}
-                  eventHandlers={{ click: () => setSponsorGap(g) }}
+                  eventHandlers={readOnly ? {} : { click: () => setSponsorGap(g) }}
                 >
                   <Tooltip direction="top" offset={[0, -12]}>
                     <div className="font-body text-xs">
                       <p className="font-semibold text-sm">{g.region}</p>
                       <p className="text-muted-foreground">{TIER_LABELS[g.priorityTier]}</p>
                       <p>Risk: <span className="font-medium">{g.avgRiskScore}</span> &middot; Gap: <span className="font-medium">{g.avgServiceGap}</span></p>
-                      <p className="text-accent mt-0.5 font-medium">Click to sponsor</p>
+                      {!readOnly && <p className="text-accent mt-0.5 font-medium">Click to sponsor</p>}
                     </div>
                   </Tooltip>
                 </CircleMarker>
@@ -283,37 +280,45 @@ export default function CoverageGapFinder() {
 
           {/* Gap cards */}
           <div className="grid sm:grid-cols-2 gap-3">
-            {gaps.slice(0, 4).map((g) => (
-              <button
-                key={g.region}
-                onClick={() => setSponsorGap(g)}
-                className="text-left bg-secondary rounded-xl p-4 border border-border hover:border-accent/40 hover:shadow-soft transition-all group"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                      <AlertTriangle className="h-3.5 w-3.5" style={{ color: TIER_COLORS[g.priorityTier] }} />
-                      <span
-                        className="font-body text-[10px] font-bold uppercase tracking-wider"
-                        style={{ color: TIER_COLORS[g.priorityTier] }}
-                      >
-                        {TIER_LABELS[g.priorityTier]}
-                      </span>
+            {gaps.slice(0, 4).map((g) => {
+              const Tag = readOnly ? "div" : "button";
+              return (
+                <Tag
+                  key={g.region}
+                  {...(!readOnly && { onClick: () => setSponsorGap(g) })}
+                  className={cn(
+                    "text-left bg-secondary rounded-xl p-4 border border-border transition-all",
+                    !readOnly && "hover:border-accent/40 hover:shadow-soft group cursor-pointer"
+                  )}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <AlertTriangle className="h-3.5 w-3.5" style={{ color: TIER_COLORS[g.priorityTier] }} />
+                        <span
+                          className="font-body text-[10px] font-bold uppercase tracking-wider"
+                          style={{ color: TIER_COLORS[g.priorityTier] }}
+                        >
+                          {TIER_LABELS[g.priorityTier]}
+                        </span>
+                      </div>
+                      <p className="font-heading text-sm font-bold text-foreground">{g.region}</p>
                     </div>
-                    <p className="font-heading text-sm font-bold text-foreground">{g.region}</p>
+                    <p className="font-heading text-lg font-bold text-foreground">{g.avgRiskScore}</p>
                   </div>
-                  <p className="font-heading text-lg font-bold text-foreground">{g.avgRiskScore}</p>
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="font-body text-xs text-muted-foreground">
-                    {g.uncoveredProvinceCount} of {g.totalProvinceCount} provinces uncovered &middot; {g.totalIncidents.toLocaleString()} incidents
-                  </p>
-                  <span className="font-body text-xs text-accent font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
-                    Sponsor &rarr;
-                  </span>
-                </div>
-              </button>
-            ))}
+                  <div className="flex items-center justify-between">
+                    <p className="font-body text-xs text-muted-foreground">
+                      {g.uncoveredProvinceCount} of {g.totalProvinceCount} provinces uncovered &middot; {g.totalIncidents.toLocaleString()} incidents
+                    </p>
+                    {!readOnly && (
+                      <span className="font-body text-xs text-accent font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                        Sponsor &rarr;
+                      </span>
+                    )}
+                  </div>
+                </Tag>
+              );
+            })}
           </div>
 
           {gaps.length > 4 && (
@@ -324,7 +329,7 @@ export default function CoverageGapFinder() {
         </div>
       )}
 
-      {sponsorGap && (
+      {!readOnly && sponsorGap && (
         <SponsorModal
           gap={sponsorGap}
           onClose={() => setSponsorGap(null)}
