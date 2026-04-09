@@ -14,6 +14,8 @@ import { ALL_PROVINCES, mapSafehousesToProvinces } from "@/data/traffickingData"
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? "";
+
 interface SafehouseApi {
   safehouseId: number;
   safehouseName: string | null;
@@ -123,12 +125,37 @@ export default function CoverageGapFinder({ readOnly = false }: { readOnly?: boo
   const [expanded, setExpanded] = useState(true);
 
   useEffect(() => {
-    api
-      .get<SafehouseApi[]>("/api/Safehouses")
-      .then(setSafehouses)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+    let cancelled = false;
+
+    const loadSafehouses = async () => {
+      setLoading(true);
+      try {
+        if (readOnly) {
+          // Public impact pages should never trigger auth redirects.
+          const response = await fetch(`${API_BASE}/api/Safehouses`, { credentials: "include" });
+          if (!response.ok) {
+            if (!cancelled) setSafehouses([]);
+            return;
+          }
+          const data = (await response.json()) as SafehouseApi[];
+          if (!cancelled) setSafehouses(data);
+          return;
+        }
+
+        const data = await api.get<SafehouseApi[]>("/api/Safehouses");
+        if (!cancelled) setSafehouses(data);
+      } catch {
+        if (!cancelled) setSafehouses([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    loadSafehouses();
+    return () => {
+      cancelled = true;
+    };
+  }, [readOnly]);
 
   const coveredProvinces = useMemo(
     () => mapSafehousesToProvinces(safehouses),
