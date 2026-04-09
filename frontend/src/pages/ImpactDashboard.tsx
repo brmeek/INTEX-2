@@ -213,8 +213,8 @@ const ImpactDashboard = () => {
                 <CoverageGapFinder readOnly />
               </div>
 
-              <div className="relative left-1/2 right-1/2 -mx-[50vw] w-screen overflow-hidden py-6 md:py-8 lg:py-10">
-                <div className="absolute inset-0">
+              <div className="relative overflow-hidden py-6 md:py-8 lg:py-10">
+                <div className="absolute inset-y-0 left-1/2 w-screen -translate-x-1/2">
                   <img
                     src={oceanImage}
                     alt=""
