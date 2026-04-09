@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { logoutUser } from "@/lib/authApi";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/context/useTheme";
 import {
   LayoutDashboard,
   Users,
@@ -20,6 +21,8 @@ import {
   Shield,
   CalendarClock,
   Megaphone,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -50,6 +53,7 @@ type SidebarTab = "admin" | "metrics";
 
 const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
   const { authSession, refreshAuthSession } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -206,7 +210,7 @@ const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
 
       {/* Main Content */}
       <div className="flex-1 lg:ml-64">
-        <header className="sticky top-0 z-20 bg-white border-b border-border px-6 py-4 flex items-center justify-between shadow-soft">
+        <header className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border px-6 py-4 flex items-center justify-between shadow-soft">
           <div className="flex items-center gap-4">
             <button className="lg:hidden text-foreground" onClick={() => setSidebarOpen(true)}>
               <Menu className="h-5 w-5" />
@@ -216,12 +220,25 @@ const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
               {subtitle && <p className="font-body text-xs text-muted-foreground">{subtitle}</p>}
             </div>
           </div>
-          <Link to="/">
-            <Button variant="ghost" size="sm" className="font-body text-xs gap-1">
-              <ChevronLeft className="h-3 w-3" />
-              Public Site
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              title={theme === "light" ? "Dark mode" : "Light mode"}
+              aria-label={theme === "light" ? "Dark mode" : "Light mode"}
+              className="rounded-full"
+            >
+              {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </Button>
-          </Link>
+            <Link to="/">
+              <Button variant="ghost" size="sm" className="font-body text-xs gap-1">
+                <ChevronLeft className="h-3 w-3" />
+                Public Site
+              </Button>
+            </Link>
+          </div>
         </header>
 
         <main className="p-6">{children}</main>

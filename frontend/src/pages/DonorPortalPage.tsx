@@ -267,7 +267,7 @@ const DonorPortalPage = () => {
       </header>
 
       <main className="container py-8 space-y-6">
-        <section className="bg-white border border-border rounded-2xl p-6 shadow-soft">
+        <section className="bg-card border border-border rounded-2xl p-6 shadow-soft">
           <h1 className="font-heading text-3xl font-bold text-foreground">Welcome back, {donorDisplayName}</h1>
         </section>
 
@@ -292,7 +292,7 @@ const DonorPortalPage = () => {
               note: "All-time amount contributed",
             },
           ].map((item) => (
-            <div key={item.title} className="bg-white border border-border rounded-xl p-5 shadow-soft">
+            <div key={item.title} className="bg-card border border-border rounded-xl p-5 shadow-soft">
               <item.icon className="h-5 w-5 text-accent mb-3" />
               <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">{item.title}</p>
               <p className="font-heading text-2xl font-bold text-foreground mt-1">{item.value}</p>
@@ -301,7 +301,7 @@ const DonorPortalPage = () => {
           ))}
         </section>
 
-        <section className="bg-white border border-border rounded-2xl p-6 shadow-soft">
+        <section className="bg-card border border-border rounded-2xl p-6 shadow-soft">
           <div className="flex items-center justify-between gap-3 mb-3">
             <h2 className="font-heading text-xl font-bold text-foreground">Recent donations</h2>
             <div className="flex items-center gap-3">
@@ -359,7 +359,7 @@ const DonorPortalPage = () => {
         </section>
 
         <section className="grid lg:grid-cols-2 gap-6">
-          <div className="bg-white border border-border rounded-2xl p-6 shadow-soft">
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-soft">
             <h2 className="font-heading text-xl font-bold text-foreground mb-2">Make a donation</h2>
             <p className="font-body text-sm text-muted-foreground mb-4">
               Give directly from your donor dashboard.
@@ -420,7 +420,7 @@ const DonorPortalPage = () => {
             </Button>
           </div>
 
-          <div className="bg-white border border-border rounded-2xl p-6 shadow-soft">
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-soft">
             <h2 className="font-heading text-xl font-bold text-foreground mb-2">Donation trends</h2>
             <p className="font-body text-sm text-muted-foreground mb-4">
               OKR metric updates from your donor account activity.
@@ -490,7 +490,7 @@ const DonorPortalPage = () => {
           </div>
         </section>
 
-        <section className="bg-white border border-border rounded-2xl p-6 shadow-soft">
+        <section className="bg-card border border-border rounded-2xl p-6 shadow-soft">
           <div className="flex items-center justify-between gap-3 mb-3">
             <div>
               <h2 className="font-heading text-xl font-bold text-foreground flex items-center gap-2">
@@ -519,12 +519,12 @@ const DonorPortalPage = () => {
                 placeholder="e.g., 250"
                 value={hypotheticalAmount}
                 onChange={(event) => setHypotheticalAmount(event.target.value)}
-                className="w-full sm:w-56 px-3 py-2 rounded-lg border border-border bg-white font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+                className="w-full sm:w-56 px-3 py-2 rounded-lg border border-border bg-background font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
               />
               <button
                 type="button"
                 onClick={() => setHypotheticalAmount("")}
-                className="px-3 py-2 rounded-lg border border-border bg-white font-body text-xs font-semibold text-muted-foreground hover:text-foreground"
+                className="px-3 py-2 rounded-lg border border-border bg-background font-body text-xs font-semibold text-muted-foreground hover:text-foreground"
               >
                 Use current donation amount
               </button>

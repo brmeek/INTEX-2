@@ -377,7 +377,7 @@ function CalendarTab() {
       {/* ─── Toolbar ─── */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-stone-50 rounded-xl border border-stone-200 px-5 py-3">
         <div className="flex items-center gap-3">
-          <div className="flex items-center bg-white rounded-lg border border-stone-200 p-0.5">
+          <div className="flex items-center bg-card rounded-lg border border-border p-0.5">
             {(["day", "week", "month"] as ViewMode[]).map((mode) => (
               <button
                 key={mode}
@@ -469,7 +469,7 @@ function CalendarTab() {
                       ? "border-amber-300 bg-amber-50/60 ring-2 ring-amber-200/50 shadow-soft"
                       : isToday
                       ? "border-amber-200 bg-amber-50/30 hover:shadow-soft"
-                      : "border-border bg-white hover:border-amber-200 hover:shadow-soft"
+                      : "border-border bg-card hover:border-amber-200 hover:shadow-soft"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -574,7 +574,7 @@ function CalendarTab() {
                       : isToday
                       ? "border-amber-200 bg-amber-50/30"
                       : posts.length > 0
-                      ? "border-border bg-white hover:border-amber-200"
+                      ? "border-border bg-card hover:border-amber-200"
                       : "border-transparent bg-stone-50/50 hover:bg-stone-100/60"
                   }`}
                 >
@@ -612,7 +612,7 @@ function CalendarTab() {
 
       {/* ─── Post Detail Panel (shared across all views) ─── */}
       {selectedDatePosts.length > 0 && (
-        <div className="rounded-2xl border border-stone-200 bg-white shadow-soft overflow-hidden">
+        <div className="rounded-2xl border border-border bg-card shadow-soft overflow-hidden">
           {viewMode !== "day" && (
             <div className="bg-slate-800 px-6 py-3">
               <h4 className="font-heading text-base font-bold text-white">
@@ -641,7 +641,7 @@ function CalendarTab() {
                 <div key={i} className={`group flex gap-4 p-4 rounded-xl border transition-all ${
                   done
                     ? "border-emerald-200 bg-emerald-50/40"
-                    : "border-border bg-white hover:shadow-soft"
+                    : "border-border bg-card hover:shadow-soft"
                 }`}>
                   <button
                     onClick={() => toggleComplete(key)}
@@ -768,7 +768,7 @@ function ComposerTab() {
 
   return (
     <div className="grid lg:grid-cols-5 gap-6">
-      <div className="lg:col-span-3 bg-white rounded-2xl border border-border shadow-soft p-6">
+      <div className="lg:col-span-3 bg-card rounded-2xl border border-border shadow-soft p-6">
         <div className="flex items-center gap-2 mb-5">
           <div className="w-8 h-8 rounded-lg bg-amber-600 flex items-center justify-center">
             <Send className="h-4 w-4 text-white" />
@@ -857,7 +857,7 @@ function ComposerTab() {
 
       <div className="lg:col-span-2 space-y-4">
         {result ? (
-          <div className="rounded-2xl border border-stone-200 bg-white shadow-soft p-6 space-y-5">
+          <div className="rounded-2xl border border-border bg-card shadow-soft p-6 space-y-5">
             <div className="flex items-center gap-2">
               <Target className="h-5 w-5 text-amber-600" />
               <h3 className="font-heading text-base font-bold text-foreground">Prediction Result</h3>
@@ -978,7 +978,7 @@ function AnalyticsTab() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-border shadow-soft overflow-hidden">
+      <div className="bg-card rounded-2xl border border-border shadow-soft overflow-hidden">
         <div className="bg-slate-800 px-6 py-3 flex items-center justify-between">
           <h3 className="font-heading text-base font-bold text-white flex items-center gap-2">
             <Eye className="h-4 w-4" /> Scored Posts History
@@ -1073,7 +1073,7 @@ function BreakdownCard({ title, items, color }: { title: string; items: { label:
   const maxAvg = Math.max(...items.map((i) => i.avg), 1);
   const gradient = BAR_GRADIENTS[color] ?? BAR_GRADIENTS.orange;
   return (
-    <div className="bg-white rounded-2xl border border-border shadow-soft p-5">
+    <div className="bg-card rounded-2xl border border-border shadow-soft p-5">
       <h4 className="font-heading text-sm font-bold text-foreground mb-4">{title}</h4>
       <div className="space-y-3.5">
         {items.map((item) => (
@@ -1107,15 +1107,15 @@ const PostingCalendarPage = () => {
 
       <Tabs defaultValue="calendar" className="space-y-5">
         <TabsList className="bg-stone-100 border border-stone-200 p-1">
-          <TabsTrigger value="calendar" className="gap-1.5 font-body text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger value="calendar" className="gap-1.5 font-body text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm">
             <CalendarClock className="h-3.5 w-3.5" />
             Weekly Plan
           </TabsTrigger>
-          <TabsTrigger value="composer" className="gap-1.5 font-body text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger value="composer" className="gap-1.5 font-body text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm">
             <Send className="h-3.5 w-3.5" />
             Post Composer
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="gap-1.5 font-body text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger value="analytics" className="gap-1.5 font-body text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm">
             <TrendingUp className="h-3.5 w-3.5" />
             Analytics
           </TabsTrigger>

@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Anchor } from "lucide-react";
+import { Menu, X, Anchor, Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/useTheme";
 import { getDonorPortalPath, getStaffPortalPath, hasAdminAccess } from "@/lib/portalRoutes";
 
 const Navbar = () => {
@@ -11,6 +12,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const { authSession } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -92,6 +94,22 @@ const Navbar = () => {
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              title={theme === "light" ? "Dark mode" : "Light mode"}
+              aria-label={theme === "light" ? "Dark mode" : "Light mode"}
+              className={cn(
+                "rounded-full",
+                scrolled || !isHome
+                  ? ""
+                  : "text-white/80 hover:text-white hover:bg-white/10"
+              )}
+            >
+              {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            </Button>
             {showStaffPortal && (
               <Link to={staffPortalPath}>
                 <Button
@@ -160,9 +178,20 @@ const Navbar = () => {
             <div
               className={cn(
                 "pt-3 border-t border-border mt-3 grid gap-3",
-                showStaffPortal ? "grid-cols-2" : "grid-cols-1"
+                showStaffPortal ? "grid-cols-3" : "grid-cols-2"
               )}
             >
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={toggleTheme}
+                title={theme === "light" ? "Dark mode" : "Light mode"}
+                aria-label={theme === "light" ? "Dark mode" : "Light mode"}
+                className="w-full"
+              >
+                {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              </Button>
               {showStaffPortal && (
                 <Link to={staffPortalPath} className="flex-1">
                   <Button variant="outline" size="sm" className="w-full font-body">

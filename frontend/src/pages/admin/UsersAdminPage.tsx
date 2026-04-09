@@ -191,7 +191,7 @@ const UsersAdminPage = () => {
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && loadUsers(1)}
               placeholder="Search users by email..."
-              className="w-full pl-9 pr-3 py-2 rounded-lg border border-border bg-white font-body text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              className="w-full pl-9 pr-3 py-2 rounded-lg border border-border bg-background font-body text-sm focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
           <Button onClick={() => loadUsers(1)} size="sm" variant="outline" className="font-body">
@@ -204,7 +204,7 @@ const UsersAdminPage = () => {
         </div>
 
         {showForm && (
-          <div className="bg-white rounded-xl p-6 shadow-card border border-border">
+          <div className="bg-card rounded-xl p-6 shadow-card border border-border">
             <h3 className="font-heading text-lg font-bold mb-4">{editUser ? "Edit User" : "New User"}</h3>
 
             <div className="grid sm:grid-cols-2 gap-3 mb-4">
@@ -257,7 +257,7 @@ const UsersAdminPage = () => {
           </div>
         )}
 
-        <div className="bg-white rounded-xl shadow-soft border border-border overflow-hidden">
+        <div className="bg-card rounded-xl shadow-soft border border-border overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-32">
               <div className="animate-spin h-6 w-6 border-4 border-accent border-t-transparent rounded-full" />

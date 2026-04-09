@@ -197,7 +197,7 @@ const AdminDashboard = () => {
             </div>
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             {stats.map((s) => (
-              <div key={s.label} className="bg-white rounded-xl p-5 shadow-soft border border-border">
+              <div key={s.label} className="bg-card rounded-xl p-5 shadow-soft border border-border">
                 <div className={`w-10 h-10 rounded-lg ${s.color} flex items-center justify-center mb-3`}>
                   <s.icon className="h-5 w-5" />
                 </div>
@@ -209,7 +209,7 @@ const AdminDashboard = () => {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+            <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-heading text-lg font-bold text-foreground">Recent donations</h3>
                 <TrendChip value={donationsTrendPct} label="30-day trend" />
@@ -237,7 +237,7 @@ const AdminDashboard = () => {
               )}
             </div>
 
-            <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+            <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
               <h3 className="font-heading text-lg font-bold text-foreground mb-1">Donors needing follow-up</h3>
               <p className="font-body text-xs text-muted-foreground mb-4">
                 Top donors most likely to stop giving based on recent behavior patterns.
@@ -269,7 +269,7 @@ const AdminDashboard = () => {
               )}
             </div>
 
-            <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+            <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
               <h3 className="font-heading text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-accent" />
                 Upcoming case conferences
@@ -294,7 +294,7 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+          <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <h3 className="font-heading text-lg font-bold text-foreground">Next-month safehouse learning outlook</h3>
               <button

@@ -70,7 +70,7 @@ const ProcessRecordingsPage = () => {
         </div>
 
         {showForm && (
-          <div className="bg-white rounded-xl p-6 shadow-card border border-border">
+          <div className="bg-card rounded-xl p-6 shadow-card border border-border">
             <h3 className="font-heading text-lg font-bold mb-4">New Process Recording</h3>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
               <input className={inputClass} placeholder="Resident ID" value={form.residentId} onChange={(e) => setForm({ ...form, residentId: e.target.value })} />
@@ -93,7 +93,7 @@ const ProcessRecordingsPage = () => {
 
         {/* Detail View */}
         {selected && (
-          <div className="bg-white rounded-xl p-6 shadow-card border border-border">
+          <div className="bg-card rounded-xl p-6 shadow-card border border-border">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h3 className="font-heading text-lg font-bold">{selected.resident?.firstName} {selected.resident?.lastName}</h3>
@@ -110,7 +110,7 @@ const ProcessRecordingsPage = () => {
           </div>
         )}
 
-        <div className="bg-white rounded-xl shadow-soft border border-border overflow-hidden">
+        <div className="bg-card rounded-xl shadow-soft border border-border overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-32"><div className="animate-spin h-6 w-6 border-4 border-accent border-t-transparent rounded-full" /></div>
           ) : (

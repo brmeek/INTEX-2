@@ -13,6 +13,7 @@ import {
 import { ALL_PROVINCES, mapSafehousesToProvinces } from "@/data/traffickingData";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
+import { useTheme } from "@/context/useTheme";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? "";
 
@@ -51,8 +52,8 @@ function SponsorModal({ gap, onClose, onDonate, donating }: SponsorModalProps) {
   return (
     <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-elevated animate-fade-up">
-        <div className="mb-1 flex items-center gap-2">
+      <div className="relative bg-card border border-border rounded-2xl shadow-elevated max-w-md w-full p-6 animate-fade-up">
+        <div className="flex items-center gap-2 mb-1">
           <div
             className="h-3 w-3 rounded-full"
             style={{ backgroundColor: TIER_COLORS[gap.priorityTier] }}
@@ -130,6 +131,7 @@ function SponsorModal({ gap, onClose, onDonate, donating }: SponsorModalProps) {
 
 export default function CoverageGapFinder({ readOnly = false }: { readOnly?: boolean }) {
   const { toast } = useToast();
+  const { theme } = useTheme();
   const [safehouses, setSafehouses] = useState<SafehouseApi[]>([]);
   const [loading, setLoading] = useState(true);
   const [sponsorGap, setSponsorGap] = useState<CoverageGap | null>(null);
@@ -172,6 +174,9 @@ export default function CoverageGapFinder({ readOnly = false }: { readOnly?: boo
   const coveredProvinces = useMemo(() => mapSafehousesToProvinces(safehouses), [safehouses]);
   const uncoveredCount = ALL_PROVINCES.length - coveredProvinces.size;
   const gaps = useMemo(() => computeCoverageGaps(coveredProvinces), [coveredProvinces]);
+  const mapTileUrl = theme === "dark"
+    ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+    : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
   const handleDonate = async (amount: number, region: string) => {
     setDonating(true);
@@ -199,16 +204,16 @@ export default function CoverageGapFinder({ readOnly = false }: { readOnly?: boo
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-border bg-white p-6 shadow-soft">
-        <div className="flex h-32 items-center justify-center">
-          <div className="h-6 w-6 animate-spin rounded-full border-4 border-accent border-t-transparent" />
+      <div className="bg-card border border-border rounded-2xl p-6 shadow-soft">
+        <div className="flex items-center justify-center h-32">
+          <div className="animate-spin h-6 w-6 border-4 border-accent border-t-transparent rounded-full" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-soft">
+    <div className="bg-card border border-border rounded-2xl shadow-soft overflow-hidden">
       <button
         onClick={() => setExpanded((v) => !v)}
         className="flex w-full items-center justify-between px-6 py-5 transition-colors hover:bg-secondary/40"
@@ -244,21 +249,21 @@ export default function CoverageGapFinder({ readOnly = false }: { readOnly?: boo
                 circle or card to sponsor coverage directly.
               </p>
               <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-xl border border-border bg-white p-4">
+                <div className="rounded-xl border border-border bg-card p-4">
                   <p className="mb-2 font-heading text-sm font-bold text-foreground">Risk Score</p>
                   <p className="font-body text-sm leading-relaxed text-muted-foreground">
                     Composite vulnerability rating based on poverty, migration, and enforcement
                     capacity.
                   </p>
                 </div>
-                <div className="rounded-xl border border-border bg-white p-4">
+                <div className="rounded-xl border border-border bg-card p-4">
                   <p className="mb-2 font-heading text-sm font-bold text-foreground">Service Gap</p>
                   <p className="font-body text-sm leading-relaxed text-muted-foreground">
                     Availability of shelters, counseling, legal aid, and medical services for
                     survivors.
                   </p>
                 </div>
-                <div className="rounded-xl border border-border bg-white p-4">
+                <div className="rounded-xl border border-border bg-card p-4">
                   <p className="mb-2 font-heading text-sm font-bold text-foreground">Why Sponsor?</p>
                   <p className="font-body text-sm leading-relaxed text-muted-foreground">
                     Your gift funds a safehouse offering shelter, recovery programs, and a path to
@@ -279,7 +284,7 @@ export default function CoverageGapFinder({ readOnly = false }: { readOnly?: boo
               <ResizeHandler />
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                url={mapTileUrl}
               />
 
               {gaps.map((g) => (
@@ -312,8 +317,8 @@ export default function CoverageGapFinder({ readOnly = false }: { readOnly?: boo
               ))}
             </MapContainer>
 
-            <div className="absolute bottom-3 left-3 z-[1000] space-y-2 rounded-xl border border-border bg-white/95 p-3.5 shadow-elevated backdrop-blur-sm">
-              <p className="font-heading text-sm font-bold text-foreground">Coverage Gaps</p>
+            <div className="absolute bottom-3 left-3 z-[1000] bg-card/95 backdrop-blur-sm rounded-lg shadow-elevated p-3 border border-border text-[10px] space-y-1.5">
+              <p className="font-heading font-bold text-xs mb-1">Coverage Gaps</p>
               {(["critical", "high", "moderate"] as const).map((tier) => (
                 <div key={tier} className="flex items-center gap-2">
                   <div
@@ -363,12 +368,12 @@ export default function CoverageGapFinder({ readOnly = false }: { readOnly?: boo
                       <p className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                         Risk Score
                       </p>
-                      <p className="font-heading text-3xl font-bold text-navy">{g.avgRiskScore}</p>
+                      <p className="font-heading text-3xl font-bold text-foreground">{g.avgRiskScore}</p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-3">
-                    <div className="rounded-xl border border-border bg-white px-3 py-3">
+                    <div className="rounded-xl border border-border bg-card px-3 py-3">
                       <p className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                         Uncovered
                       </p>
@@ -379,7 +384,7 @@ export default function CoverageGapFinder({ readOnly = false }: { readOnly?: boo
                         of {g.totalProvinceCount} provinces
                       </p>
                     </div>
-                    <div className="rounded-xl border border-border bg-white px-3 py-3">
+                    <div className="rounded-xl border border-border bg-card px-3 py-3">
                       <p className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                         Service Gap
                       </p>
@@ -390,7 +395,7 @@ export default function CoverageGapFinder({ readOnly = false }: { readOnly?: boo
                         support access score
                       </p>
                     </div>
-                    <div className="rounded-xl border border-border bg-white px-3 py-3">
+                    <div className="rounded-xl border border-border bg-card px-3 py-3">
                       <p className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                         Incidents
                       </p>

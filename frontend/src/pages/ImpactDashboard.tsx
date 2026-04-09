@@ -102,11 +102,11 @@ const ImpactDashboard = () => {
             </h2>
           </div>
           <div className="grid md:grid-cols-2 gap-4 lg:gap-6">
-            <div className="bg-white rounded-2xl p-6 shadow-soft border border-border">
+            <div className="bg-card rounded-2xl p-6 shadow-soft border border-border">
               <p className="font-body text-xs font-semibold tracking-widest uppercase text-accent mb-3">
                 Child Protection
               </p>
-              <p className="font-heading text-3xl md:text-4xl font-bold text-navy mb-3">
+              <p className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-3">
                 1 in 5
               </p>
               <p className="font-body text-base text-muted-foreground leading-relaxed">
@@ -114,11 +114,11 @@ const ImpactDashboard = () => {
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-soft border border-border">
+            <div className="bg-card rounded-2xl p-6 shadow-soft border border-border">
               <p className="font-body text-xs font-semibold tracking-widest uppercase text-accent mb-3">
                 Digital Exploitation
               </p>
-              <p className="font-heading text-3xl md:text-4xl font-bold text-navy mb-3">
+              <p className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-3">
                 OSAEC Hotspot
               </p>
               <p className="font-body text-base text-muted-foreground leading-relaxed">
@@ -145,7 +145,7 @@ const ImpactDashboard = () => {
                   ].map((s) => (
                     <div
                       key={s.label}
-                      className="bg-white rounded-xl p-6 shadow-soft border border-border min-h-[190px] flex flex-col"
+                      className="bg-card rounded-xl p-6 shadow-soft border border-border min-h-[190px] flex flex-col"
                     >
                       <div className="flex items-start gap-3">
                         <s.icon className="h-5 w-5 text-accent shrink-0 mt-0.5" />
@@ -154,7 +154,7 @@ const ImpactDashboard = () => {
                         </p>
                       </div>
                       <div className="flex-1 flex items-center justify-center">
-                        <p className="font-heading text-6xl md:text-7xl font-bold text-navy">
+                        <p className="font-heading text-6xl md:text-7xl font-bold text-foreground">
                           {s.value}
                         </p>
                       </div>
@@ -162,7 +162,7 @@ const ImpactDashboard = () => {
                   ))}
                 </div>
 
-                <div className="rounded-xl overflow-hidden shadow-soft border border-border min-h-[420px] bg-white">
+                <div className="rounded-xl overflow-hidden shadow-soft border border-border min-h-[420px] bg-card">
                   <img
                     src={povertyImage}
                     alt="Poverty conditions in the Philippines"
@@ -182,7 +182,7 @@ const ImpactDashboard = () => {
                   ].map((s) => (
                     <div
                       key={s.label}
-                      className="bg-white rounded-xl p-6 shadow-soft border border-border min-h-[190px] flex flex-col"
+                      className="bg-card rounded-xl p-6 shadow-soft border border-border min-h-[190px] flex flex-col"
                     >
                       <div className="flex items-start gap-3">
                         <s.icon className="h-5 w-5 text-accent shrink-0 mt-0.5" />
@@ -191,7 +191,7 @@ const ImpactDashboard = () => {
                         </p>
                       </div>
                       <div className="flex-1 flex items-center justify-center">
-                        <p className="font-heading text-6xl md:text-7xl font-bold text-navy">
+                        <p className="font-heading text-6xl md:text-7xl font-bold text-foreground">
                           {s.value}
                         </p>
                       </div>
@@ -225,7 +225,7 @@ const ImpactDashboard = () => {
                 </div>
 
                 <div className="relative container space-y-6">
-                  <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+                  <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
                     <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-6">
                       <div>
                         <h3 className="font-heading text-lg font-bold text-foreground">
@@ -241,7 +241,7 @@ const ImpactDashboard = () => {
                           <select
                             value={selectedYear}
                             onChange={(e) => setSelectedYear(e.target.value)}
-                            className="px-3 py-2 rounded-lg border border-border bg-white text-foreground"
+                            className="px-3 py-2 rounded-lg border border-border bg-background text-foreground"
                           >
                           <option value="all">All Time</option>
                           {data.availableDonationYears.map((yearOption) => (
@@ -273,7 +273,7 @@ const ImpactDashboard = () => {
                           <p className="font-body text-xs font-semibold tracking-widest uppercase text-accent mb-3">
                             {metric.label}
                           </p>
-                          <p className="font-heading text-3xl md:text-4xl font-bold text-navy">
+                          <p className="font-heading text-3xl md:text-4xl font-bold text-foreground">
                             {metric.value}
                           </p>
                         </div>
@@ -281,7 +281,7 @@ const ImpactDashboard = () => {
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+                  <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
                     <h3 className="font-heading text-lg font-bold text-foreground mb-4">
                       Contributions Over Time ({selectedPeriodLabel})
                     </h3>
@@ -308,7 +308,7 @@ const ImpactDashboard = () => {
                   </div>
 
                   <div className="grid lg:grid-cols-2 gap-6">
-                    <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+                    <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
                       <h3 className="font-heading text-lg font-bold text-foreground mb-4">
                         Contributions by Type ({selectedPeriodLabel})
                       </h3>
@@ -333,7 +333,7 @@ const ImpactDashboard = () => {
                       </ResponsiveContainer>
                     </div>
 
-                    <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+                    <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
                       <h3 className="font-heading text-lg font-bold text-foreground mb-4">
                         Total Value by Contribution Type ({selectedPeriodLabel})
                       </h3>
@@ -365,7 +365,7 @@ const ImpactDashboard = () => {
                 </div>
               </div>
 
-              <section className="py-16 md:py-20 bg-warm-cream rounded-3xl">
+              <section className="py-16 md:py-20 bg-warm-cream dark:bg-card rounded-3xl border dark:border-border">
                 <div className="container text-center">
                   <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-6">
                     Turn these numbers into action.
@@ -388,7 +388,7 @@ const ImpactDashboard = () => {
                       <Button
                         variant="outline"
                         size="lg"
-                        className="rounded-full font-body font-semibold px-8 h-12 text-base border-navy/20 text-navy hover:bg-navy hover:text-white"
+                        className="rounded-full font-body font-semibold px-8 h-12 text-base border-border text-foreground hover:bg-accent hover:text-accent-foreground"
                       >
                         About Us
                       </Button>

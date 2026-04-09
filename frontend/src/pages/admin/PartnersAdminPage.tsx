@@ -97,7 +97,7 @@ const PartnersAdminPage = () => {
         </div>
 
         {showForm && (
-          <div className="bg-white rounded-xl p-6 shadow-card border border-border">
+          <div className="bg-card rounded-xl p-6 shadow-card border border-border">
             <h3 className="font-heading text-lg font-bold mb-4">{editItem ? "Edit" : "New"} Partner</h3>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
               <input className={inputClass} placeholder="Name" value={form.partnerName} onChange={(e) => setForm({ ...form, partnerName: e.target.value })} />
@@ -124,7 +124,7 @@ const PartnersAdminPage = () => {
           </div>
         )}
 
-        <div className="bg-white rounded-xl shadow-soft border border-border overflow-hidden">
+        <div className="bg-card rounded-xl shadow-soft border border-border overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-32"><div className="animate-spin h-6 w-6 border-4 border-accent border-t-transparent rounded-full" /></div>
           ) : (

@@ -76,7 +76,7 @@ const LoginPage = () => {
               </div>
             </div>
 
-            <div className="rounded-3xl bg-white p-8 md:p-10 shadow-card border border-border">
+            <div className="rounded-3xl bg-card p-8 md:p-10 shadow-card border border-border">
               <h2 className="font-heading text-3xl font-bold text-foreground mb-2">
                 Welcome back
               </h2>
@@ -88,7 +88,7 @@ const LoginPage = () => {
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 {error && (
-                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-body text-sm text-red-700">
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-body text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/50 dark:text-red-200">
                     {error}
                   </div>
                 )}

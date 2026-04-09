@@ -112,7 +112,7 @@ function Legend({ metric }: { metric: MetricKey }) {
         : ["Very Low", "Low", "Moderate", "High", "Very High"];
 
   return (
-    <div className="absolute bottom-6 left-6 z-[1000] bg-white/95 backdrop-blur-sm rounded-xl shadow-elevated p-4 border border-border max-w-[200px]">
+    <div className="absolute bottom-6 left-6 z-[1000] bg-card/95 backdrop-blur-sm rounded-xl shadow-elevated p-4 border border-border max-w-[200px]">
       <h4 className="font-heading text-xs font-bold text-foreground mb-2">{cfg.label}</h4>
       <div className="space-y-1.5">
         {cfg.colors.map((color, i) => (
@@ -134,7 +134,7 @@ function Legend({ metric }: { metric: MetricKey }) {
 
 function StatCard({ label, value, sub, accent }: { label: string; value: string | number; sub?: string; accent?: string }) {
   return (
-    <div className="bg-white rounded-xl p-4 shadow-soft border border-border">
+    <div className="bg-card rounded-xl p-4 shadow-soft border border-border">
       <p className="font-body text-xs text-muted-foreground mb-1">{label}</p>
       <p className={cn("font-heading text-2xl font-bold", accent ?? "text-foreground")}>{value}</p>
       {sub && <p className="font-body text-[10px] text-muted-foreground mt-0.5">{sub}</p>}
@@ -281,13 +281,13 @@ const TraffickingMapPage = () => {
           </div>
 
           {/* Controls */}
-          <div className="bg-white rounded-xl p-4 shadow-soft border border-border flex flex-wrap items-center gap-4">
+          <div className="bg-card rounded-xl p-4 shadow-soft border border-border flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <label className="font-body text-sm font-medium text-foreground">Color by:</label>
               <select
                 value={metric}
                 onChange={(e) => setMetric(e.target.value as MetricKey)}
-                className="px-3 py-1.5 rounded-lg border border-border bg-white font-body text-sm"
+                className="px-3 py-1.5 rounded-lg border border-border bg-background font-body text-sm"
               >
                 <option value="riskScore">Risk Score</option>
                 <option value="reportedIncidents">Reported Incidents</option>
@@ -315,7 +315,7 @@ const TraffickingMapPage = () => {
           </div>
 
           {/* Metric explainer */}
-          <div className="bg-white rounded-xl p-5 shadow-soft border border-border">
+          <div className="bg-card rounded-xl p-5 shadow-soft border border-border">
             <div className="flex items-start gap-3">
               <div className="mt-0.5 h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: METRIC_CONFIG[metric].colors[3] }} />
               <div>
@@ -340,7 +340,7 @@ const TraffickingMapPage = () => {
           </div>
 
           {/* Map */}
-          <div className="relative bg-white rounded-xl shadow-soft border border-border overflow-hidden" style={{ height: "600px" }}>
+          <div className="relative bg-card rounded-xl shadow-soft border border-border overflow-hidden" style={{ height: "600px" }}>
             <MapContainer
               center={[12.5, 122.0]}
               zoom={6}
@@ -437,7 +437,7 @@ const TraffickingMapPage = () => {
 
           {/* Province detail panel */}
           {selectedProvince && (
-            <div className="bg-white rounded-xl p-6 shadow-soft border border-border animate-fade-up">
+            <div className="bg-card rounded-xl p-6 shadow-soft border border-border animate-fade-up">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h3 className="font-heading text-lg font-bold text-foreground">{selectedProvince.name}</h3>
@@ -487,7 +487,7 @@ const TraffickingMapPage = () => {
 
           {/* Coverage analysis */}
           <div className="grid lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+            <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
               <h3 className="font-heading text-lg font-bold text-foreground mb-1">Coverage Analysis</h3>
               <p className="font-body text-xs text-muted-foreground mb-4">
                 Provinces with vs. without safehouse presence ({coverageAnalysis.total} total across 3 zones)
@@ -545,7 +545,7 @@ const TraffickingMapPage = () => {
               )}
             </div>
 
-            <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+            <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
               <h3 className="font-heading text-lg font-bold text-foreground mb-1">High-Risk Uncovered Areas</h3>
               <p className="font-body text-xs text-muted-foreground mb-4">
                 Provinces with risk ≥ 65 and no safehouse in their province
@@ -602,7 +602,7 @@ const TraffickingMapPage = () => {
 
             <div className="grid lg:grid-cols-3 gap-6">
               {/* Expansion Roadmap */}
-              <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+              <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
                 <h3 className="font-heading text-lg font-bold text-foreground mb-1">Expansion Roadmap</h3>
                 <p className="font-body text-xs text-muted-foreground mb-4">
                   Priority order based on composite scoring
@@ -638,7 +638,7 @@ const TraffickingMapPage = () => {
               </div>
 
               {/* Funding Progress per Region */}
-              <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+              <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
                 <h3 className="font-heading text-lg font-bold text-foreground mb-1">Funding by Zone</h3>
                 <p className="font-body text-xs text-muted-foreground mb-4">
                   Donations received vs. estimated safehouse cost
@@ -679,7 +679,7 @@ const TraffickingMapPage = () => {
               </div>
 
               {/* Recent Donors */}
-              <div className="bg-white rounded-xl p-6 shadow-soft border border-border">
+              <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
                 <h3 className="font-heading text-lg font-bold text-foreground mb-1">Recent Gap Donors</h3>
                 <p className="font-body text-xs text-muted-foreground mb-4">
                   Contributors to coverage gap campaigns

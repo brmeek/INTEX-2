@@ -191,7 +191,7 @@ const AboutPage = () => {
         </div>
       </section>
 
-      <section className="py-24 md:py-32 bg-warm-cream">
+      <section className="py-24 md:py-32 bg-warm-cream dark:bg-background">
         <div className="container">
           <div className="mb-16 rounded-3xl bg-navy p-8 md:p-10 shadow-elevated">
             <p className="font-body text-teal-light text-sm font-semibold tracking-widest uppercase mb-4">
@@ -203,7 +203,7 @@ const AboutPage = () => {
           </div>
 
           <div className="grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] gap-8 lg:gap-10 items-start">
-            <div className="rounded-3xl overflow-hidden shadow-elevated bg-white">
+            <div className="rounded-3xl overflow-hidden shadow-elevated bg-card">
               <img
                 src={girlsImage}
                 alt="Girls in the Philippines"
@@ -216,10 +216,7 @@ const AboutPage = () => {
 
             <div className="space-y-6">
               {values.map((value) => (
-                <div
-                  key={value.title}
-                  className="bg-white rounded-2xl p-8 shadow-soft"
-                >
+                <div key={value.title} className="bg-card rounded-2xl p-8 shadow-soft border border-border">
                   <value.icon className="h-6 w-6 text-accent mb-4" />
                   <h3 className="font-heading text-xl font-bold text-foreground mb-3">
                     {value.title}
@@ -276,7 +273,7 @@ const AboutPage = () => {
         </div>
       </section>
 
-      <section className="py-24 md:py-32 bg-warm-cream">
+      <section className="py-24 md:py-32 bg-warm-cream dark:bg-background">
         <div className="container text-center">
           <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-6">
             Support the mission or reach out directly.

@@ -104,10 +104,10 @@ const VisitationsPage = () => {
     <AdminLayout title="Visitations & Conferences" subtitle="Home visits, field visits, and case conferences">
       <div className="space-y-4">
         <div className="flex gap-1 p-1 bg-secondary rounded-lg w-fit">
-          <button onClick={() => setTab("visits")} className={`px-4 py-2 rounded-md text-sm font-body font-semibold transition-all ${tab === "visits" ? "bg-white shadow-soft text-foreground" : "text-muted-foreground"}`}>
+          <button onClick={() => setTab("visits")} className={`px-4 py-2 rounded-md text-sm font-body font-semibold transition-all ${tab === "visits" ? "bg-card shadow-soft text-foreground" : "text-muted-foreground"}`}>
             Home Visitations
           </button>
-          <button onClick={() => setTab("conferences")} className={`px-4 py-2 rounded-md text-sm font-body font-semibold transition-all ${tab === "conferences" ? "bg-white shadow-soft text-foreground" : "text-muted-foreground"}`}>
+          <button onClick={() => setTab("conferences")} className={`px-4 py-2 rounded-md text-sm font-body font-semibold transition-all ${tab === "conferences" ? "bg-card shadow-soft text-foreground" : "text-muted-foreground"}`}>
             Case Conferences
           </button>
         </div>
@@ -121,7 +121,7 @@ const VisitationsPage = () => {
         )}
 
         {showForm && tab === "visits" && (
-          <div className="bg-white rounded-xl p-6 shadow-card border border-border">
+          <div className="bg-card rounded-xl p-6 shadow-card border border-border">
             <h3 className="font-heading text-lg font-bold mb-4">New Home Visitation</h3>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
               <input className={inputClass} placeholder="Resident ID" value={form.residentId} onChange={(e) => setForm({ ...form, residentId: e.target.value })} />
@@ -147,7 +147,7 @@ const VisitationsPage = () => {
           </div>
         )}
 
-        <div className="bg-white rounded-xl shadow-soft border border-border overflow-hidden">
+        <div className="bg-card rounded-xl shadow-soft border border-border overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-32"><div className="animate-spin h-6 w-6 border-4 border-accent border-t-transparent rounded-full" /></div>
           ) : tab === "visits" ? (
@@ -170,7 +170,7 @@ const VisitationsPage = () => {
                         <td className="px-4 py-3 font-body text-sm font-medium">{v.resident?.firstName} {v.resident?.lastName}</td>
                         <td className="px-4 py-3 font-body text-xs">{v.visitType}</td>
                         <td className="px-4 py-3 font-body text-sm text-muted-foreground">{v.socialWorker}</td>
-                        <td className="px-4 py-3"><span className={`text-xs px-2 py-1 rounded-full ${v.familyCooperationLevel === "Cooperative" ? "bg-green-100 text-green-700" : v.familyCooperationLevel === "Uncooperative" ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700"}`}>{v.familyCooperationLevel}</span></td>
+                        <td className="px-4 py-3"><span className={`text-xs px-2 py-1 rounded-full ${v.familyCooperationLevel === "Cooperative" ? "bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-300" : v.familyCooperationLevel === "Uncooperative" ? "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300" : "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/50 dark:text-yellow-300"}`}>{v.familyCooperationLevel}</span></td>
                         <td className="px-4 py-3 font-body text-sm">{v.safetyConcernsNoted ? "⚠️ Yes" : "No"}</td>
                         <td className="px-4 py-3 font-body text-sm text-muted-foreground">{v.visitOutcome}</td>
                       </tr>
@@ -206,7 +206,7 @@ const VisitationsPage = () => {
                         </td>
                         <td className="px-4 py-3 font-body text-sm font-medium">{c.resident?.firstName} {c.resident?.lastName}</td>
                         <td className="px-4 py-3 font-body text-sm text-muted-foreground">{c.planCategory}</td>
-                        <td className="px-4 py-3"><span className={`text-xs px-2 py-1 rounded-full ${c.status === "Achieved" ? "bg-green-100 text-green-700" : c.status === "In Progress" ? "bg-blue-100 text-blue-700" : "bg-secondary text-muted-foreground"}`}>{c.status}</span></td>
+                        <td className="px-4 py-3"><span className={`text-xs px-2 py-1 rounded-full ${c.status === "Achieved" ? "bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-300" : c.status === "In Progress" ? "bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300" : "bg-secondary text-muted-foreground"}`}>{c.status}</span></td>
                         <td className="px-4 py-3 font-body text-xs text-muted-foreground">{c.servicesProvided}</td>
                       </tr>
                     ))}
