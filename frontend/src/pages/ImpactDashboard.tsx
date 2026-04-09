@@ -21,6 +21,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Users, Heart, Home, TrendingUp, ArrowRight } from "lucide-react";
+import CoverageGapFinder from "@/components/donor/CoverageGapFinder";
 
 const API_BASE = import.meta.env.VITE_API_URL || "";
 const COLORS = ["#2B4570", "#3D8B8B", "#E07A5F", "#D4B896", "#8BA58E", "#5B7B9A"];
@@ -197,6 +198,19 @@ const ImpactDashboard = () => {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <div className="mb-5">
+                  <h2 className="font-heading text-2xl md:text-3xl font-bold text-foreground">
+                    Where the need is greatest
+                  </h2>
+                  <p className="font-body text-base text-muted-foreground mt-2 max-w-3xl leading-relaxed">
+                    With {data.safehouseCount} safehouses serving 82 provinces, many communities still have
+                    nowhere for survivors to turn. Explore the gaps below.
+                  </p>
+                </div>
+                <CoverageGapFinder readOnly />
               </div>
 
               <div className="relative left-1/2 right-1/2 -mx-[50vw] w-screen overflow-hidden py-6 md:py-8 lg:py-10">
