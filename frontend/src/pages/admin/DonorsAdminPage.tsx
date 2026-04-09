@@ -180,11 +180,27 @@ const DonorsAdminPage = () => {
     <AdminLayout title="Donors & Contributions" subtitle="Manage supporters and track donations">
       <div className="space-y-4">
         {/* Tabs */}
-        <div className="flex gap-1 p-1 bg-secondary rounded-lg w-fit">
-          <button onClick={() => setTab("supporters")} className={`px-4 py-2 rounded-md text-sm font-body font-semibold transition-all ${tab === "supporters" ? "bg-card shadow-soft text-foreground" : "text-muted-foreground"}`}>
+        <div role="tablist" aria-label="Donor management sections" className="flex gap-1 p-1 bg-secondary rounded-lg w-fit">
+          <button
+            type="button"
+            role="tab"
+            id="tab-supporters"
+            aria-selected={tab === "supporters"}
+            aria-controls="panel-supporters"
+            onClick={() => setTab("supporters")}
+            className={`px-4 py-2 rounded-md text-sm font-body font-semibold transition-all ${tab === "supporters" ? "bg-card shadow-soft text-foreground" : "text-muted-foreground"}`}
+          >
             Supporters
           </button>
-          <button onClick={() => setTab("donations")} className={`px-4 py-2 rounded-md text-sm font-body font-semibold transition-all ${tab === "donations" ? "bg-card shadow-soft text-foreground" : "text-muted-foreground"}`}>
+          <button
+            type="button"
+            role="tab"
+            id="tab-donations"
+            aria-selected={tab === "donations"}
+            aria-controls="panel-donations"
+            onClick={() => setTab("donations")}
+            className={`px-4 py-2 rounded-md text-sm font-body font-semibold transition-all ${tab === "donations" ? "bg-card shadow-soft text-foreground" : "text-muted-foreground"}`}
+          >
             Donations
           </button>
         </div>
@@ -193,30 +209,44 @@ const DonorsAdminPage = () => {
         {tab === "supporters" && (
           <div className="flex flex-wrap gap-3">
             <div className="relative flex-1 min-w-[200px] max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && loadSupporters()} placeholder="Search supporters..." className="w-full pl-9 pr-3 py-2 rounded-lg border border-border bg-background font-body text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
+              <label htmlFor="supporter-search" className="sr-only">Search supporters</label>
+              <Search aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
+                id="supporter-search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && loadSupporters()}
+                placeholder="Search supporters..."
+                className="w-full pl-9 pr-3 py-2 rounded-lg border border-border bg-background font-body text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              />
             </div>
             <Button onClick={() => { setEditItem(null); setForm({ supporterName: "", supporterType: "Monetary", email: "", phone: "", status: "Active", region: "", notes: "" }); setShowForm(true); }} size="sm" className="bg-accent text-white hover:bg-teal-light font-body gap-1">
-              <Plus className="h-4 w-4" /> Add Supporter
+              <Plus aria-hidden="true" className="h-4 w-4" /> Add Supporter
             </Button>
           </div>
         )}
 
         {/* Form Modal */}
         {showForm && tab === "supporters" && (
-          <div className="bg-card rounded-xl p-6 shadow-card border border-border">
+          <div id="panel-supporters" role="tabpanel" aria-labelledby="tab-supporters" className="bg-card rounded-xl p-6 shadow-card border border-border">
             <h3 className="font-heading text-lg font-bold mb-4">{editItem ? "Edit" : "New"} Supporter</h3>
             <div className="grid sm:grid-cols-2 gap-3 mb-4">
-              <input className={inputClass} placeholder="Name" value={form.supporterName} onChange={(e) => setForm({ ...form, supporterName: e.target.value })} />
-              <select className={inputClass} value={form.supporterType} onChange={(e) => setForm({ ...form, supporterType: e.target.value })}>
+              <label htmlFor="supporter-name" className="sr-only">Supporter name</label>
+              <input id="supporter-name" className={inputClass} placeholder="Name" value={form.supporterName} onChange={(e) => setForm({ ...form, supporterName: e.target.value })} />
+              <label htmlFor="supporter-type" className="sr-only">Supporter type</label>
+              <select id="supporter-type" className={inputClass} value={form.supporterType} onChange={(e) => setForm({ ...form, supporterType: e.target.value })}>
                 <option>Monetary</option><option>Volunteer</option><option>Skills</option><option>InKind</option><option>SocialMedia</option>
               </select>
-              <input className={inputClass} placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-              <input className={inputClass} placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-              <select className={inputClass} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+              <label htmlFor="supporter-email" className="sr-only">Supporter email</label>
+              <input id="supporter-email" className={inputClass} placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <label htmlFor="supporter-phone" className="sr-only">Supporter phone</label>
+              <input id="supporter-phone" className={inputClass} placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <label htmlFor="supporter-status" className="sr-only">Supporter status</label>
+              <select id="supporter-status" className={inputClass} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
                 <option>Active</option><option>Inactive</option><option>Lapsed</option>
               </select>
-              <input className={inputClass} placeholder="Region" value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value })} />
+              <label htmlFor="supporter-region" className="sr-only">Supporter region</label>
+              <input id="supporter-region" className={inputClass} placeholder="Region" value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value })} />
             </div>
             <div className="flex gap-2">
               <Button onClick={handleSave} size="sm" className="bg-navy text-white hover:bg-navy-light font-body">Save</Button>
@@ -226,23 +256,28 @@ const DonorsAdminPage = () => {
         )}
 
         {tab === "donations" && (
-          <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
+          <div id="panel-donations" role="tabpanel" aria-labelledby="tab-donations" className="bg-card rounded-xl p-6 shadow-soft border border-border">
             <h3 className="font-heading text-lg font-bold text-foreground mb-1">In-Kind Donation Value Estimator</h3>
             <p className="font-body text-xs text-muted-foreground mb-4">
               Pipeline 5: estimate in-kind donation value instantly during intake.
             </p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
-              <select className={inputClass} value={inKindEstimateForm.itemCategory} onChange={(e) => setInKindEstimateForm((f) => ({ ...f, itemCategory: e.target.value }))}>
+              <label htmlFor="inkind-item-category" className="sr-only">Item category</label>
+              <select id="inkind-item-category" className={inputClass} value={inKindEstimateForm.itemCategory} onChange={(e) => setInKindEstimateForm((f) => ({ ...f, itemCategory: e.target.value }))}>
                 <option>Food</option><option>Supplies</option><option>Clothing</option><option>SchoolMaterials</option><option>Hygiene</option><option>Furniture</option><option>Medical</option>
               </select>
-              <input className={inputClass} type="number" min={1} placeholder="Quantity" value={inKindEstimateForm.quantity} onChange={(e) => setInKindEstimateForm((f) => ({ ...f, quantity: e.target.value }))} />
-              <select className={inputClass} value={inKindEstimateForm.unitOfMeasure} onChange={(e) => setInKindEstimateForm((f) => ({ ...f, unitOfMeasure: e.target.value }))}>
+              <label htmlFor="inkind-quantity" className="sr-only">Quantity</label>
+              <input id="inkind-quantity" className={inputClass} type="number" min={1} placeholder="Quantity" value={inKindEstimateForm.quantity} onChange={(e) => setInKindEstimateForm((f) => ({ ...f, quantity: e.target.value }))} />
+              <label htmlFor="inkind-unit" className="sr-only">Unit of measure</label>
+              <select id="inkind-unit" className={inputClass} value={inKindEstimateForm.unitOfMeasure} onChange={(e) => setInKindEstimateForm((f) => ({ ...f, unitOfMeasure: e.target.value }))}>
                 <option>pcs</option><option>boxes</option><option>kg</option><option>sets</option><option>packs</option>
               </select>
-              <select className={inputClass} value={inKindEstimateForm.intendedUse} onChange={(e) => setInKindEstimateForm((f) => ({ ...f, intendedUse: e.target.value }))}>
+              <label htmlFor="inkind-intended-use" className="sr-only">Intended use</label>
+              <select id="inkind-intended-use" className={inputClass} value={inKindEstimateForm.intendedUse} onChange={(e) => setInKindEstimateForm((f) => ({ ...f, intendedUse: e.target.value }))}>
                 <option>Meals</option><option>Education</option><option>Shelter</option><option>Hygiene</option><option>Health</option>
               </select>
-              <select className={inputClass} value={inKindEstimateForm.receivedCondition} onChange={(e) => setInKindEstimateForm((f) => ({ ...f, receivedCondition: e.target.value }))}>
+              <label htmlFor="inkind-condition" className="sr-only">Received condition</label>
+              <select id="inkind-condition" className={inputClass} value={inKindEstimateForm.receivedCondition} onChange={(e) => setInKindEstimateForm((f) => ({ ...f, receivedCondition: e.target.value }))}>
                 <option>New</option><option>Good</option><option>Fair</option>
               </select>
             </div>
@@ -363,9 +398,9 @@ const DonorsAdminPage = () => {
               <div className="px-4 py-3 border-t border-border flex items-center justify-between">
                 <p className="font-body text-xs text-muted-foreground">{totalS} supporters</p>
                 <div className="flex gap-1">
-                  <Button onClick={() => loadSupporters(pageS - 1)} disabled={pageS <= 1} variant="ghost" size="sm"><ChevronLeft className="h-4 w-4" /></Button>
+                  <Button onClick={() => loadSupporters(pageS - 1)} disabled={pageS <= 1} variant="ghost" size="sm" aria-label="Previous supporters page"><ChevronLeft aria-hidden="true" className="h-4 w-4" /></Button>
                   <span className="font-body text-sm px-2 py-1">Page {pageS}</span>
-                  <Button onClick={() => loadSupporters(pageS + 1)} disabled={pageS * 15 >= totalS} variant="ghost" size="sm"><ChevronRight className="h-4 w-4" /></Button>
+                  <Button onClick={() => loadSupporters(pageS + 1)} disabled={pageS * 15 >= totalS} variant="ghost" size="sm" aria-label="Next supporters page"><ChevronRight aria-hidden="true" className="h-4 w-4" /></Button>
                 </div>
               </div>
             </>
@@ -419,9 +454,9 @@ const DonorsAdminPage = () => {
               <div className="px-4 py-3 border-t border-border flex items-center justify-between">
                 <p className="font-body text-xs text-muted-foreground">{totalD} donations</p>
                 <div className="flex gap-1">
-                  <Button onClick={() => loadDonations(pageD - 1)} disabled={pageD <= 1} variant="ghost" size="sm"><ChevronLeft className="h-4 w-4" /></Button>
+                  <Button onClick={() => loadDonations(pageD - 1)} disabled={pageD <= 1} variant="ghost" size="sm" aria-label="Previous donations page"><ChevronLeft aria-hidden="true" className="h-4 w-4" /></Button>
                   <span className="font-body text-sm px-2 py-1">Page {pageD}</span>
-                  <Button onClick={() => loadDonations(pageD + 1)} disabled={pageD * 15 >= totalD} variant="ghost" size="sm"><ChevronRight className="h-4 w-4" /></Button>
+                  <Button onClick={() => loadDonations(pageD + 1)} disabled={pageD * 15 >= totalD} variant="ghost" size="sm" aria-label="Next donations page"><ChevronRight aria-hidden="true" className="h-4 w-4" /></Button>
                 </div>
               </div>
             </>

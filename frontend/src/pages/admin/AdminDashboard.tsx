@@ -112,15 +112,15 @@ const AdminDashboard = () => {
 
   const TrendChip = ({ value, label }: { value: number | null; label: string }) => {
     if (value == null) {
-      return <span className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full bg-slate-100 text-slate-700"><Minus className="h-3 w-3" /> {label}: no baseline yet</span>;
+      return <span className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full bg-slate-100 text-slate-700"><Minus aria-hidden="true" className="h-3 w-3" /> {label}: no baseline yet</span>;
     }
     if (value > 0.1) {
-      return <span className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full bg-emerald-100 text-emerald-700"><ArrowUpRight className="h-3 w-3" /> {label}: +{value.toFixed(1)}%</span>;
+      return <span className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full bg-emerald-100 text-emerald-700"><ArrowUpRight aria-hidden="true" className="h-3 w-3" /> {label}: +{value.toFixed(1)}%</span>;
     }
     if (value < -0.1) {
-      return <span className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full bg-red-100 text-red-700"><ArrowDownRight className="h-3 w-3" /> {label}: {value.toFixed(1)}%</span>;
+      return <span className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full bg-red-100 text-red-700"><ArrowDownRight aria-hidden="true" className="h-3 w-3" /> {label}: {value.toFixed(1)}%</span>;
     }
-    return <span className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full bg-amber-100 text-amber-700"><Minus className="h-3 w-3" /> {label}: stable</span>;
+    return <span className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full bg-amber-100 text-amber-700"><Minus aria-hidden="true" className="h-3 w-3" /> {label}: stable</span>;
   };
 
   const getForecastStatus = (forecast: DashboardData["safehouseEducationForecasts"][number]) => {
@@ -148,6 +148,7 @@ const AdminDashboard = () => {
       {loading ? (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin h-8 w-8 border-4 border-accent border-t-transparent rounded-full" />
+          <span className="sr-only">Loading dashboard data</span>
         </div>
       ) : data ? (
         <div className="space-y-6">
@@ -165,7 +166,7 @@ const AdminDashboard = () => {
             <div className="grid md:grid-cols-3 gap-3">
               <div className="rounded-lg border border-border bg-secondary/50 p-3">
                 <p className="font-body text-xs text-muted-foreground flex items-center gap-1">
-                  <AlertTriangle className="h-3.5 w-3.5 text-red-600" />
+                  <AlertTriangle aria-hidden="true" className="h-3.5 w-3.5 text-red-600" />
                   Donors who may stop giving
                 </p>
                 <p className="font-heading text-2xl font-bold text-foreground mt-1">{highRiskDonorCount}</p>
@@ -173,7 +174,7 @@ const AdminDashboard = () => {
               </div>
               <div className="rounded-lg border border-border bg-secondary/50 p-3">
                 <p className="font-body text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock3 className="h-3.5 w-3.5 text-amber-600" />
+                  <Clock3 aria-hidden="true" className="h-3.5 w-3.5 text-amber-600" />
                   Conferences due in next 7 days
                 </p>
                 <p className="font-heading text-2xl font-bold text-foreground mt-1">{conferencesNext7Days}</p>
@@ -181,7 +182,7 @@ const AdminDashboard = () => {
               </div>
               <div className="rounded-lg border border-border bg-secondary/50 p-3">
                 <p className="font-body text-xs text-muted-foreground flex items-center gap-1">
-                  <AlertTriangle className="h-3.5 w-3.5 text-coral" />
+                  <AlertTriangle aria-hidden="true" className="h-3.5 w-3.5 text-coral" />
                   Safehouses with warning flags
                 </p>
                 <p className="font-heading text-2xl font-bold text-foreground mt-1">{safehouseAlerts}</p>
@@ -199,7 +200,7 @@ const AdminDashboard = () => {
             {stats.map((s) => (
               <div key={s.label} className="bg-card rounded-xl p-5 shadow-soft border border-border">
                 <div className={`w-10 h-10 rounded-lg ${s.color} flex items-center justify-center mb-3`}>
-                  <s.icon className="h-5 w-5" />
+                  <s.icon aria-hidden="true" className="h-5 w-5" />
                 </div>
                 <p className="font-heading text-2xl font-bold text-foreground">{s.value}</p>
                 <p className="font-body text-xs text-muted-foreground">{s.label}</p>
@@ -271,7 +272,7 @@ const AdminDashboard = () => {
 
             <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
               <h3 className="font-heading text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-accent" />
+                <Calendar aria-hidden="true" className="h-5 w-5 text-accent" />
                 Upcoming case conferences
               </h3>
               {data.upcomingConferences.length === 0 ? (
@@ -298,8 +299,11 @@ const AdminDashboard = () => {
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <h3 className="font-heading text-lg font-bold text-foreground">Next-month safehouse learning outlook</h3>
               <button
+                type="button"
                 onClick={refreshSafehouseForecasts}
                 disabled={refreshingForecasts}
+                aria-live="polite"
+                aria-label={refreshingForecasts ? "Refreshing forecasts" : "Refresh forecasts"}
                 className="px-3 py-2 rounded-lg border border-border bg-secondary text-xs font-semibold text-foreground hover:bg-muted disabled:opacity-60"
               >
                 {refreshingForecasts ? "Refreshing..." : "Refresh Forecasts"}

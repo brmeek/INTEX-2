@@ -73,16 +73,20 @@ const ContactPage = () => {
             <div className="lg:col-span-3">
               <form
                 onSubmit={handleSubmit}
+                aria-labelledby="contact-form-title"
                 className="bg-card rounded-2xl shadow-card p-8 md:p-10 border border-border space-y-4"
               >
+                <h2 id="contact-form-title" className="sr-only">Contact form</h2>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block font-body text-sm font-medium text-foreground mb-1.5">
+                    <label htmlFor="contact-name" className="block font-body text-sm font-medium text-foreground mb-1.5">
                       Name
                     </label>
                     <input
+                      id="contact-name"
                       type="text"
                       required
+                      autoComplete="name"
                       value={formData.name}
                       onChange={(e) =>
                         setFormData({ ...formData, name: e.target.value })
@@ -92,12 +96,14 @@ const ContactPage = () => {
                     />
                   </div>
                   <div>
-                    <label className="block font-body text-sm font-medium text-foreground mb-1.5">
+                    <label htmlFor="contact-email" className="block font-body text-sm font-medium text-foreground mb-1.5">
                       Email
                     </label>
                     <input
+                      id="contact-email"
                       type="email"
                       required
+                      autoComplete="email"
                       value={formData.email}
                       onChange={(e) =>
                         setFormData({ ...formData, email: e.target.value })
@@ -109,11 +115,12 @@ const ContactPage = () => {
                 </div>
 
                 <div>
-                  <label className="block font-body text-sm font-medium text-foreground mb-1.5">
+                  <label htmlFor="contact-subject" className="block font-body text-sm font-medium text-foreground mb-1.5">
                     Subject
                   </label>
                   <div className="relative">
                     <select
+                      id="contact-subject"
                       value={formData.subject}
                       onChange={(e) =>
                         setFormData({ ...formData, subject: e.target.value })
@@ -128,15 +135,16 @@ const ContactPage = () => {
                       <option value="Media / Press">Media / Press</option>
                       <option value="General Question">General Question</option>
                     </select>
-                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block font-body text-sm font-medium text-foreground mb-1.5">
+                  <label htmlFor="contact-message" className="block font-body text-sm font-medium text-foreground mb-1.5">
                     Message
                   </label>
                   <textarea
+                    id="contact-message"
                     required
                     rows={5}
                     value={formData.message}
@@ -155,8 +163,11 @@ const ContactPage = () => {
                   className="w-full bg-navy text-white hover:bg-navy-light rounded-xl font-body font-semibold h-12 text-base mt-2"
                 >
                   {isSubmitting ? "Sending..." : "Send Message"}
-                  <ArrowRight className="ml-1 h-4 w-4" />
+                  <ArrowRight aria-hidden="true" className="ml-1 h-4 w-4" />
                 </Button>
+                <p className="sr-only" aria-live="polite">
+                  {isSubmitting ? "Your message is being sent." : ""}
+                </p>
               </form>
             </div>
 
@@ -169,7 +180,7 @@ const ContactPage = () => {
                   <div className="space-y-5">
                     <div className="flex gap-4">
                       <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-                        <Mail className="h-4 w-4 text-accent" />
+                        <Mail aria-hidden="true" className="h-4 w-4 text-accent" />
                       </div>
                       <div>
                         <p className="font-body text-sm font-semibold text-foreground">
@@ -182,7 +193,7 @@ const ContactPage = () => {
                     </div>
                     <div className="flex gap-4">
                       <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-                        <Phone className="h-4 w-4 text-accent" />
+                        <Phone aria-hidden="true" className="h-4 w-4 text-accent" />
                       </div>
                       <div>
                         <p className="font-body text-sm font-semibold text-foreground">
@@ -195,7 +206,7 @@ const ContactPage = () => {
                     </div>
                     <div className="flex gap-4">
                       <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-                        <MapPin className="h-4 w-4 text-accent" />
+                        <MapPin aria-hidden="true" className="h-4 w-4 text-accent" />
                       </div>
                       <div>
                         <p className="font-body text-sm font-semibold text-foreground">

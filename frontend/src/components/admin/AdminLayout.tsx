@@ -63,6 +63,12 @@ const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
 
   return (
     <div className="min-h-screen bg-muted">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:px-3 focus:py-2 focus:rounded-md focus:bg-background focus:text-foreground focus:shadow-md"
+      >
+        Skip to main content
+      </a>
       <Navbar />
 
       <div className="flex pt-16 lg:pt-20">
@@ -76,11 +82,12 @@ const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
           <p className="font-body text-xs text-white/40 mt-1">Admin tools, metrics, and case operations</p>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        <nav aria-label="Admin sidebar navigation" className="flex-1 p-4 space-y-1 overflow-y-auto">
           <div className="grid grid-cols-2 gap-1 p-1 rounded-lg bg-white/5 mb-3">
             <button
               type="button"
               onClick={() => setActiveTab("admin")}
+              aria-pressed={activeTab === "admin"}
               className={cn(
                 "px-2 py-2 rounded-md text-[11px] font-body font-semibold uppercase tracking-wider transition-colors",
                 activeTab === "admin" ? "bg-white/15 text-white" : "text-white/60 hover:text-white"
@@ -91,6 +98,7 @@ const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
             <button
               type="button"
               onClick={() => setActiveTab("metrics")}
+              aria-pressed={activeTab === "metrics"}
               className={cn(
                 "px-2 py-2 rounded-md text-[11px] font-body font-semibold uppercase tracking-wider transition-colors",
                 activeTab === "metrics" ? "bg-white/15 text-white" : "text-white/60 hover:text-white"
@@ -125,22 +133,40 @@ const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-x-0 top-16 bottom-0 z-40">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
-          <aside className="absolute left-0 top-0 bottom-0 w-64 bg-navy text-white flex flex-col">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setSidebarOpen(false)}
+            role="button"
+            tabIndex={0}
+            aria-label="Close navigation menu"
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setSidebarOpen(false);
+              }
+            }}
+          />
+          <aside id="admin-mobile-sidebar" className="absolute left-0 top-0 bottom-0 w-64 bg-navy text-white flex flex-col">
             <div className="p-6 border-b border-white/10 flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <Anchor className="h-5 w-5 text-teal-light" />
                 <span className="font-heading text-lg font-bold">Staff Portal</span>
               </div>
-              <button onClick={() => setSidebarOpen(false)} className="text-white/60 hover:text-white">
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(false)}
+                className="text-white/60 hover:text-white"
+                aria-label="Close navigation menu"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+            <nav aria-label="Admin sidebar navigation" className="flex-1 p-4 space-y-1 overflow-y-auto">
               <div className="grid grid-cols-2 gap-1 p-1 rounded-lg bg-white/5 mb-3">
                 <button
                   type="button"
                   onClick={() => setActiveTab("admin")}
+                  aria-pressed={activeTab === "admin"}
                   className={cn(
                     "px-2 py-2 rounded-md text-[11px] font-body font-semibold uppercase tracking-wider transition-colors",
                     activeTab === "admin" ? "bg-white/15 text-white" : "text-white/60 hover:text-white"
@@ -151,6 +177,7 @@ const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
                 <button
                   type="button"
                   onClick={() => setActiveTab("metrics")}
+                  aria-pressed={activeTab === "metrics"}
                   className={cn(
                     "px-2 py-2 rounded-md text-[11px] font-body font-semibold uppercase tracking-wider transition-colors",
                     activeTab === "metrics" ? "bg-white/15 text-white" : "text-white/60 hover:text-white"
@@ -188,7 +215,14 @@ const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
       <div className="flex-1 lg:ml-64">
         <header className="sticky top-16 lg:top-20 z-20 bg-background/95 backdrop-blur border-b border-border px-6 py-4 flex items-center justify-between shadow-soft">
           <div className="flex items-center gap-4">
-            <button className="lg:hidden text-foreground" onClick={() => setSidebarOpen(true)}>
+            <button
+              type="button"
+              className="lg:hidden text-foreground"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Open navigation menu"
+              aria-expanded={sidebarOpen}
+              aria-controls="admin-mobile-sidebar"
+            >
               <Menu className="h-5 w-5" />
             </button>
             <div>
