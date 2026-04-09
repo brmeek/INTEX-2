@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
-import { Anchor, Gift, MapPin, Menu, X } from "lucide-react";
+import { Anchor, Gift, MapPin, MapPinned, Menu, X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/landing/Navbar";
@@ -8,6 +8,7 @@ import Navbar from "@/components/landing/Navbar";
 const navItems = [
   { to: "/donor", end: true, label: "Donate", icon: Gift },
   { to: "/donor/why", end: false, label: "Why donate", icon: MapPin },
+  { to: "/donor/sponsor", end: true, label: "Sponsor a province", icon: MapPinned },
 ] as const;
 
 export default function DonorPortalLayout() {
@@ -30,7 +31,13 @@ export default function DonorPortalLayout() {
     if (location.pathname.startsWith("/donor/why")) {
       return {
         pageTitle: "Why donate",
-        pageSubtitle: "See how gifts help and explore coverage gaps",
+        pageSubtitle: "Preview how your gift may support programs and residents",
+      };
+    }
+    if (location.pathname.startsWith("/donor/sponsor")) {
+      return {
+        pageTitle: "Sponsor a province",
+        pageSubtitle: "Find coverage gaps and sponsor safehouse expansion by region",
       };
     }
     return {

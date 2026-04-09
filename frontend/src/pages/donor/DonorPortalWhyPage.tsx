@@ -3,8 +3,6 @@ import { Activity, Anchor, BookOpen, Megaphone, Sparkles } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import CoverageGapFinder from "@/components/donor/CoverageGapFinder";
-
 interface DonorImpactForecastResponse {
   estimatedResidentsSupportedThisMonth: number;
   estimatedAllocationPhp: {
@@ -107,8 +105,9 @@ export default function DonorPortalWhyPage() {
     <div className="space-y-6">
       <section className="bg-card border border-border rounded-2xl p-6 shadow-soft">
         <p className="font-body text-sm text-muted-foreground mb-6 max-w-2xl">
-          Explore how gifts support residents and where help is needed most. Adjust the amount and frequency to preview
-          estimated impact—then switch to the Donate tab when you are ready to give.
+          Explore how gifts support residents. Adjust the amount and frequency to preview estimated impact—then switch to
+          the Donate tab when you are ready to give. To sponsor coverage in a specific province, open{" "}
+          <span className="font-medium text-foreground">Sponsor a province</span> in the sidebar.
         </p>
 
         <div className="flex items-center justify-between gap-3 mb-3">
@@ -226,8 +225,6 @@ export default function DonorPortalWhyPage() {
           </div>
         )}
       </section>
-
-      <CoverageGapFinder />
     </div>
   );
 }

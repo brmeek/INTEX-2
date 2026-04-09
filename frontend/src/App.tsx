@@ -25,6 +25,7 @@ import DonorLoginPage from "./pages/DonorLoginPage";
 import DonorPortalLayout from "./pages/donor/DonorPortalLayout";
 import DonorPortalDonatePage from "./pages/donor/DonorPortalDonatePage";
 import DonorPortalWhyPage from "./pages/donor/DonorPortalWhyPage";
+import DonorPortalSponsorPage from "./pages/donor/DonorPortalSponsorPage";
 import ManageMfaPage from "./pages/ManageMfaPage";
 import RegisterPage from "./pages/RegisterPage";
 import LogoutPage from "./pages/LogoutPage";
@@ -129,6 +130,7 @@ const App = () => {
               >
                 <Route index element={<DonorPortalDonatePage />} />
                 <Route path="why" element={<DonorPortalWhyPage />} />
+                <Route path="sponsor" element={<DonorPortalSponsorPage />} />
               </Route>
               <Route path="/account/security" element={<ProtectedRoute><ManageMfaPage /></ProtectedRoute>} />
 
