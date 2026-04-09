@@ -245,13 +245,13 @@ const DonorPortalPage = () => {
     <div className="min-h-screen bg-muted">
       <header className="bg-navy text-white border-b border-white/10">
         <div className="container h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+          <Link to="/" className="flex items-center gap-2.5">
             <Anchor className="h-6 w-6 text-teal-light" />
             <div>
               <p className="font-heading text-lg font-bold">Hope Harbor</p>
               <p className="font-body text-xs text-white/50">Donor Portal</p>
             </div>
-          </div>
+          </Link>
           <div className="flex items-center gap-3">
             <Link to="/">
               <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10">

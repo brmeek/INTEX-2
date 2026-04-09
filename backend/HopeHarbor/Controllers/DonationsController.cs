@@ -227,7 +227,7 @@ public class DonationsController : ControllerBase
 
     [HttpPost("self-serve")]
     [Authorize(Roles = AuthRoles.Donor + "," + AuthRoles.Admin)]
-    public async Task<IActionResult> CreateSelfServe([FromBody] DonorDonationRequest request)
+    public async Task<IActionResult> CreateSelfServe([FromBody] DonorDonationRequest request, CancellationToken cancellationToken)
     {
         var email = User.FindFirstValue(ClaimTypes.Email)
             ?? User.Identity?.Name;
@@ -235,50 +235,52 @@ public class DonationsController : ControllerBase
         if (string.IsNullOrWhiteSpace(email))
             return Unauthorized(new { message = "Could not determine authenticated donor email." });
 
+        var nowUtc = DateTime.UtcNow;
+        var today = DateOnly.FromDateTime(nowUtc.Date);
         var normalizedEmail = email.Trim();
         var normalizedEmailLower = normalizedEmail.ToLowerInvariant();
+        await using var tx = await _db.Database.BeginTransactionAsync(cancellationToken);
+
         var supporter = await _db.Supporters
             .Where(s => s.Email != null && s.Email.ToLower() == normalizedEmailLower)
             .OrderBy(s => s.SupporterId)
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
+
         if (supporter is null)
         {
             supporter = new Supporter
             {
+                SupporterId = await GetNextSupporterIdAsync(cancellationToken),
                 SupporterName = normalizedEmail.Split('@')[0],
                 SupporterType = "Individual",
                 Email = normalizedEmail,
                 Status = "Active",
-                FirstGiftDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
-                CreatedAt = DateTime.UtcNow,
+                FirstGiftDate = today,
+                CreatedAt = nowUtc,
                 AcquisitionChannel = "Donor Portal"
             };
             _db.Supporters.Add(supporter);
-            await _db.SaveChangesAsync();
         }
         else
         {
             if (supporter.FirstGiftDate == null)
-            {
-                supporter.FirstGiftDate = DateOnly.FromDateTime(DateTime.UtcNow.Date);
-            }
+                supporter.FirstGiftDate = today;
 
             if (string.IsNullOrWhiteSpace(supporter.SupporterName))
-            {
                 supporter.SupporterName = normalizedEmail.Split('@')[0];
-            }
 
             if (string.IsNullOrWhiteSpace(supporter.AcquisitionChannel))
-            {
                 supporter.AcquisitionChannel = "Donor Portal";
-            }
         }
+
+        await _db.SaveChangesAsync(cancellationToken);
 
         var donation = new Donation
         {
+            DonationId = await GetNextDonationIdAsync(cancellationToken),
             SupporterId = supporter.SupporterId,
             DonationType = "Monetary",
-            DonationDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
+            DonationDate = today,
             IsRecurring = request.IsRecurring,
             CampaignName = "Donor Portal",
             ChannelSource = "Donor Portal",
@@ -289,8 +291,31 @@ public class DonationsController : ControllerBase
         };
 
         _db.Donations.Add(donation);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(cancellationToken);
 
+        var allocationForecast = await _donorImpactForecastingService.ForecastAsync(_db, new DonorImpactForecastInput
+        {
+            Amount = request.Amount,
+            IsRecurring = request.IsRecurring,
+            ChannelSource = "Donor Portal",
+            CampaignName = "Donor Portal",
+            CurrencyCode = "USD"
+        }, cancellationToken);
+
+        var donationAllocations = BuildSelfServeAllocations(
+            donation.DonationId,
+            today,
+            normalizedEmail,
+            await GetNextDonationAllocationIdAsync(cancellationToken),
+            allocationForecast);
+
+        if (donationAllocations.Count > 0)
+        {
+            _db.DonationAllocations.AddRange(donationAllocations);
+            await _db.SaveChangesAsync(cancellationToken);
+        }
+
+        await tx.CommitAsync(cancellationToken);
         return CreatedAtAction(nameof(Get), new { id = donation.DonationId }, donation);
     }
 
@@ -347,5 +372,68 @@ public class DonationsController : ControllerBase
         _db.Donations.Remove(item);
         await _db.SaveChangesAsync();
         return NoContent();
+    }
+
+    private async Task<int> GetNextSupporterIdAsync(CancellationToken cancellationToken)
+    {
+        var max = await _db.Supporters
+            .AsNoTracking()
+            .Select(s => (int?)s.SupporterId)
+            .MaxAsync(cancellationToken);
+        return (max ?? 0) + 1;
+    }
+
+    private async Task<int> GetNextDonationIdAsync(CancellationToken cancellationToken)
+    {
+        var max = await _db.Donations
+            .AsNoTracking()
+            .Select(d => (int?)d.DonationId)
+            .MaxAsync(cancellationToken);
+        return (max ?? 0) + 1;
+    }
+
+    private async Task<int> GetNextDonationAllocationIdAsync(CancellationToken cancellationToken)
+    {
+        var max = await _db.DonationAllocations
+            .AsNoTracking()
+            .Select(a => (int?)a.AllocationId)
+            .MaxAsync(cancellationToken);
+        return (max ?? 0) + 1;
+    }
+
+    private static List<DonationAllocation> BuildSelfServeAllocations(
+        int donationId,
+        DateOnly allocationDate,
+        string donorEmail,
+        int startingAllocationId,
+        DonorImpactForecastResult forecast)
+    {
+        var items = new List<(string ProgramArea, decimal Amount)>
+        {
+            ("Education", forecast.EducationAmount),
+            ("Wellbeing", forecast.WellbeingAmount),
+            ("Operations", forecast.OperationsAmount),
+            ("Outreach", forecast.OutreachAmount)
+        };
+
+        var allocations = new List<DonationAllocation>(items.Count);
+        var nextId = startingAllocationId;
+        foreach (var item in items)
+        {
+            if (item.Amount <= 0m)
+                continue;
+
+            allocations.Add(new DonationAllocation
+            {
+                AllocationId = nextId++,
+                DonationId = donationId,
+                ProgramArea = item.ProgramArea,
+                AmountAllocated = Math.Round(item.Amount, 2),
+                AllocationDate = allocationDate,
+                AllocationNotes = $"Auto allocation from donor self-serve gift ({donorEmail})"
+            });
+        }
+
+        return allocations;
     }
 }
