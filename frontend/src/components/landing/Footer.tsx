@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Anchor } from "lucide-react";
+import { Anchor, Facebook, Instagram, Linkedin } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { getDonorPortalPath, getStaffPortalPath } from "@/lib/portalRoutes";
 
@@ -11,7 +11,7 @@ const Footer = () => {
   return (
     <footer className="bg-navy text-white">
       <div className="container py-16">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8">
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-4">
               <Anchor className="h-5 w-5 text-teal-light" />
@@ -71,6 +71,41 @@ const Footer = () => {
             >
               1-888-373-7888
             </a>
+          </div>
+
+          <div>
+            <h4 className="font-body text-xs font-semibold tracking-widest uppercase text-white/40 mb-4">
+              Connect
+            </h4>
+            <nav className="flex items-center gap-4">
+              <a
+                href="https://www.linkedin.com/in/clippy-clippit-aa445b3a6/"
+                target="_blank"
+                rel="noreferrer"
+                className="text-white/70 hover:text-white transition-colors"
+                aria-label="LinkedIn"
+              >
+                <Linkedin className="h-5 w-5" />
+              </a>
+              <a
+                href="https://www.instagram.com/tung_tung_sahurrrrr?igsh=MWs5Z3U3OWhoNHd4OA=="
+                target="_blank"
+                rel="noreferrer"
+                className="text-white/70 hover:text-white transition-colors"
+                aria-label="Instagram"
+              >
+                <Instagram className="h-5 w-5" />
+              </a>
+              <a
+                href="https://www.facebook.com/share/18H6Yf3sw1/?mibextid=wwXIfr"
+                target="_blank"
+                rel="noreferrer"
+                className="text-white/70 hover:text-white transition-colors"
+                aria-label="Facebook"
+              >
+                <Facebook className="h-5 w-5" />
+              </a>
+            </nav>
           </div>
         </div>
 

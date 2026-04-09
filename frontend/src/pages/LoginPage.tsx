@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { loginUser } from "@/lib/authApi";
 import { getPortalRedirectPath } from "@/lib/portalRoutes";
+import sunsetImage from "@/assets/philippine-sunset.jpg";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -35,16 +36,27 @@ const LoginPage = () => {
 
   return (
     <Layout>
-      <section className="pt-32 pb-24 md:pt-40 md:pb-32 bg-background">
-        <div className="container">
+      <section className="relative pt-32 pb-24 md:pt-40 md:pb-32 overflow-hidden">
+        <div className="absolute inset-0">
+          <img
+            src={sunsetImage}
+            alt=""
+            aria-hidden="true"
+            className="w-full h-full object-cover"
+          />
+        </div>
+
+        <div className="container relative">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)] items-start">
             <div className="rounded-3xl bg-secondary p-8 md:p-10 border border-border">
-              <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center mb-6">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center shrink-0">
                   <UserCog className="h-7 w-7 text-accent" />
+                </div>
+                <h1 className="font-heading text-4xl font-bold text-foreground">
+                  Admin Portal
+                </h1>
               </div>
-              <h1 className="font-heading text-4xl font-bold text-foreground mb-4">
-                Admin Portal
-              </h1>
               <p className="font-body text-muted-foreground leading-relaxed mb-6">
                 Log in to access staff tools and administrative dashboards.
               </p>
