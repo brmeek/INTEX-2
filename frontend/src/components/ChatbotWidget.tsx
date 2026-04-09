@@ -116,7 +116,7 @@ const ChatbotWidget = () => {
         <div
           id="chatbot-panel"
           className={cn(
-            "fixed right-4 z-30 w-[min(92vw,24rem)] rounded-2xl border border-border bg-white shadow-elevated sm:right-6",
+            "fixed right-4 z-30 w-[min(92vw,24rem)] rounded-2xl border border-border bg-card shadow-elevated sm:right-6",
             panelBottomClass
           )}
         >
@@ -176,7 +176,7 @@ const ChatbotWidget = () => {
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
                 placeholder="Ask us your questions..."
-                className="h-10 w-full rounded-lg border border-border px-3 font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                className="h-10 w-full rounded-lg border border-border bg-background px-3 font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
               />
               <button
                 type="submit"
