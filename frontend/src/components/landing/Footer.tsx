@@ -19,7 +19,7 @@ const Footer = () => {
               <span className="font-heading text-lg font-bold">Hope Harbor</span>
             </Link>
             <p className="font-body text-sm text-white/50 leading-relaxed max-w-xs">
-              A 501(c)(3) nonprofit providing safe homes and rehabilitation
+              A nonprofit dedicated to providing safe homes and rehabilitation
               services for survivors of trafficking and sexual abuse.
             </p>
           </div>
@@ -114,10 +114,10 @@ const Footer = () => {
 
         <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="font-body text-xs text-white/30">
-            © {new Date().getFullYear()} Hope Harbor Sanctuary. All rights reserved.
+            © {new Date().getFullYear()} Hope Harbor. All rights reserved.
           </p>
           <p className="font-body text-xs text-white/30">
-            EIN: XX-XXXXXXX · Hope Harbor is a registered 501(c)(3) organization.
+            EIN: +1 (555) 012-3456 · info@hopeharbor.org
           </p>
         </div>
       </div>
