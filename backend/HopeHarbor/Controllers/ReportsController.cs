@@ -9,7 +9,7 @@ namespace HopeHarbor.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Policy = AuthPolicies.ViewAdminData)]
 public class ReportsController : ControllerBase
 {
     private readonly HopeHarborContext _db;

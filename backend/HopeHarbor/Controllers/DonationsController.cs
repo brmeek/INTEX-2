@@ -82,6 +82,7 @@ public class DonationsController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Policy = AuthPolicies.ViewAdminData)]
     public async Task<IActionResult> GetAll(
         [FromQuery] string? type, [FromQuery] string? campaign,
         [FromQuery] int? supporterId, [FromQuery] int page = 1,
@@ -98,6 +99,7 @@ public class DonationsController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize(Policy = AuthPolicies.ViewAdminData)]
     public async Task<IActionResult> Get(int id)
     {
         var item = await _db.Donations.Include(d => d.Supporter).Include(d => d.Allocations).Include(d => d.InKindItems).FirstOrDefaultAsync(d => d.DonationId == id);
@@ -105,7 +107,7 @@ public class DonationsController : ControllerBase
     }
 
     [HttpGet("self-serve/summary")]
-    [Authorize(Roles = AuthRoles.Donor + "," + AuthRoles.Admin)]
+    [Authorize(Policy = AuthPolicies.DonorOrAdmin)]
     public async Task<IActionResult> GetSelfServeSummary()
     {
         var email = User.FindFirstValue(ClaimTypes.Email)
@@ -157,7 +159,7 @@ public class DonationsController : ControllerBase
     }
 
     [HttpGet("self-serve/recent")]
-    [Authorize(Roles = AuthRoles.Donor + "," + AuthRoles.Admin)]
+    [Authorize(Policy = AuthPolicies.DonorOrAdmin)]
     public async Task<IActionResult> GetSelfServeRecentDonations([FromQuery] int take = 10)
     {
         var email = User.FindFirstValue(ClaimTypes.Email)
@@ -226,7 +228,7 @@ public class DonationsController : ControllerBase
     }
 
     [HttpPost("self-serve")]
-    [Authorize(Roles = AuthRoles.Donor + "," + AuthRoles.Admin)]
+    [Authorize(Policy = AuthPolicies.DonorOrAdmin)]
     public async Task<IActionResult> CreateSelfServe([FromBody] DonorDonationRequest request, CancellationToken cancellationToken)
     {
         var email = User.FindFirstValue(ClaimTypes.Email)
@@ -320,7 +322,7 @@ public class DonationsController : ControllerBase
     }
 
     [HttpPost("self-serve/impact-forecast")]
-    [Authorize(Roles = AuthRoles.Donor + "," + AuthRoles.Admin)]
+    [Authorize(Policy = AuthPolicies.DonorOrAdmin)]
     public async Task<IActionResult> ForecastSelfServeImpact([FromBody] DonorImpactForecastRequest request, CancellationToken cancellationToken)
     {
         if (request.Amount <= 0m)

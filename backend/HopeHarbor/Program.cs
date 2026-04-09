@@ -93,6 +93,10 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(AuthPolicies.ManageCatalog, policy =>
         policy.RequireRole(AuthRoles.Admin));
+    options.AddPolicy(AuthPolicies.ViewAdminData, policy =>
+        policy.RequireRole(AuthRoles.Admin));
+    options.AddPolicy(AuthPolicies.DonorOrAdmin, policy =>
+        policy.RequireRole(AuthRoles.Donor, AuthRoles.Admin));
 });
 
 builder.Services.Configure<IdentityOptions>(opts =>

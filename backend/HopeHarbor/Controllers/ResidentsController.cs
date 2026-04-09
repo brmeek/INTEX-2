@@ -9,7 +9,7 @@ namespace HopeHarbor.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Policy = AuthPolicies.ViewAdminData)]
 public class ResidentsController : ControllerBase
 {
     private static int _readinessRefreshInProgress;
