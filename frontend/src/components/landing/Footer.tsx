@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
 import { Anchor, Facebook, Instagram, Linkedin } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { getDonorPortalPath, getStaffPortalPath } from "@/lib/portalRoutes";
+import { getDonorPortalPath, getStaffPortalPath, hasAdminAccess } from "@/lib/portalRoutes";
 
 const Footer = () => {
   const { authSession } = useAuth();
   const donorPortalPath = getDonorPortalPath(authSession);
   const staffPortalPath = getStaffPortalPath(authSession);
+  const showStaffPortal = hasAdminAccess(authSession);
 
   return (
     <footer className="bg-navy text-white">
@@ -51,9 +52,11 @@ const Footer = () => {
               <Link to="/cookies" className="block font-body text-sm text-white/70 hover:text-white transition-colors">
                 Cookie Policy
               </Link>
-              <Link to={staffPortalPath} className="block font-body text-sm text-white/70 hover:text-white transition-colors">
-                Staff Portal
-              </Link>
+              {showStaffPortal && (
+                <Link to={staffPortalPath} className="block font-body text-sm text-white/70 hover:text-white transition-colors">
+                  Staff Portal
+                </Link>
+              )}
             </nav>
           </div>
 

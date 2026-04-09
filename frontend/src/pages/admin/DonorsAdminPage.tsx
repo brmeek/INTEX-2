@@ -142,6 +142,13 @@ const DonorsAdminPage = () => {
 
   const executeDeleteSupporter = async () => {
     if (!supporterToDelete) return;
+    if (
+      !window.confirm(
+        `Delete supporter "${supporterToDelete.supporterName}"? This removes them from the donor list and cannot be undone.`
+      )
+    ) {
+      return;
+    }
     setDeletePending(true);
     try {
       await api.delete(`/api/supporters/${supporterToDelete.supporterId}`);
@@ -300,7 +307,15 @@ const DonorsAdminPage = () => {
                         <td className="px-4 py-3 font-body text-sm">{s.totalGiven != null ? `₱${s.totalGiven.toLocaleString()}` : "—"}</td>
                         <td className="px-4 py-3 flex gap-1">
                           <Button onClick={() => openEdit(s)} variant="ghost" size="sm" className="text-xs font-body h-7">Edit</Button>
-                          <Button onClick={() => setSupporterToDelete(s)} variant="ghost" size="sm" className="text-xs font-body h-7 text-destructive">Delete</Button>
+                          <Button
+                            onClick={() => setSupporterToDelete(s)}
+                            disabled={deletePending}
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs font-body h-7 text-destructive"
+                          >
+                            Delete
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -356,7 +371,6 @@ const DonorsAdminPage = () => {
           )}
         </div>
       </div>
-
       <DeleteConfirmDialog
         open={supporterToDelete !== null}
         onOpenChange={(open) => {

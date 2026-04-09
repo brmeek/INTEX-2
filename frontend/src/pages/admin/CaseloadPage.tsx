@@ -95,6 +95,13 @@ const CaseloadPage = () => {
 
   const executeDeleteResident = async () => {
     if (!residentToDelete) return;
+    if (
+      !window.confirm(
+        `Delete ${residentToDelete.firstName} ${residentToDelete.lastName}? This permanently removes their record from the caseload and cannot be undone.`
+      )
+    ) {
+      return;
+    }
     setDeletePending(true);
     try {
       await api.delete(`/api/residents/${residentToDelete.residentId}`);
@@ -291,7 +298,15 @@ const CaseloadPage = () => {
                         <td className="px-4 py-3 font-body text-sm text-muted-foreground">{r.admissionDate || "—"}</td>
                         <td className="px-4 py-3 flex gap-1">
                           <Button onClick={() => openEdit(r)} variant="ghost" size="sm" className="text-xs font-body h-7">Edit</Button>
-                          <Button onClick={() => setResidentToDelete(r)} variant="ghost" size="sm" className="text-xs font-body h-7 text-destructive">Delete</Button>
+                          <Button
+                            onClick={() => setResidentToDelete(r)}
+                            disabled={deletePending}
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs font-body h-7 text-destructive"
+                          >
+                            Delete
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -310,7 +325,6 @@ const CaseloadPage = () => {
           )}
         </div>
       </div>
-
       <DeleteConfirmDialog
         open={residentToDelete !== null}
         onOpenChange={(open) => {
@@ -320,7 +334,7 @@ const CaseloadPage = () => {
         description={
           residentToDelete ? (
             <>
-              Remove <span className="font-medium text-foreground">{residentToDelete.firstName} {residentToDelete.lastName}</span> from the caseload? This permanently removes their record and cannot be undone.
+              Remove <span className="font-medium text-foreground">{residentToDelete.firstName} {residentToDelete.lastName}</span> from the caseload? This cannot be undone.
             </>
           ) : (
             "This permanently removes the record from the caseload. This cannot be undone."

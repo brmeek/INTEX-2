@@ -155,6 +155,10 @@ const UsersAdminPage = () => {
 
   const executeDeleteUser = async () => {
     if (!userToDelete) return;
+    const label = userToDelete.email ?? userToDelete.userName ?? "this user";
+    if (!window.confirm(`Delete ${label}? This removes portal access and cannot be undone.`)) {
+      return;
+    }
     setDeletePending(true);
     try {
       await api.delete(`/api/admin/users/${userToDelete.id}`);
@@ -290,7 +294,13 @@ const UsersAdminPage = () => {
                           <Button onClick={() => openEdit(user)} variant="ghost" size="sm" className="text-xs font-body h-7">
                             Edit
                           </Button>
-                          <Button onClick={() => setUserToDelete(user)} variant="ghost" size="sm" className="text-xs font-body h-7 text-destructive">
+                          <Button
+                            onClick={() => setUserToDelete(user)}
+                            disabled={deletePending}
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs font-body h-7 text-destructive"
+                          >
                             Delete
                           </Button>
                         </td>
@@ -322,7 +332,6 @@ const UsersAdminPage = () => {
           )}
         </div>
       </div>
-
       <DeleteConfirmDialog
         open={userToDelete !== null}
         onOpenChange={(open) => {

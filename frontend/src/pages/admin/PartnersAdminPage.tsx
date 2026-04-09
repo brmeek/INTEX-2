@@ -65,6 +65,13 @@ const PartnersAdminPage = () => {
 
   const executeDeletePartner = async () => {
     if (!partnerToDelete) return;
+    if (
+      !window.confirm(
+        `Delete partner "${partnerToDelete.partnerName}"? They will be removed from the partners list and this cannot be undone.`
+      )
+    ) {
+      return;
+    }
     setDeletePending(true);
     try {
       await api.delete(`/api/partners/${partnerToDelete.partnerId}`);
@@ -144,7 +151,15 @@ const PartnersAdminPage = () => {
                         <td className="px-4 py-3 font-body text-xs text-muted-foreground">{p.email}</td>
                         <td className="px-4 py-3 flex gap-1">
                           <Button onClick={() => { setEditItem(p); setForm({ partnerName: p.partnerName, partnerType: p.partnerType, roleType: p.roleType, contactName: p.contactName, email: p.email, phone: p.phone, region: p.region, status: p.status, notes: "" }); setShowForm(true); }} variant="ghost" size="sm" className="text-xs font-body h-7">Edit</Button>
-                          <Button onClick={() => setPartnerToDelete(p)} variant="ghost" size="sm" className="text-xs font-body h-7 text-destructive">Delete</Button>
+                          <Button
+                            onClick={() => setPartnerToDelete(p)}
+                            disabled={deletePending}
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs font-body h-7 text-destructive"
+                          >
+                            Delete
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -163,7 +178,6 @@ const PartnersAdminPage = () => {
           )}
         </div>
       </div>
-
       <DeleteConfirmDialog
         open={partnerToDelete !== null}
         onOpenChange={(open) => {
@@ -176,7 +190,7 @@ const PartnersAdminPage = () => {
               Remove <span className="font-medium text-foreground">{partnerToDelete.partnerName}</span> from the partners list. This cannot be undone.
             </>
           ) : (
-            "They will be removed from the partners list. This cannot be undone."
+            "This removes them from the partners list. This cannot be undone."
           )
         }
         pending={deletePending}

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, Anchor } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
-import { getDonorPortalPath, getStaffPortalPath } from "@/lib/portalRoutes";
+import { getDonorPortalPath, getStaffPortalPath, hasAdminAccess } from "@/lib/portalRoutes";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -25,6 +25,7 @@ const Navbar = () => {
   const isHome = location.pathname === "/";
   const donorPortalPath = getDonorPortalPath(authSession);
   const staffPortalPath = getStaffPortalPath(authSession);
+  const showStaffPortal = hasAdminAccess(authSession);
   const navLinks = [
     { label: "About", href: "/about" },
     { label: "Impact", href: "/impact" },
@@ -91,20 +92,22 @@ const Navbar = () => {
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
-            <Link to={staffPortalPath}>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "font-body",
-                  scrolled || !isHome
-                    ? ""
-                    : "text-white/80 hover:text-white hover:bg-white/10"
-                )}
-              >
-                Staff Portal
-              </Button>
-            </Link>
+            {showStaffPortal && (
+              <Link to={staffPortalPath}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "font-body",
+                    scrolled || !isHome
+                      ? ""
+                      : "text-white/80 hover:text-white hover:bg-white/10"
+                  )}
+                >
+                  Staff Portal
+                </Button>
+              </Link>
+            )}
             <Link to={donorPortalPath}>
               <Button
                 size="sm"
@@ -154,12 +157,19 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
-            <div className="pt-3 border-t border-border mt-3 grid grid-cols-2 gap-3">
-              <Link to={staffPortalPath} className="flex-1">
-                <Button variant="outline" size="sm" className="w-full font-body">
-                  Staff Portal
-                </Button>
-              </Link>
+            <div
+              className={cn(
+                "pt-3 border-t border-border mt-3 grid gap-3",
+                showStaffPortal ? "grid-cols-2" : "grid-cols-1"
+              )}
+            >
+              {showStaffPortal && (
+                <Link to={staffPortalPath} className="flex-1">
+                  <Button variant="outline" size="sm" className="w-full font-body">
+                    Staff Portal
+                  </Button>
+                </Link>
+              )}
               <Link to={donorPortalPath} className="flex-1">
                 <Button
                   size="sm"
