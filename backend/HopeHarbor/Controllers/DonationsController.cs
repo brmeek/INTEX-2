@@ -285,7 +285,7 @@ public class DonationsController : ControllerBase
             IsRecurring = request.IsRecurring,
             CampaignName = "Donor Portal",
             ChannelSource = "Donor Portal",
-            CurrencyCode = "USD",
+            CurrencyCode = "PHP",
             Amount = request.Amount,
             EstimatedValue = request.Amount,
             Notes = $"Donor self-serve gift from {normalizedEmail}"
@@ -300,7 +300,7 @@ public class DonationsController : ControllerBase
             IsRecurring = request.IsRecurring,
             ChannelSource = "Donor Portal",
             CampaignName = "Donor Portal",
-            CurrencyCode = "USD"
+            CurrencyCode = "PHP"
         }, cancellationToken);
 
         var donationAllocations = BuildSelfServeAllocations(
@@ -333,7 +333,7 @@ public class DonationsController : ControllerBase
             IsRecurring = request.IsRecurring,
             ChannelSource = string.IsNullOrWhiteSpace(request.ChannelSource) ? "Donor Portal" : request.ChannelSource,
             CampaignName = string.IsNullOrWhiteSpace(request.CampaignName) ? "Donor Portal" : request.CampaignName,
-            CurrencyCode = string.IsNullOrWhiteSpace(request.CurrencyCode) ? "USD" : request.CurrencyCode
+            CurrencyCode = string.IsNullOrWhiteSpace(request.CurrencyCode) ? "PHP" : request.CurrencyCode
         }, cancellationToken);
 
         return Ok(new

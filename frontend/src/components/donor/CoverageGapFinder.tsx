@@ -89,7 +89,7 @@ function SponsorModal({ gap, onClose, onDonate, donating }: SponsorModalProps) {
                   : "border-border bg-secondary text-foreground hover:border-navy/30"
               )}
             >
-              ${amt.toLocaleString()}
+              ₱{amt.toLocaleString()}
             </button>
           ))}
         </div>
@@ -119,7 +119,7 @@ function SponsorModal({ gap, onClose, onDonate, donating }: SponsorModalProps) {
             ) : (
               <>
                 <Heart className="mr-1 h-4 w-4" />
-                Donate ${amount?.toLocaleString() ?? ""}
+                Donate ₱{amount?.toLocaleString() ?? ""}
               </>
             )}
           </Button>
@@ -188,7 +188,7 @@ export default function CoverageGapFinder({ readOnly = false }: { readOnly?: boo
       });
       toast({
         title: "Thank you!",
-        description: `Your $${amount.toLocaleString()} gift toward expanding coverage in ${region} has been recorded.`,
+        description: `Your ₱${amount.toLocaleString()} gift toward expanding coverage in ${region} has been recorded.`,
       });
       setSponsorGap(null);
     } catch (err) {

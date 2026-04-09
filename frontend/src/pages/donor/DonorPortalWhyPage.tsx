@@ -16,6 +16,10 @@ interface DonorImpactForecastResponse {
   modelVersion: string;
 }
 
+function formatPeso(value: number): string {
+  return `₱${value.toFixed(2)}`;
+}
+
 export default function DonorPortalWhyPage() {
   const { isAuthenticated } = useAuth();
   const [isMonthly, setIsMonthly] = useState(true);
@@ -77,7 +81,7 @@ export default function DonorPortalWhyPage() {
         isRecurring: recurring,
         channelSource: "Donor Portal",
         campaignName: "Donor Portal",
-        currencyCode: "USD",
+        currencyCode: "PHP",
       });
       setImpactForecast(data);
     } catch {
@@ -151,7 +155,7 @@ export default function DonorPortalWhyPage() {
         </div>
 
         <div className="bg-secondary rounded-xl border border-border p-3 mb-4">
-          <p className="font-body text-xs uppercase tracking-widest text-muted-foreground mb-2">Gift amount (USD)</p>
+          <p className="font-body text-xs uppercase tracking-widest text-muted-foreground mb-2">Gift amount (PHP)</p>
           <input
             type="number"
             min={1}
@@ -199,7 +203,7 @@ export default function DonorPortalWhyPage() {
                       key={segment.key}
                       className={`${segment.color} transition-all duration-500`}
                       style={{ width: `${widthPercent}%` }}
-                      title={`${segment.label}: $${segment.value.toFixed(2)}`}
+                      title={`${segment.label}: ${formatPeso(segment.value)}`}
                     />
                   );
                 })}
@@ -216,7 +220,7 @@ export default function DonorPortalWhyPage() {
                       <Icon className="h-4 w-4 text-muted-foreground" aria-hidden />
                       <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">{segment.label}</p>
                     </div>
-                    <p className="font-heading text-lg font-bold text-foreground">${segment.value.toFixed(2)}</p>
+                    <p className="font-heading text-lg font-bold text-foreground">{formatPeso(segment.value)}</p>
                     <p className="font-body text-xs text-muted-foreground">{share.toFixed(1)}% of this gift</p>
                   </div>
                 );
