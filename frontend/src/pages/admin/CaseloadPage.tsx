@@ -199,7 +199,7 @@ const CaseloadPage = () => {
 
         <div className="bg-card rounded-xl p-4 shadow-soft border border-border">
           <p className="font-body text-xs text-muted-foreground">
-            Click any resident to open their case dashboard with readiness and trend charts, recent sessions, and visitation activity.
+            Click View on any resident to open their case dashboard with readiness and trend charts, recent sessions, and visitation activity.
           </p>
         </div>
 

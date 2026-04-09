@@ -454,7 +454,7 @@ function CalendarTab() {
               <ChevronRight className="h-5 w-5 text-muted-foreground" />
             </NavButton>
           </div>
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-7">
             {weekDateStrs.map((dateStr, di) => {
               const posts = postsByDate[dateStr] ?? [];
               const isSelected = selectedDate === dateStr;
@@ -464,7 +464,7 @@ function CalendarTab() {
                 <button
                   key={dateStr}
                   onClick={() => setSelectedDate(dateStr)}
-                  className={`group relative rounded-xl border p-3 text-left transition-all min-h-[130px] flex flex-col ${
+                  className={`group relative rounded-xl border p-3 text-left transition-all min-h-[118px] sm:min-h-[130px] flex flex-col ${
                     isSelected
                       ? "border-amber-300 bg-amber-50/60 ring-2 ring-amber-200/50 shadow-soft"
                       : isToday
@@ -472,12 +472,13 @@ function CalendarTab() {
                       : "border-border bg-card hover:border-amber-200 hover:shadow-soft"
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-1.5">
-                      <span className={`font-body text-xs font-bold ${isSelected ? "text-amber-800" : isToday ? "text-amber-700" : "text-muted-foreground"}`}>
-                        {DAYS_SHORT[di]}
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 min-w-0">
+                      <span className={`font-body text-sm sm:text-xs font-bold ${isSelected ? "text-amber-800" : isToday ? "text-amber-700" : "text-muted-foreground"}`}>
+                        <span className="sm:hidden">{new Date(dateStr + "T00:00:00").toLocaleDateString("en-US", { weekday: "long" })}</span>
+                        <span className="hidden sm:inline">{DAYS_SHORT[di]}</span>
                       </span>
-                      <span className={`font-body text-[10px] ${isToday ? "text-amber-600 font-semibold" : "text-muted-foreground/60"}`}>
+                      <span className={`font-body text-xs sm:text-[10px] whitespace-nowrap ${isToday ? "text-amber-600 font-semibold" : "text-muted-foreground/60"}`}>
                         {weekDates[di]}
                       </span>
                       {isToday && (
@@ -490,7 +491,7 @@ function CalendarTab() {
                       const done = posts.filter((p) => completedPosts.has(postKey(p))).length;
                       const allDone = done === posts.length;
                       return (
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 ${
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shrink-0 ${
                           allDone
                             ? "bg-emerald-100 text-emerald-700"
                             : isSelected
@@ -511,13 +512,13 @@ function CalendarTab() {
                         {posts.slice(0, 3).map((s, i) => {
                           const done = completedPosts.has(postKey(s));
                           return (
-                            <div key={i} className={`flex items-center gap-1 ${done ? "opacity-50" : ""}`}>
+                            <div key={i} className={`flex items-center gap-1.5 min-w-0 ${done ? "opacity-50" : ""}`}>
                               {done
                                 ? <Check className="h-2.5 w-2.5 text-emerald-500 shrink-0" />
                                 : <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${PLATFORM_META[s.platform]?.gradient ?? "from-gray-400 to-gray-500"}`} />
                               }
-                              <span className={`text-[10px] truncate font-body ${done ? "line-through text-muted-foreground" : "text-foreground/70"}`}>{s.platform}</span>
-                              <span className="text-[9px] text-muted-foreground/50 ml-auto">{s.suggestedTime}</span>
+                              <span className={`text-xs sm:text-[10px] truncate font-body min-w-0 ${done ? "line-through text-muted-foreground" : "text-foreground/70"}`}>{s.platform}</span>
+                              <span className="text-[10px] sm:text-[9px] text-muted-foreground/60 ml-auto shrink-0 whitespace-nowrap">{s.suggestedTime}</span>
                             </div>
                           );
                         })}
