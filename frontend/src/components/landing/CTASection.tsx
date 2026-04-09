@@ -41,9 +41,6 @@ const CTASection = () => {
             </Button>
           </Link>
         </div>
-        <p className="font-body text-xs text-muted-foreground mt-6">
-          Hope Harbor is a registered 501(c)(3). All donations are tax-deductible.
-        </p>
       </div>
     </section>
   );
