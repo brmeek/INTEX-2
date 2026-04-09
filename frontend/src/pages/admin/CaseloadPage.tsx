@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { DeleteConfirmDialog } from "@/components/admin/DeleteConfirmDialog";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Search, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 interface Resident {
@@ -40,6 +41,7 @@ interface Resident {
 
 const CaseloadPage = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [residents, setResidents] = useState<Resident[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -165,7 +167,7 @@ const CaseloadPage = () => {
   };
 
   return (
-    <AdminLayout title="Caseload Inventory" subtitle="Manage resident profiles and case records">
+    <AdminLayout title="Caseload Inventory" subtitle="Clean case list with quick links to resident dashboards">
       <div className="space-y-4">
         {/* Filters */}
         <div className="flex flex-wrap gap-3">
@@ -197,11 +199,7 @@ const CaseloadPage = () => {
 
         <div className="bg-white rounded-xl p-4 shadow-soft border border-border">
           <p className="font-body text-xs text-muted-foreground">
-            Label guide: <span className="font-semibold text-foreground">Readiness (Current Level)</span> shows the resident's present risk/readiness state.
-            <span className="font-semibold text-foreground"> Trend (Recent Direction)</span> shows whether the trajectory is improving, stable, or declining over recent months.
-          </p>
-          <p className="font-body text-xs text-muted-foreground mt-1">
-            Example: <span className="font-semibold text-foreground">Stable + At Risk</span> means consistently low readiness that is not rapidly worsening.
+            Click any resident to open their case dashboard with readiness and trend charts, recent sessions, and visitation activity.
           </p>
         </div>
 
@@ -254,15 +252,15 @@ const CaseloadPage = () => {
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Readiness (Current Level)</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Trend (Recent Direction)</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
-                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Category</th>
-                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Safehouse</th>
-                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Social Worker</th>
-                    <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Admitted</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
                   </tr></thead>
                   <tbody>
                     {residents.map((r) => (
-                      <tr key={r.residentId} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                      <tr
+                        key={r.residentId}
+                        className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
+                        onClick={() => navigate(`/admin/caseload/${r.residentId}`)}
+                      >
                         <td className="px-4 py-3 font-body text-sm font-medium">
                           <div className="flex items-center gap-2">
                             <span>{r.firstName} {r.lastName}</span>
@@ -292,11 +290,16 @@ const CaseloadPage = () => {
                           )}
                         </td>
                         <td className="px-4 py-3"><span className={`text-xs font-body px-2 py-1 rounded-full ${r.caseStatus === "Active" ? "bg-teal/10 text-teal" : r.caseStatus === "Reintegrated" ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"}`}>{r.caseStatus}</span></td>
-                        <td className="px-4 py-3 font-body text-sm text-muted-foreground">{r.caseCategory}</td>
-                        <td className="px-4 py-3 font-body text-sm text-muted-foreground">{r.safehouse?.safehouseName || r.safehouseId || "—"}</td>
-                        <td className="px-4 py-3 font-body text-sm text-muted-foreground">{r.assignedSocialWorker || "—"}</td>
-                        <td className="px-4 py-3 font-body text-sm text-muted-foreground">{r.admissionDate || "—"}</td>
-                        <td className="px-4 py-3 flex gap-1">
+                        <td className="px-4 py-3 flex gap-1" onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            onClick={() => navigate(`/admin/caseload/${r.residentId}`)}
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs font-body h-7 gap-1"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            View
+                          </Button>
                           <Button onClick={() => openEdit(r)} variant="ghost" size="sm" className="text-xs font-body h-7">Edit</Button>
                           <Button
                             onClick={() => setResidentToDelete(r)}

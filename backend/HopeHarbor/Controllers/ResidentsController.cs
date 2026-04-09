@@ -107,6 +107,158 @@ public class ResidentsController : ControllerBase
         return item == null ? NotFound() : Ok(item);
     }
 
+    [HttpGet("{id}/dashboard")]
+    public async Task<IActionResult> GetDashboard(int id)
+    {
+        var resident = await _db.Residents
+            .AsNoTracking()
+            .Include(r => r.Safehouse)
+            .Include(r => r.EducationRecords)
+            .Include(r => r.HealthRecords)
+            .Include(r => r.InterventionPlans)
+            .Include(r => r.ProcessRecordings)
+            .Include(r => r.HomeVisitations)
+            .FirstOrDefaultAsync(r => r.ResidentId == id);
+
+        if (resident is null)
+            return NotFound();
+
+        var readiness = await _db.ResidentReintegrationScores
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.ResidentId == id);
+
+        var educationTimeline = (resident.EducationRecords ?? [])
+            .Where(e => e.RecordDate.HasValue)
+            .OrderBy(e => e.RecordDate)
+            .Select(e => new
+            {
+                date = e.RecordDate,
+                progressPercent = e.ProgressPercent,
+                attendanceRate = e.AttendanceRate,
+                enrollmentStatus = e.EnrollmentStatus
+            })
+            .ToList();
+
+        var wellbeingTimeline = (resident.HealthRecords ?? [])
+            .Where(h => h.RecordDate.HasValue)
+            .OrderBy(h => h.RecordDate)
+            .Select(h => new
+            {
+                date = h.RecordDate,
+                generalHealthScore = h.GeneralHealthScore,
+                nutritionScore = h.NutritionScore,
+                sleepQualityScore = h.SleepQualityScore,
+                energyLevelScore = h.EnergyLevelScore
+            })
+            .ToList();
+
+        var monthlyActivity = new Dictionary<DateOnly, (int ProcessSessions, int HomeVisits)>();
+
+        foreach (var session in resident.ProcessRecordings ?? [])
+        {
+            if (!session.SessionDate.HasValue) continue;
+            var key = new DateOnly(session.SessionDate.Value.Year, session.SessionDate.Value.Month, 1);
+            monthlyActivity.TryGetValue(key, out var current);
+            monthlyActivity[key] = (current.ProcessSessions + 1, current.HomeVisits);
+        }
+
+        foreach (var visit in resident.HomeVisitations ?? [])
+        {
+            if (!visit.VisitDate.HasValue) continue;
+            var key = new DateOnly(visit.VisitDate.Value.Year, visit.VisitDate.Value.Month, 1);
+            monthlyActivity.TryGetValue(key, out var current);
+            monthlyActivity[key] = (current.ProcessSessions, current.HomeVisits + 1);
+        }
+
+        var activityTimeline = monthlyActivity
+            .OrderBy(kv => kv.Key)
+            .Select(kv => new
+            {
+                month = kv.Key,
+                processSessions = kv.Value.ProcessSessions,
+                homeVisits = kv.Value.HomeVisits
+            })
+            .ToList();
+
+        var recentProcessRecordings = (resident.ProcessRecordings ?? [])
+            .Where(p => p.SessionDate.HasValue)
+            .OrderByDescending(p => p.SessionDate)
+            .Take(8)
+            .Select(p => new
+            {
+                p.RecordingId,
+                p.SessionDate,
+                p.SocialWorker,
+                p.SessionType,
+                p.EmotionalState,
+                p.FollowUpActions
+            })
+            .ToList();
+
+        var recentVisitations = (resident.HomeVisitations ?? [])
+            .Where(v => v.VisitDate.HasValue)
+            .OrderByDescending(v => v.VisitDate)
+            .Take(8)
+            .Select(v => new
+            {
+                v.VisitationId,
+                v.VisitDate,
+                v.VisitType,
+                v.VisitOutcome,
+                v.FollowUpNeeded,
+                v.SocialWorker
+            })
+            .ToList();
+
+        var response = new
+        {
+            resident.ResidentId,
+            resident.FirstName,
+            resident.LastName,
+            resident.DateOfBirth,
+            resident.Gender,
+            resident.AdmissionDate,
+            resident.CaseStatus,
+            resident.CaseCategory,
+            resident.CaseSubcategory,
+            resident.SafehouseId,
+            resident.AssignedSocialWorker,
+            resident.ReintegrationStatus,
+            resident.ReferralSource,
+            safehouse = resident.Safehouse is null
+                ? null
+                : new
+                {
+                    resident.Safehouse.SafehouseId,
+                    resident.Safehouse.SafehouseName,
+                    resident.Safehouse.Location,
+                    resident.Safehouse.Region
+                },
+            readiness = readiness is null
+                ? null
+                : new
+                {
+                    readiness.ReadinessScore,
+                    readiness.ReadinessTier,
+                    readiness.TrendLabel,
+                    readiness.TopConcernFeature,
+                    readiness.HistoryMonthsUsed,
+                    readiness.MonthOverMonthChange,
+                    readiness.FirstVsLatestChange,
+                    readiness.TrajectorySlope,
+                    readiness.ScoredAtUtc,
+                    readiness.ModelVersion
+                },
+            educationTimeline,
+            wellbeingTimeline,
+            activityTimeline,
+            recentProcessRecordings,
+            recentVisitations
+        };
+
+        return Ok(response);
+    }
+
     [HttpPost]
     [Authorize(Policy = AuthPolicies.ManageCatalog)]
     public async Task<IActionResult> Create([FromBody] Resident resident)

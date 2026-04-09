@@ -28,10 +28,20 @@ interface Conference {
   residentId: number;
   planCategory: string;
   status: string;
-  caseConferenceDate: string;
+  caseConferenceDate: string | null;
+  targetDate?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
   servicesProvided: string;
   resident?: { firstName: string; lastName: string };
 }
+
+const formatDate = (value?: string | null) => {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString();
+};
 
 const VisitationsPage = () => {
   const { toast } = useToast();
@@ -156,7 +166,7 @@ const VisitationsPage = () => {
                   <tbody>
                     {visits.map((v) => (
                       <tr key={v.visitationId} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                        <td className="px-4 py-3 font-body text-sm">{v.visitDate}</td>
+                        <td className="px-4 py-3 font-body text-sm">{formatDate(v.visitDate)}</td>
                         <td className="px-4 py-3 font-body text-sm font-medium">{v.resident?.firstName} {v.resident?.lastName}</td>
                         <td className="px-4 py-3 font-body text-xs">{v.visitType}</td>
                         <td className="px-4 py-3 font-body text-sm text-muted-foreground">{v.socialWorker}</td>
@@ -191,7 +201,9 @@ const VisitationsPage = () => {
                   <tbody>
                     {conferences.map((c) => (
                       <tr key={c.planId} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                        <td className="px-4 py-3 font-body text-sm">{c.caseConferenceDate || "—"}</td>
+                        <td className="px-4 py-3 font-body text-sm">
+                          {formatDate(c.caseConferenceDate ?? c.targetDate ?? c.updatedAt ?? c.createdAt)}
+                        </td>
                         <td className="px-4 py-3 font-body text-sm font-medium">{c.resident?.firstName} {c.resident?.lastName}</td>
                         <td className="px-4 py-3 font-body text-sm text-muted-foreground">{c.planCategory}</td>
                         <td className="px-4 py-3"><span className={`text-xs px-2 py-1 rounded-full ${c.status === "Achieved" ? "bg-green-100 text-green-700" : c.status === "In Progress" ? "bg-blue-100 text-blue-700" : "bg-secondary text-muted-foreground"}`}>{c.status}</span></td>
@@ -202,7 +214,7 @@ const VisitationsPage = () => {
                 </table>
               </div>
               <div className="px-4 py-3 border-t border-border flex items-center justify-between">
-                <p className="font-body text-xs text-muted-foreground">{totalC} plans</p>
+                <p className="font-body text-xs text-muted-foreground">{totalC} case conferences</p>
                 <div className="flex gap-1">
                   <Button onClick={() => loadConferences(pageC - 1)} disabled={pageC <= 1} variant="ghost" size="sm"><ChevronLeft className="h-4 w-4" /></Button>
                   <span className="font-body text-sm px-2 py-1">Page {pageC}</span>

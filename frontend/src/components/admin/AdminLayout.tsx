@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { logoutUser } from "@/lib/authApi";
@@ -19,20 +19,25 @@ import {
   Map,
   Shield,
   CalendarClock,
+  Megaphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const sidebarLinks = [
+const adminToolLinks = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Users", href: "/admin/users", icon: Shield },
+  { label: "Reports & Calculator", href: "/admin/reports", icon: BarChart3 },
+  { label: "Social Conversion Planner", href: "/admin/social-conversion-planner", icon: Megaphone },
+  { label: "Posting Calendar", href: "/admin/posting-calendar", icon: CalendarClock },
+  { label: "Needs Map", href: "/admin/trafficking-map", icon: Map },
+];
+
+const metricLinks = [
   { label: "Donors", href: "/admin/donors", icon: Heart },
   { label: "Caseload", href: "/admin/caseload", icon: ClipboardList },
   { label: "Process Recording", href: "/admin/recordings", icon: FileText },
   { label: "Visitations", href: "/admin/visitations", icon: Home },
   { label: "Partners", href: "/admin/partners", icon: Users },
-  { label: "Reports", href: "/admin/reports", icon: BarChart3 },
-  { label: "Posting Calendar", href: "/admin/posting-calendar", icon: CalendarClock },
-  { label: "Needs Map", href: "/admin/trafficking-map", icon: Map },
 ];
 
 interface AdminLayoutProps {
@@ -41,11 +46,24 @@ interface AdminLayoutProps {
   subtitle?: string;
 }
 
+type SidebarTab = "admin" | "metrics";
+
 const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
   const { authSession, refreshAuthSession } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<SidebarTab>(
+    metricLinks.some((link) => location.pathname.startsWith(link.href)) ? "metrics" : "admin"
+  );
+
+  useEffect(() => {
+    if (metricLinks.some((link) => location.pathname.startsWith(link.href))) {
+      setActiveTab("metrics");
+    } else {
+      setActiveTab("admin");
+    }
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     await logoutUser();
@@ -66,13 +84,36 @@ const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
         </div>
 
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {sidebarLinks.map((link) => (
+          <div className="grid grid-cols-2 gap-1 p-1 rounded-lg bg-white/5 mb-3">
+            <button
+              type="button"
+              onClick={() => setActiveTab("admin")}
+              className={cn(
+                "px-2 py-2 rounded-md text-[11px] font-body font-semibold uppercase tracking-wider transition-colors",
+                activeTab === "admin" ? "bg-white/15 text-white" : "text-white/60 hover:text-white"
+              )}
+            >
+              Admin Tools
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("metrics")}
+              className={cn(
+                "px-2 py-2 rounded-md text-[11px] font-body font-semibold uppercase tracking-wider transition-colors",
+                activeTab === "metrics" ? "bg-white/15 text-white" : "text-white/60 hover:text-white"
+              )}
+            >
+              Metrics & KPIs
+            </button>
+          </div>
+
+          {(activeTab === "admin" ? adminToolLinks : metricLinks).map((link) => (
             <Link
               key={link.href}
               to={link.href}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-body font-medium transition-colors",
-                location.pathname === link.href
+                location.pathname === link.href || location.pathname.startsWith(`${link.href}/`)
                   ? "bg-white/10 text-white"
                   : "text-white/60 hover:text-white hover:bg-white/5"
               )}
@@ -109,15 +150,38 @@ const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <nav className="flex-1 p-4 space-y-1">
-              {sidebarLinks.map((link) => (
+            <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-1 p-1 rounded-lg bg-white/5 mb-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("admin")}
+                  className={cn(
+                    "px-2 py-2 rounded-md text-[11px] font-body font-semibold uppercase tracking-wider transition-colors",
+                    activeTab === "admin" ? "bg-white/15 text-white" : "text-white/60 hover:text-white"
+                  )}
+                >
+                  Admin Tools
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("metrics")}
+                  className={cn(
+                    "px-2 py-2 rounded-md text-[11px] font-body font-semibold uppercase tracking-wider transition-colors",
+                    activeTab === "metrics" ? "bg-white/15 text-white" : "text-white/60 hover:text-white"
+                  )}
+                >
+                  Metrics & KPIs
+                </button>
+              </div>
+
+              {(activeTab === "admin" ? adminToolLinks : metricLinks).map((link) => (
                 <Link
                   key={link.href}
                   to={link.href}
                   onClick={() => setSidebarOpen(false)}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-body font-medium transition-colors",
-                    location.pathname === link.href
+                    location.pathname === link.href || location.pathname.startsWith(`${link.href}/`)
                       ? "bg-white/10 text-white"
                       : "text-white/60 hover:text-white hover:bg-white/5"
                   )}
