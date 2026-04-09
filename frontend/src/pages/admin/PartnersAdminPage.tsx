@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
+import { DeleteConfirmDialog } from "@/components/admin/DeleteConfirmDialog";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
@@ -25,6 +26,8 @@ const PartnersAdminPage = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<Partner | null>(null);
+  const [partnerToDelete, setPartnerToDelete] = useState<Partner | null>(null);
+  const [deletePending, setDeletePending] = useState(false);
   const [form, setForm] = useState({
     partnerName: "", partnerType: "Individual", roleType: "SafehouseOps",
     contactName: "", email: "", phone: "", region: "Luzon", status: "Active", notes: "",
@@ -60,11 +63,19 @@ const PartnersAdminPage = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Remove this partner?")) return;
-    await api.delete(`/api/partners/${id}`);
-    toast({ title: "Deleted" });
-    load();
+  const executeDeletePartner = async () => {
+    if (!partnerToDelete) return;
+    setDeletePending(true);
+    try {
+      await api.delete(`/api/partners/${partnerToDelete.partnerId}`);
+      toast({ title: "Deleted" });
+      setPartnerToDelete(null);
+      load();
+    } catch (e) {
+      toast({ title: "Error", description: String(e), variant: "destructive" });
+    } finally {
+      setDeletePending(false);
+    }
   };
 
   const inputClass = "w-full px-3 py-2 rounded-lg border border-border bg-secondary font-body text-sm focus:outline-none focus:ring-2 focus:ring-accent";
@@ -133,7 +144,7 @@ const PartnersAdminPage = () => {
                         <td className="px-4 py-3 font-body text-xs text-muted-foreground">{p.email}</td>
                         <td className="px-4 py-3 flex gap-1">
                           <Button onClick={() => { setEditItem(p); setForm({ partnerName: p.partnerName, partnerType: p.partnerType, roleType: p.roleType, contactName: p.contactName, email: p.email, phone: p.phone, region: p.region, status: p.status, notes: "" }); setShowForm(true); }} variant="ghost" size="sm" className="text-xs font-body h-7">Edit</Button>
-                          <Button onClick={() => handleDelete(p.partnerId)} variant="ghost" size="sm" className="text-xs font-body h-7 text-destructive">Delete</Button>
+                          <Button onClick={() => setPartnerToDelete(p)} variant="ghost" size="sm" className="text-xs font-body h-7 text-destructive">Delete</Button>
                         </td>
                       </tr>
                     ))}
@@ -152,6 +163,25 @@ const PartnersAdminPage = () => {
           )}
         </div>
       </div>
+
+      <DeleteConfirmDialog
+        open={partnerToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open && !deletePending) setPartnerToDelete(null);
+        }}
+        title="Delete this partner?"
+        description={
+          partnerToDelete ? (
+            <>
+              Remove <span className="font-medium text-foreground">{partnerToDelete.partnerName}</span> from the partners list. This cannot be undone.
+            </>
+          ) : (
+            "They will be removed from the partners list. This cannot be undone."
+          )
+        }
+        pending={deletePending}
+        onConfirm={executeDeletePartner}
+      />
     </AdminLayout>
   );
 };

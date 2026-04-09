@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
+import { DeleteConfirmDialog } from "@/components/admin/DeleteConfirmDialog";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
@@ -49,6 +50,8 @@ const CaseloadPage = () => {
   const [refreshingReadiness, setRefreshingReadiness] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<Resident | null>(null);
+  const [residentToDelete, setResidentToDelete] = useState<Resident | null>(null);
+  const [deletePending, setDeletePending] = useState(false);
   const [form, setForm] = useState({
     firstName: "", lastName: "", gender: "Female", caseStatus: "Active", caseCategory: "Trafficked",
     caseSubcategory: "", admissionDate: "", safehouseId: "", assignedSocialWorker: "", referralSource: "",
@@ -90,14 +93,18 @@ const CaseloadPage = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure? This will permanently remove this resident record.")) return;
+  const executeDeleteResident = async () => {
+    if (!residentToDelete) return;
+    setDeletePending(true);
     try {
-      await api.delete(`/api/residents/${id}`);
+      await api.delete(`/api/residents/${residentToDelete.residentId}`);
       toast({ title: "Deleted", description: "Record removed." });
+      setResidentToDelete(null);
       load();
     } catch (e) {
       toast({ title: "Error", description: String(e), variant: "destructive" });
+    } finally {
+      setDeletePending(false);
     }
   };
 
@@ -284,7 +291,7 @@ const CaseloadPage = () => {
                         <td className="px-4 py-3 font-body text-sm text-muted-foreground">{r.admissionDate || "—"}</td>
                         <td className="px-4 py-3 flex gap-1">
                           <Button onClick={() => openEdit(r)} variant="ghost" size="sm" className="text-xs font-body h-7">Edit</Button>
-                          <Button onClick={() => handleDelete(r.residentId)} variant="ghost" size="sm" className="text-xs font-body h-7 text-destructive">Delete</Button>
+                          <Button onClick={() => setResidentToDelete(r)} variant="ghost" size="sm" className="text-xs font-body h-7 text-destructive">Delete</Button>
                         </td>
                       </tr>
                     ))}
@@ -303,6 +310,25 @@ const CaseloadPage = () => {
           )}
         </div>
       </div>
+
+      <DeleteConfirmDialog
+        open={residentToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open && !deletePending) setResidentToDelete(null);
+        }}
+        title="Delete this resident?"
+        description={
+          residentToDelete ? (
+            <>
+              Remove <span className="font-medium text-foreground">{residentToDelete.firstName} {residentToDelete.lastName}</span> from the caseload? This permanently removes their record and cannot be undone.
+            </>
+          ) : (
+            "This permanently removes the record from the caseload. This cannot be undone."
+          )
+        }
+        pending={deletePending}
+        onConfirm={executeDeleteResident}
+      />
     </AdminLayout>
   );
 };
