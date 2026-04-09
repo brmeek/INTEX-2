@@ -15,15 +15,18 @@ public class ResidentsController : ControllerBase
     private static int _readinessRefreshInProgress;
     private readonly HopeHarborContext _db;
     private readonly IResidentReintegrationScoringService _residentReintegrationScoringService;
+    private readonly IPipelineRunTracker _pipelineRunTracker;
     private readonly IServiceScopeFactory _scopeFactory;
 
     public ResidentsController(
         HopeHarborContext db,
         IResidentReintegrationScoringService residentReintegrationScoringService,
+        IPipelineRunTracker pipelineRunTracker,
         IServiceScopeFactory scopeFactory)
     {
         _db = db;
         _residentReintegrationScoringService = residentReintegrationScoringService;
+        _pipelineRunTracker = pipelineRunTracker;
         _scopeFactory = scopeFactory;
     }
 
@@ -304,6 +307,14 @@ public class ResidentsController : ControllerBase
             });
         }
 
+        var initiatedBy = User?.Identity?.Name;
+        var runId = await _pipelineRunTracker.StartAsync(
+            pipelineName: "resident_reintegration",
+            triggerSource: "manual",
+            initiatedBy: initiatedBy,
+            modelVersion: "reintegration-readiness-v1",
+            cancellationToken: CancellationToken.None);
+
         _ = Task.Run(async () =>
         {
             try
@@ -311,11 +322,23 @@ public class ResidentsController : ControllerBase
                 using var scope = _scopeFactory.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<HopeHarborContext>();
                 var scoringService = scope.ServiceProvider.GetRequiredService<IResidentReintegrationScoringService>();
-                await scoringService.ScoreAllAsync(db, CancellationToken.None);
+                var pipelineRunTracker = scope.ServiceProvider.GetRequiredService<IPipelineRunTracker>();
+
+                var scoredCount = await scoringService.ScoreAllAsync(db, CancellationToken.None);
+                await pipelineRunTracker.CompleteSuccessAsync(runId, scoredCount, CancellationToken.None);
             }
-            catch
+            catch (Exception ex)
             {
-                // Keep this endpoint resilient even if background scoring fails.
+                try
+                {
+                    using var errorScope = _scopeFactory.CreateScope();
+                    var pipelineRunTracker = errorScope.ServiceProvider.GetRequiredService<IPipelineRunTracker>();
+                    await pipelineRunTracker.CompleteFailureAsync(runId, ex, CancellationToken.None);
+                }
+                catch
+                {
+                    // Best-effort tracker update.
+                }
             }
             finally
             {
@@ -326,6 +349,7 @@ public class ResidentsController : ControllerBase
         return Ok(new
         {
             message = "Resident reintegration readiness refresh started.",
+            runId,
             inProgress = true,
             scoredAtUtc = DateTime.UtcNow
         });
@@ -335,14 +359,45 @@ public class ResidentsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> RefreshResidentReadinessScore(int id, CancellationToken cancellationToken)
     {
-        var scored = await _residentReintegrationScoringService.ScoreResidentAsync(_db, id, cancellationToken);
-        if (!scored) return NotFound();
+        var initiatedBy = User?.Identity?.Name;
+        var runId = await _pipelineRunTracker.StartAsync(
+            pipelineName: "resident_reintegration",
+            triggerSource: "manual",
+            initiatedBy: initiatedBy,
+            modelVersion: "reintegration-readiness-v1",
+            cancellationToken: cancellationToken);
 
-        return Ok(new
+        try
         {
-            message = "Resident reintegration readiness score refreshed.",
-            residentId = id,
-            scoredAtUtc = DateTime.UtcNow
-        });
+            var scored = await _residentReintegrationScoringService.ScoreResidentAsync(_db, id, cancellationToken);
+            if (!scored)
+            {
+                await _pipelineRunTracker.CompleteFailureAsync(
+                    runId,
+                    new InvalidOperationException($"Resident {id} was not found for readiness scoring."),
+                    CancellationToken.None);
+                return NotFound();
+            }
+
+            await _pipelineRunTracker.CompleteSuccessAsync(runId, 1, cancellationToken);
+
+            return Ok(new
+            {
+                message = "Resident reintegration readiness score refreshed.",
+                runId,
+                residentId = id,
+                scoredAtUtc = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            await _pipelineRunTracker.CompleteFailureAsync(runId, ex, CancellationToken.None);
+            return StatusCode(500, new
+            {
+                message = "Resident reintegration readiness scoring failed.",
+                runId,
+                residentId = id
+            });
+        }
     }
 }

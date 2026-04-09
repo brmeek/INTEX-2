@@ -15,15 +15,18 @@ public class ReportsController : ControllerBase
     private readonly HopeHarborContext _db;
     private readonly ISocialMediaConversionScoringService _socialMediaConversionScoringService;
     private readonly ISafehouseEducationForecastingService _safehouseEducationForecastingService;
+    private readonly IPipelineRunTracker _pipelineRunTracker;
 
     public ReportsController(
         HopeHarborContext db,
         ISocialMediaConversionScoringService socialMediaConversionScoringService,
-        ISafehouseEducationForecastingService safehouseEducationForecastingService)
+        ISafehouseEducationForecastingService safehouseEducationForecastingService,
+        IPipelineRunTracker pipelineRunTracker)
     {
         _db = db;
         _socialMediaConversionScoringService = socialMediaConversionScoringService;
         _safehouseEducationForecastingService = safehouseEducationForecastingService;
+        _pipelineRunTracker = pipelineRunTracker;
     }
 
     [HttpGet("dashboard")]
@@ -100,12 +103,35 @@ public class ReportsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> RefreshSafehouseEducationForecasts(CancellationToken cancellationToken)
     {
-        var scoredCount = await _safehouseEducationForecastingService.ScoreAllAsync(_db, cancellationToken);
-        return Ok(new
+        var initiatedBy = User?.Identity?.Name;
+        var runId = await _pipelineRunTracker.StartAsync(
+            pipelineName: "safehouse_education_forecast",
+            triggerSource: "manual",
+            initiatedBy: initiatedBy,
+            modelVersion: "safehouse-education-forecast-v2",
+            cancellationToken: cancellationToken);
+
+        try
         {
-            message = "Safehouse education forecasts refreshed.",
-            scoredCount
-        });
+            var scoredCount = await _safehouseEducationForecastingService.ScoreAllAsync(_db, cancellationToken);
+            await _pipelineRunTracker.CompleteSuccessAsync(runId, scoredCount, cancellationToken);
+
+            return Ok(new
+            {
+                message = "Safehouse education forecasts refreshed.",
+                runId,
+                scoredCount
+            });
+        }
+        catch (Exception ex)
+        {
+            await _pipelineRunTracker.CompleteFailureAsync(runId, ex, CancellationToken.None);
+            return StatusCode(500, new
+            {
+                message = "Safehouse education forecast refresh failed.",
+                runId
+            });
+        }
     }
 
     [HttpGet("donation-trends")]

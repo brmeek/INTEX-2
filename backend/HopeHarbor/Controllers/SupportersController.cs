@@ -14,11 +14,16 @@ public class SupportersController : ControllerBase
 {
     private readonly HopeHarborContext _db;
     private readonly IDonorChurnScoringService _donorChurnScoringService;
+    private readonly IPipelineRunTracker _pipelineRunTracker;
 
-    public SupportersController(HopeHarborContext db, IDonorChurnScoringService donorChurnScoringService)
+    public SupportersController(
+        HopeHarborContext db,
+        IDonorChurnScoringService donorChurnScoringService,
+        IPipelineRunTracker pipelineRunTracker)
     {
         _db = db;
         _donorChurnScoringService = donorChurnScoringService;
+        _pipelineRunTracker = pipelineRunTracker;
     }
 
     [HttpGet]
@@ -114,12 +119,35 @@ public class SupportersController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> RefreshChurnScores(CancellationToken cancellationToken)
     {
-        var scoredCount = await _donorChurnScoringService.ScoreAllAsync(_db, cancellationToken);
-        return Ok(new
+        var initiatedBy = User?.Identity?.Name;
+        var runId = await _pipelineRunTracker.StartAsync(
+            pipelineName: "donor_churn",
+            triggerSource: "manual",
+            initiatedBy: initiatedBy,
+            modelVersion: "donor-churn-v1",
+            cancellationToken: cancellationToken);
+
+        try
         {
-            message = "Donor churn scores refreshed.",
-            scoredCount,
-            scoredAtUtc = DateTime.UtcNow
-        });
+            var scoredCount = await _donorChurnScoringService.ScoreAllAsync(_db, cancellationToken);
+            await _pipelineRunTracker.CompleteSuccessAsync(runId, scoredCount, cancellationToken);
+
+            return Ok(new
+            {
+                message = "Donor churn scores refreshed.",
+                runId,
+                scoredCount,
+                scoredAtUtc = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            await _pipelineRunTracker.CompleteFailureAsync(runId, ex, CancellationToken.None);
+            return StatusCode(500, new
+            {
+                message = "Donor churn refresh failed.",
+                runId
+            });
+        }
     }
 }
