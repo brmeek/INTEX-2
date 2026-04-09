@@ -486,8 +486,8 @@ const TraffickingMapPage = () => {
           )}
 
           {/* Coverage analysis */}
-          <div className="grid lg:grid-cols-2 gap-6">
-            <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
+          <div className="grid lg:grid-cols-2 gap-6 items-stretch">
+            <div className="bg-card rounded-xl p-6 shadow-soft border border-border h-full">
               <h3 className="font-heading text-lg font-bold text-foreground mb-1">Coverage Analysis</h3>
               <p className="font-body text-xs text-muted-foreground mb-4">
                 Provinces with vs. without safehouse presence ({coverageAnalysis.total} total across 3 zones)
@@ -545,7 +545,7 @@ const TraffickingMapPage = () => {
               )}
             </div>
 
-            <div className="bg-card rounded-xl p-6 shadow-soft border border-border">
+            <div className="bg-card rounded-xl p-6 shadow-soft border border-border h-full flex flex-col">
               <h3 className="font-heading text-lg font-bold text-foreground mb-1">High-Risk Uncovered Areas</h3>
               <p className="font-body text-xs text-muted-foreground mb-4">
                 Provinces with risk ≥ 65 and no safehouse in their province
@@ -555,13 +555,13 @@ const TraffickingMapPage = () => {
                   All high-risk provinces have safehouse coverage.
                 </p>
               ) : (
-                <div className="space-y-2 max-h-[220px] overflow-y-auto">
+                <div className="space-y-2 flex-1 overflow-y-auto">
                   {coverageAnalysis.highRiskUncovered
                     .sort((a, b) => b.riskScore - a.riskScore)
                     .map((p) => (
                       <div
                         key={p.name}
-                        className="flex items-center justify-between px-3 py-2 rounded-lg bg-red-50 border border-red-100"
+                        className="flex items-center justify-between px-3 py-2 rounded-lg bg-secondary border border-border"
                       >
                         <div>
                           <p className="font-body text-sm font-medium text-foreground">{p.name}</p>

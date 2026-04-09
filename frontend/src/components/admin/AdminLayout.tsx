@@ -30,7 +30,7 @@ const adminToolLinks = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Users", href: "/admin/users", icon: Shield },
   { label: "Reports & Calculator", href: "/admin/reports", icon: BarChart3 },
-  { label: "Social Conversion Planner", href: "/admin/social-conversion-planner", icon: Megaphone },
+  { label: "Social Media Conversion Planner", href: "/admin/social-conversion-planner", icon: Megaphone },
   { label: "Posting Calendar", href: "/admin/posting-calendar", icon: CalendarClock },
   { label: "Needs Map", href: "/admin/trafficking-map", icon: Map },
 ];

@@ -151,7 +151,7 @@ const AdminDashboard = () => {
         </div>
       ) : data ? (
         <div className="space-y-6">
-          <div className="bg-white rounded-xl p-5 shadow-soft border border-border">
+          <div className="bg-card rounded-xl p-5 shadow-soft border border-border">
             <div className="flex items-center justify-between gap-4 mb-4">
               <div>
                 <h2 className="font-heading text-lg font-bold text-foreground">Action needed now</h2>

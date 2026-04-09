@@ -364,38 +364,6 @@ const ImpactDashboard = () => {
                   </div>
                 </div>
               </div>
-
-              <section className="py-16 md:py-20 bg-warm-cream dark:bg-card rounded-3xl border dark:border-border">
-                <div className="container text-center">
-                  <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-6">
-                    Turn these numbers into action.
-                  </h2>
-                  <p className="font-body text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed">
-                    The need behind this data is urgent. You can support safe homes directly or learn more about
-                    the mission behind the work.
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-4">
-                    <Link to={donorPortalPath}>
-                      <Button
-                        size="lg"
-                        className="bg-navy text-white hover:bg-navy-light rounded-full font-body font-semibold px-8 h-12 text-base"
-                      >
-                        Donate
-                        <ArrowRight className="ml-1 h-4 w-4" />
-                      </Button>
-                    </Link>
-                    <Link to="/about">
-                      <Button
-                        variant="outline"
-                        size="lg"
-                        className="rounded-full font-body font-semibold px-8 h-12 text-base border-border text-foreground hover:bg-accent hover:text-accent-foreground"
-                      >
-                        About Us
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </section>
             </div>
           ) : (
             <p className="text-center text-muted-foreground">
@@ -404,6 +372,40 @@ const ImpactDashboard = () => {
           )}
         </div>
       </section>
+
+      {!loading && data && (
+        <section className="py-24 md:py-32 bg-warm-cream dark:bg-background">
+          <div className="container text-center">
+            <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-6">
+              Turn these numbers into action.
+            </h2>
+            <p className="font-body text-muted-foreground max-w-lg mx-auto mb-8 leading-relaxed">
+              The need behind this data is urgent. You can support safe homes directly or learn more about
+              the mission behind the work.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link to={donorPortalPath}>
+                <Button
+                  size="lg"
+                  className="bg-navy text-white hover:bg-navy-light rounded-full font-body font-semibold px-8 h-12 text-base"
+                >
+                  Donate
+                  <ArrowRight className="ml-1 h-4 w-4" />
+                </Button>
+              </Link>
+              <Link to="/about">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="rounded-full font-body font-semibold px-8 h-12 text-base"
+                >
+                  About Us
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
     </Layout>
   );
 };

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, MapPin, ArrowRight } from "lucide-react";
+import { Mail, Phone, MapPin, ArrowRight, ChevronDown } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { api } from "@/lib/api";
 
@@ -73,7 +73,7 @@ const ContactPage = () => {
             <div className="lg:col-span-3">
               <form
                 onSubmit={handleSubmit}
-                className="bg-white rounded-2xl shadow-card p-8 md:p-10 border border-border space-y-4"
+                className="bg-card rounded-2xl shadow-card p-8 md:p-10 border border-border space-y-4"
               >
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
@@ -87,7 +87,7 @@ const ContactPage = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, name: e.target.value })
                       }
-                      className="w-full px-4 py-3 rounded-xl border border-border bg-secondary font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+                      className="w-full px-4 py-3 rounded-xl border border-border bg-background font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
                       placeholder="Your full name"
                     />
                   </div>
@@ -102,7 +102,7 @@ const ContactPage = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, email: e.target.value })
                       }
-                      className="w-full px-4 py-3 rounded-xl border border-border bg-secondary font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+                      className="w-full px-4 py-3 rounded-xl border border-border bg-background font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
                       placeholder="you@example.com"
                     />
                   </div>
@@ -112,21 +112,24 @@ const ContactPage = () => {
                   <label className="block font-body text-sm font-medium text-foreground mb-1.5">
                     Subject
                   </label>
-                  <select
-                    value={formData.subject}
-                    onChange={(e) =>
-                      setFormData({ ...formData, subject: e.target.value })
-                    }
-                    required
-                    className="w-full px-4 py-3 rounded-xl border border-border bg-secondary font-body text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
-                  >
-                    <option value="">Select a topic</option>
-                    <option value="Donation Inquiry">Donation Inquiry</option>
-                    <option value="Partnership Opportunity">Partnership Opportunity</option>
-                    <option value="Volunteering">Volunteering</option>
-                    <option value="Media / Press">Media / Press</option>
-                    <option value="General Question">General Question</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={formData.subject}
+                      onChange={(e) =>
+                        setFormData({ ...formData, subject: e.target.value })
+                      }
+                      required
+                      className="w-full appearance-none rounded-xl border border-border bg-background px-4 py-3 pr-12 font-body text-sm text-foreground focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+                    >
+                      <option value="">Select a topic</option>
+                      <option value="Donation Inquiry">Donation Inquiry</option>
+                      <option value="Partnership Opportunity">Partnership Opportunity</option>
+                      <option value="Volunteering">Volunteering</option>
+                      <option value="Media / Press">Media / Press</option>
+                      <option value="General Question">General Question</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  </div>
                 </div>
 
                 <div>
@@ -140,7 +143,7 @@ const ContactPage = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, message: e.target.value })
                     }
-                    className="w-full px-4 py-3 rounded-xl border border-border bg-secondary font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent resize-none"
+                    className="w-full px-4 py-3 rounded-xl border border-border bg-background font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent resize-none"
                     placeholder="Tell us how we can help..."
                   />
                 </div>

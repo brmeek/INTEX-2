@@ -169,21 +169,21 @@ const CaseDetailPage = () => {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center h-48 bg-white rounded-xl border border-border">
+          <div className="flex items-center justify-center h-48 bg-card rounded-xl border border-border">
             <div className="animate-spin h-7 w-7 border-4 border-accent border-t-transparent rounded-full" />
           </div>
         ) : error ? (
-          <div className="bg-white rounded-xl border border-border p-5">
+          <div className="bg-card rounded-xl border border-border p-5">
             <p className="font-body text-sm text-destructive">{error}</p>
           </div>
         ) : !data ? (
-          <div className="bg-white rounded-xl border border-border p-5">
+          <div className="bg-card rounded-xl border border-border p-5">
             <p className="font-body text-sm text-muted-foreground">No dashboard data found for this resident.</p>
           </div>
         ) : (
           <>
             <section className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
-              <div className="bg-white border border-border rounded-xl p-4">
+              <div className="bg-card border border-border rounded-xl p-4">
                 <p className="font-body text-xs text-muted-foreground">Resident</p>
                 <p className="font-heading text-xl font-bold text-foreground mt-1 flex items-center gap-2">
                   <UserRound className="h-4 w-4 text-accent" />
@@ -191,14 +191,14 @@ const CaseDetailPage = () => {
                 </p>
                 <p className="font-body text-xs text-muted-foreground mt-1">{data.caseCategory ?? "Case category unavailable"}</p>
               </div>
-              <div className="bg-white border border-border rounded-xl p-4">
+              <div className="bg-card border border-border rounded-xl p-4">
                 <p className="font-body text-xs text-muted-foreground">Readiness (Current)</p>
                 <p className="font-heading text-2xl font-bold text-foreground mt-1">
                   {data.readiness?.readinessScore != null ? `${(data.readiness.readinessScore * 100).toFixed(2)}%` : "Not scored"}
                 </p>
                 <p className="font-body text-xs text-muted-foreground mt-1">{data.readiness?.readinessTier ?? "No tier yet"}</p>
               </div>
-              <div className="bg-white border border-border rounded-xl p-4">
+              <div className="bg-card border border-border rounded-xl p-4">
                 <p className="font-body text-xs text-muted-foreground">Trend Direction</p>
                 <p className="font-heading text-xl font-bold text-foreground mt-1 flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-accent" />
@@ -208,7 +208,7 @@ const CaseDetailPage = () => {
                   History used: {data.readiness?.historyMonthsUsed ?? 0} months
                 </p>
               </div>
-              <div className="bg-white border border-border rounded-xl p-4">
+              <div className="bg-card border border-border rounded-xl p-4">
                 <p className="font-body text-xs text-muted-foreground">Case Snapshot</p>
                 <p className="font-heading text-xl font-bold text-foreground mt-1 flex items-center gap-2">
                   <ClipboardList className="h-4 w-4 text-accent" />
@@ -221,7 +221,7 @@ const CaseDetailPage = () => {
             </section>
 
             <section className="grid xl:grid-cols-2 gap-5">
-              <div className="bg-white rounded-xl border border-border p-4">
+              <div className="bg-card rounded-xl border border-border p-4">
                 <h3 className="font-heading text-base font-bold text-foreground mb-1">Readiness & Attendance Over Time</h3>
                 <p className="font-body text-xs text-muted-foreground mb-3">
                   Tracks education progress and attendance as a practical readiness trend proxy.
@@ -229,11 +229,11 @@ const CaseDetailPage = () => {
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={readinessTimeline}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis domain={[0, 100]} />
-                      <Tooltip />
-                      <Legend />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="month" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={{ stroke: "hsl(var(--border))" }} tickLine={{ stroke: "hsl(var(--border))" }} />
+                      <YAxis domain={[0, 100]} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={{ stroke: "hsl(var(--border))" }} tickLine={{ stroke: "hsl(var(--border))" }} />
+                      <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "hsl(var(--border))", color: "hsl(var(--foreground))" }} />
+                      <Legend formatter={(value) => <span style={{ color: "hsl(var(--foreground))", fontSize: 12 }}>{value}</span>} />
                       <Line type="monotone" dataKey="readiness" stroke="#2B4570" strokeWidth={2} name="Readiness proxy (%)" />
                       <Line type="monotone" dataKey="attendance" stroke="#3D8B8B" strokeWidth={2} name="Attendance (%)" />
                     </LineChart>
@@ -241,7 +241,7 @@ const CaseDetailPage = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl border border-border p-4">
+              <div className="bg-card rounded-xl border border-border p-4">
                 <h3 className="font-heading text-base font-bold text-foreground mb-1">Case Contact Activity by Month</h3>
                 <p className="font-body text-xs text-muted-foreground mb-3">
                   Process sessions and home visits by month to help assess engagement consistency.
@@ -249,11 +249,11 @@ const CaseDetailPage = () => {
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={activityTimeline}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis allowDecimals={false} />
-                      <Tooltip />
-                      <Legend />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="month" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={{ stroke: "hsl(var(--border))" }} tickLine={{ stroke: "hsl(var(--border))" }} />
+                      <YAxis allowDecimals={false} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={{ stroke: "hsl(var(--border))" }} tickLine={{ stroke: "hsl(var(--border))" }} />
+                      <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "hsl(var(--border))", color: "hsl(var(--foreground))" }} />
+                      <Legend formatter={(value) => <span style={{ color: "hsl(var(--foreground))", fontSize: 12 }}>{value}</span>} />
                       <Bar dataKey="processSessions" stackId="a" fill="#2B4570" name="Process sessions" />
                       <Bar dataKey="homeVisits" stackId="a" fill="#3D8B8B" name="Home visits" />
                     </BarChart>
@@ -263,17 +263,17 @@ const CaseDetailPage = () => {
             </section>
 
             <section className="grid xl:grid-cols-2 gap-5">
-              <div className="bg-white rounded-xl border border-border p-4">
+              <div className="bg-card rounded-xl border border-border p-4">
                 <h3 className="font-heading text-base font-bold text-foreground mb-1">Wellbeing Scores Over Time</h3>
                 <p className="font-body text-xs text-muted-foreground mb-3">Health, nutrition, and sleep indicators from periodic records.</p>
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={wellbeingTimeline}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="month" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={{ stroke: "hsl(var(--border))" }} tickLine={{ stroke: "hsl(var(--border))" }} />
+                      <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={{ stroke: "hsl(var(--border))" }} tickLine={{ stroke: "hsl(var(--border))" }} />
+                      <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "hsl(var(--border))", color: "hsl(var(--foreground))" }} />
+                      <Legend formatter={(value) => <span style={{ color: "hsl(var(--foreground))", fontSize: 12 }}>{value}</span>} />
                       <Line type="monotone" dataKey="health" stroke="#2B4570" strokeWidth={2} name="General health" />
                       <Line type="monotone" dataKey="nutrition" stroke="#3D8B8B" strokeWidth={2} name="Nutrition" />
                       <Line type="monotone" dataKey="sleep" stroke="#8B5CF6" strokeWidth={2} name="Sleep quality" />
@@ -282,7 +282,7 @@ const CaseDetailPage = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl border border-border p-4">
+              <div className="bg-card rounded-xl border border-border p-4">
                 <h3 className="font-heading text-base font-bold text-foreground mb-3">Most Recent Case Notes</h3>
                 <div className="space-y-3">
                   <div>
