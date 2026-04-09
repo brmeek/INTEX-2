@@ -29,7 +29,7 @@ const Navbar = () => {
   const isHome = location.pathname === "/";
   const donorPortalPath = getDonorPortalPath(authSession);
   const staffPortalPath = getStaffPortalPath(authSession);
-  const showStaffPortal = hasAdminAccess(authSession);
+  const showStaffPortal = !isAuthenticated || hasAdminAccess(authSession);
   const navLinks = [
     { label: "About", href: "/about" },
     { label: "Impact", href: "/impact" },

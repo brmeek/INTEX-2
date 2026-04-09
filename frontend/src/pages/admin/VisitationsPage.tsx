@@ -152,8 +152,26 @@ const VisitationsPage = () => {
             <div className="flex items-center justify-center h-32"><div className="animate-spin h-6 w-6 border-4 border-accent border-t-transparent rounded-full" /></div>
           ) : tab === "visits" ? (
             <>
-              <div className="overflow-x-auto">
-                <table className="w-full">
+              <div className="md:hidden space-y-3 p-3">
+                {visits.map((v) => (
+                  <div key={v.visitationId} className="rounded-lg border border-border bg-background p-4 space-y-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-body text-sm font-semibold text-foreground">{v.resident?.firstName} {v.resident?.lastName}</p>
+                        <p className="font-body text-xs text-muted-foreground">{formatDate(v.visitDate)} · {v.socialWorker}</p>
+                      </div>
+                      <span className="text-xs font-body px-2 py-1 rounded-full bg-secondary">{v.visitType}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <span className={`text-xs px-2 py-1 rounded-full ${v.familyCooperationLevel === "Cooperative" ? "bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-300" : v.familyCooperationLevel === "Uncooperative" ? "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300" : "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/50 dark:text-yellow-300"}`}>{v.familyCooperationLevel}</span>
+                      <span className="text-xs font-body text-muted-foreground">{v.safetyConcernsNoted ? "âš ï¸ Safety concerns noted" : "No safety concerns"}</span>
+                    </div>
+                    <p className="font-body text-xs text-muted-foreground">{v.visitOutcome}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[860px]">
                   <thead><tr className="border-b border-border bg-muted/50">
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Date</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Resident</th>
@@ -189,8 +207,23 @@ const VisitationsPage = () => {
             </>
           ) : (
             <>
-              <div className="overflow-x-auto">
-                <table className="w-full">
+              <div className="md:hidden space-y-3 p-3">
+                {conferences.map((c) => (
+                  <div key={c.planId} className="rounded-lg border border-border bg-background p-4 space-y-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-body text-sm font-semibold text-foreground">{c.resident?.firstName} {c.resident?.lastName}</p>
+                        <p className="font-body text-xs text-muted-foreground">{formatDate(c.caseConferenceDate ?? c.targetDate ?? c.updatedAt ?? c.createdAt)}</p>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded-full ${c.status === "Achieved" ? "bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-300" : c.status === "In Progress" ? "bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300" : "bg-secondary text-muted-foreground"}`}>{c.status}</span>
+                    </div>
+                    <p className="font-body text-xs text-muted-foreground">Category: {c.planCategory}</p>
+                    <p className="font-body text-xs text-muted-foreground line-clamp-2">{c.servicesProvided}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[760px]">
                   <thead><tr className="border-b border-border bg-muted/50">
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Conference Date</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Resident</th>

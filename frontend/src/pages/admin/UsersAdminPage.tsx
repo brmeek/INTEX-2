@@ -264,8 +264,51 @@ const UsersAdminPage = () => {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
-                <table className="w-full">
+              <div className="md:hidden space-y-3 p-3">
+                {users.length === 0 ? (
+                  <div className="rounded-lg border border-border bg-background p-4 font-body text-sm text-muted-foreground">
+                    No users found.
+                  </div>
+                ) : (
+                  users.map((user) => (
+                    <div key={user.id} className="rounded-lg border border-border bg-background p-4 space-y-3">
+                      <div>
+                        <p className="font-body text-sm font-semibold text-foreground break-all">
+                          {user.email ?? user.userName ?? "Unknown user"}
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {user.roles.length === 0 ? (
+                            <span className="text-xs font-body text-muted-foreground">No roles</span>
+                          ) : (
+                            user.roles.map((role) => (
+                              <span key={role} className="text-xs font-body px-2 py-1 rounded-full bg-secondary">
+                                {role}
+                              </span>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button onClick={() => openEdit(user)} variant="ghost" size="sm" className="text-xs font-body h-7">
+                          Edit
+                        </Button>
+                        <Button
+                          onClick={() => setUserToDelete(user)}
+                          disabled={deletePending}
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs font-body h-7 text-destructive"
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[640px]">
                   <thead>
                     <tr className="border-b border-border bg-muted/50">
                       <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</th>

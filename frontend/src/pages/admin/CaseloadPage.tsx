@@ -245,8 +245,62 @@ const CaseloadPage = () => {
             <div className="flex items-center justify-center h-32"><div className="animate-spin h-6 w-6 border-4 border-accent border-t-transparent rounded-full" /></div>
           ) : (
             <>
-              <div className="overflow-x-auto">
-                <table className="w-full">
+              <div className="md:hidden space-y-3 p-3">
+                {residents.map((r) => (
+                  <div key={r.residentId} className="rounded-lg border border-border bg-background p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-body text-sm font-semibold text-foreground">{r.firstName} {r.lastName}</p>
+                        <p className="font-body text-xs text-muted-foreground mt-1">{r.caseStatus}</p>
+                      </div>
+                      {r.readinessTier ? (
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${getReadinessPillClass(r.readinessTier)}`}>
+                          {r.readinessTier}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <span className={`text-xs font-body px-2 py-1 rounded-full ${r.caseStatus === "Active" ? "bg-teal/10 text-teal" : r.caseStatus === "Reintegrated" ? "bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-300" : "bg-muted text-muted-foreground"}`}>{r.caseStatus}</span>
+                      {r.readinessScore != null ? (
+                        <span className={`text-xs font-body px-2 py-1 rounded-full ${getReadinessPillClass(r.readinessTier)}`}>
+                          {(r.readinessScore * 100).toFixed(2)}%
+                        </span>
+                      ) : (
+                        <span className="text-xs font-body text-muted-foreground">Readiness not scored</span>
+                      )}
+                      {r.trendLabel ? (
+                        <span className={`text-xs font-body px-2 py-1 rounded-full ${getTrendPillClass(r.trendLabel)}`}>
+                          {r.trendLabel}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        onClick={() => navigate(`/admin/caseload/${r.residentId}`)}
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs font-body h-7 gap-1"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        View
+                      </Button>
+                      <Button onClick={() => openEdit(r)} variant="ghost" size="sm" className="text-xs font-body h-7">Edit</Button>
+                      <Button
+                        onClick={() => setResidentToDelete(r)}
+                        disabled={deletePending}
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs font-body h-7 text-destructive"
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[760px]">
                   <thead><tr className="border-b border-border bg-muted/50">
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Name</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Readiness (Current Level)</th>

@@ -7,7 +7,7 @@ const Footer = () => {
   const { authSession } = useAuth();
   const donorPortalPath = getDonorPortalPath(authSession);
   const staffPortalPath = getStaffPortalPath(authSession);
-  const showStaffPortal = hasAdminAccess(authSession);
+  const showStaffPortal = !authSession?.isAuthenticated || hasAdminAccess(authSession);
 
   return (
     <footer className="bg-navy text-white">

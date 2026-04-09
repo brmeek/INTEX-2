@@ -129,8 +129,40 @@ const PartnersAdminPage = () => {
             <div className="flex items-center justify-center h-32"><div className="animate-spin h-6 w-6 border-4 border-accent border-t-transparent rounded-full" /></div>
           ) : (
             <>
-              <div className="overflow-x-auto">
-                <table className="w-full">
+              <div className="md:hidden space-y-3 p-3">
+                {items.map((p) => (
+                  <div key={p.partnerId} className="rounded-lg border border-border bg-background p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-body text-sm font-semibold text-foreground">{p.partnerName}</p>
+                        <p className="font-body text-xs text-muted-foreground mt-1">{p.roleType} · {p.region}</p>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded-full ${p.status === "Active" ? "bg-teal/10 text-teal" : "bg-muted text-muted-foreground"}`}>
+                        {p.status}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="text-xs px-2 py-1 rounded-full bg-secondary">{p.partnerType}</span>
+                    </div>
+                    <p className="font-body text-xs text-muted-foreground break-all">{p.email}</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button onClick={() => { setEditItem(p); setForm({ partnerName: p.partnerName, partnerType: p.partnerType, roleType: p.roleType, contactName: p.contactName, email: p.email, phone: p.phone, region: p.region, status: p.status, notes: "" }); setShowForm(true); }} variant="ghost" size="sm" className="text-xs font-body h-7">Edit</Button>
+                      <Button
+                        onClick={() => setPartnerToDelete(p)}
+                        disabled={deletePending}
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs font-body h-7 text-destructive"
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[760px]">
                   <thead><tr className="border-b border-border bg-muted/50">
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Name</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Type</th>

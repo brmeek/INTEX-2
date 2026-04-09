@@ -268,8 +268,46 @@ const DonorsAdminPage = () => {
             <div className="flex items-center justify-center h-32"><div className="animate-spin h-6 w-6 border-4 border-accent border-t-transparent rounded-full" /></div>
           ) : tab === "supporters" ? (
             <>
-              <div className="overflow-x-auto">
-                <table className="w-full">
+              <div className="md:hidden space-y-3 p-3">
+                {supporters.map((s) => (
+                  <div key={s.supporterId} className="rounded-lg border border-border bg-background p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-body text-sm font-semibold text-foreground">{s.supporterName}</p>
+                        <p className="font-body text-xs text-muted-foreground mt-1 break-all">{s.email || "—"}</p>
+                      </div>
+                      <span className={`text-xs font-body px-2 py-1 rounded-full ${s.status === "Active" ? "bg-teal/10 text-teal" : "bg-muted text-muted-foreground"}`}>{s.status}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="text-xs font-body px-2 py-1 rounded-full bg-secondary">{s.supporterType}</span>
+                      {s.riskTier ? (
+                        <span className={`text-xs font-body px-2 py-1 rounded-full ${getRiskPillClass(s.riskTier)}`}>
+                          {s.riskTier} ({((s.churnProbability ?? 0) * 100).toFixed(2)}%)
+                        </span>
+                      ) : (
+                        <span className="text-xs font-body text-muted-foreground">Not scored</span>
+                      )}
+                    </div>
+                    <p className="font-body text-sm text-foreground">
+                      Total Given: {s.totalGiven != null ? `â‚±${s.totalGiven.toLocaleString()}` : "â€”"}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button onClick={() => openEdit(s)} variant="ghost" size="sm" className="text-xs font-body h-7">Edit</Button>
+                      <Button
+                        onClick={() => setSupporterToDelete(s)}
+                        disabled={deletePending}
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs font-body h-7 text-destructive"
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[920px]">
                   <thead><tr className="border-b border-border bg-muted/50">
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Name</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Risk</th>
@@ -333,8 +371,27 @@ const DonorsAdminPage = () => {
             </>
           ) : (
             <>
-              <div className="overflow-x-auto">
-                <table className="w-full">
+              <div className="md:hidden space-y-3 p-3">
+                {donations.map((d) => (
+                  <div key={d.donationId} className="rounded-lg border border-border bg-background p-4 space-y-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-body text-sm font-semibold text-foreground">{d.supporter?.supporterName || "â€”"}</p>
+                        <p className="font-body text-xs text-muted-foreground">{d.donationDate}</p>
+                      </div>
+                      <span className="text-xs font-body px-2 py-1 rounded-full bg-secondary">{d.donationType}</span>
+                    </div>
+                    <p className="font-body text-sm text-foreground">
+                      {d.amount != null ? `â‚±${d.amount.toLocaleString()}` : d.estimatedValue != null ? `~â‚±${d.estimatedValue.toLocaleString()}` : "â€”"}
+                    </p>
+                    <p className="font-body text-xs text-muted-foreground">
+                      Campaign: {d.campaignName || "â€”"} · Channel: {d.channelSource || "â€”"} · Recurring: {d.isRecurring ? "Yes" : "No"}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[900px]">
                   <thead><tr className="border-b border-border bg-muted/50">
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Date</th>
                     <th className="text-left px-4 py-3 font-body text-xs font-semibold text-muted-foreground uppercase tracking-wider">Supporter</th>
