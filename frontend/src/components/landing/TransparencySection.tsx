@@ -58,7 +58,7 @@ const TransparencySection = () => {
             <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground leading-tight mb-6">
               Your trust is not something
               <br className="hidden md:block" />
-              we take for granted.
+              {" "}we take for granted.
             </h2>
             <div className="space-y-4 font-body text-muted-foreground leading-relaxed max-w-xl">
               <p>

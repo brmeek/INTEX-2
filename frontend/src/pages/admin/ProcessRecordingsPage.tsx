@@ -2,6 +2,13 @@ import { useEffect, useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -91,24 +98,42 @@ const ProcessRecordingsPage = () => {
           </div>
         )}
 
-        {/* Detail View */}
-        {selected && (
-          <div className="bg-card rounded-xl p-6 shadow-card border border-border">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="font-heading text-lg font-bold">{selected.resident?.firstName} {selected.resident?.lastName}</h3>
-                <p className="font-body text-sm text-muted-foreground">{selected.sessionDate} · {selected.sessionType} Session · {selected.socialWorker}</p>
+        <Dialog open={selected !== null} onOpenChange={(open) => !open && setSelected(null)}>
+          <DialogContent className="max-w-3xl border-border bg-card p-0 sm:rounded-2xl">
+            {selected && (
+              <div className="overflow-hidden rounded-2xl">
+                <div className="border-b border-border px-6 py-5 pr-14">
+                  <DialogHeader className="space-y-2 text-left">
+                    <DialogTitle className="font-heading text-xl font-bold text-foreground">
+                      {selected.resident?.firstName} {selected.resident?.lastName}
+                    </DialogTitle>
+                    <DialogDescription className="font-body text-sm text-muted-foreground">
+                      {selected.sessionDate} · {selected.sessionType} Session · {selected.socialWorker}
+                    </DialogDescription>
+                  </DialogHeader>
+                </div>
+                <div className="space-y-4 px-6 py-5 font-body text-sm">
+                  <div>
+                    <span className="font-semibold text-foreground">Emotional State:</span>{" "}
+                    <span className="text-muted-foreground">{selected.emotionalState}</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-foreground">Narrative:</span>
+                    <p className="mt-1 text-muted-foreground leading-relaxed">{selected.narrativeSummary}</p>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-foreground">Interventions:</span>
+                    <p className="mt-1 text-muted-foreground leading-relaxed">{selected.interventionsApplied}</p>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-foreground">Follow-up:</span>
+                    <p className="mt-1 text-muted-foreground leading-relaxed">{selected.followUpActions}</p>
+                  </div>
+                </div>
               </div>
-              <Button onClick={() => setSelected(null)} variant="ghost" size="sm" className="font-body">Close</Button>
-            </div>
-            <div className="space-y-3 font-body text-sm">
-              <div><span className="font-semibold">Emotional State:</span> <span className="text-muted-foreground">{selected.emotionalState}</span></div>
-              <div><span className="font-semibold">Narrative:</span> <p className="text-muted-foreground mt-1">{selected.narrativeSummary}</p></div>
-              <div><span className="font-semibold">Interventions:</span> <p className="text-muted-foreground mt-1">{selected.interventionsApplied}</p></div>
-              <div><span className="font-semibold">Follow-up:</span> <p className="text-muted-foreground mt-1">{selected.followUpActions}</p></div>
-            </div>
-          </div>
-        )}
+            )}
+          </DialogContent>
+        </Dialog>
 
         <div className="bg-card rounded-xl shadow-soft border border-border overflow-hidden">
           {loading ? (

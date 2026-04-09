@@ -33,7 +33,6 @@ const Navbar = () => {
   const navLinks = [
     { label: "About", href: "/about" },
     { label: "Impact", href: "/impact" },
-    { label: "Get Involved", href: donorPortalPath },
     { label: "Contact", href: "/contact" },
   ];
 

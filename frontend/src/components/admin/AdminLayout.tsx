@@ -53,6 +53,11 @@ const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
     metricLinks.some((link) => location.pathname.startsWith(link.href)) ? "metrics" : "admin"
   );
 
+  const isLinkActive = (href: string) =>
+    href === "/admin"
+      ? location.pathname === href
+      : location.pathname === href || location.pathname.startsWith(`${href}/`);
+
   useEffect(() => {
     if (metricLinks.some((link) => location.pathname.startsWith(link.href))) {
       setActiveTab("metrics");
@@ -114,7 +119,7 @@ const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
               to={link.href}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-body font-medium transition-colors",
-                location.pathname === link.href || location.pathname.startsWith(`${link.href}/`)
+                isLinkActive(link.href)
                   ? "bg-white/10 text-white"
                   : "text-white/60 hover:text-white hover:bg-white/5"
               )}
@@ -194,7 +199,7 @@ const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
                   onClick={() => setSidebarOpen(false)}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-body font-medium transition-colors",
-                    location.pathname === link.href || location.pathname.startsWith(`${link.href}/`)
+                    isLinkActive(link.href)
                       ? "bg-white/10 text-white"
                       : "text-white/60 hover:text-white hover:bg-white/5"
                   )}
