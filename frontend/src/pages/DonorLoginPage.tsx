@@ -40,7 +40,7 @@ const DonorLoginPage = () => {
         await registerUser(email, password);
         setMode("login");
         setPassword("");
-        setSuccess("Account created. Sign in to access donations and giving history.");
+        setSuccess("If the account can be created, you can now sign in.");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed. Please try again.");
@@ -196,8 +196,7 @@ const DonorLoginPage = () => {
                 </p>
 
                 <p className="font-body text-xs text-muted-foreground text-center">
-                  Donor credentials: <span className="font-mono">donor@hopeharbor.org</span> /{" "}
-                  <span className="font-mono">HopeHarborDonor2025!</span>
+                  Need help signing in? Use the contact page and we will assist.
                 </p>
               </form>
             </div>

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using HopeHarbor.Data;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
@@ -11,6 +12,8 @@ namespace HopeHarbor.Controllers;
 [Route("api/auth")]
 public class AuthController : ControllerBase
 {
+    private const string GenericRegistrationMessage = "If the account can be created, you can now sign in.";
+
     public sealed class RegisterDonorRequest
     {
         [Required]
@@ -34,20 +37,22 @@ public class AuthController : ControllerBase
 
     [HttpPost("login")]
     [AllowAnonymous]
+    [EnableRateLimiting("auth-anon")]
     public async Task<IActionResult> Login(
         [FromBody] LoginRequest request,
         SignInManager<ApplicationUser> signInManager,
         UserManager<ApplicationUser> userManager)
     {
-        var user = await userManager.FindByEmailAsync(request.Email);
+        var normalizedEmail = request.Email.Trim();
+        var user = await userManager.FindByEmailAsync(normalizedEmail);
         if (user is null)
             return Unauthorized(new { message = "Invalid email or password." });
 
         var result = await signInManager.PasswordSignInAsync(
-            user.UserName ?? request.Email,
+            user.UserName ?? normalizedEmail,
             request.Password,
             isPersistent: false,
-            lockoutOnFailure: false);
+            lockoutOnFailure: true);
 
         if (!result.Succeeded)
             return Unauthorized(new { message = "Invalid email or password." });
@@ -58,39 +63,38 @@ public class AuthController : ControllerBase
 
     [HttpPost("register-donor")]
     [AllowAnonymous]
+    [EnableRateLimiting("auth-anon")]
     public async Task<IActionResult> RegisterDonor(
         [FromBody] RegisterDonorRequest request,
-        UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager)
+        UserManager<ApplicationUser> userManager)
     {
-        var existingUser = await userManager.FindByEmailAsync(request.Email);
+        var normalizedEmail = request.Email.Trim();
+        var existingUser = await userManager.FindByEmailAsync(normalizedEmail);
         if (existingUser is not null)
-            return Conflict(new { message = "An account with that email already exists." });
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(200));
+            return Ok(new { message = GenericRegistrationMessage });
+        }
 
         var user = new ApplicationUser
         {
-            UserName = request.Email,
-            Email = request.Email,
+            UserName = normalizedEmail,
+            Email = normalizedEmail,
             EmailConfirmed = true
         };
 
         var createResult = await userManager.CreateAsync(user, request.Password);
         if (!createResult.Succeeded)
-        {
-            var message = createResult.Errors.FirstOrDefault()?.Description ?? "Could not create account.";
-            return BadRequest(new { message });
-        }
+            return BadRequest(new { message = "Could not create account." });
 
         var addRoleResult = await userManager.AddToRoleAsync(user, AuthRoles.Donor);
         if (!addRoleResult.Succeeded)
         {
-            var message = addRoleResult.Errors.FirstOrDefault()?.Description ?? "Could not assign donor role.";
-            return BadRequest(new { message });
+            await userManager.DeleteAsync(user);
+            return BadRequest(new { message = "Could not create account." });
         }
 
-        await signInManager.SignInAsync(user, isPersistent: false);
-        var roles = await userManager.GetRolesAsync(user);
-        return Ok(new { email = user.Email, roles });
+        return Ok(new { message = GenericRegistrationMessage });
     }
 
     [HttpPost("logout")]

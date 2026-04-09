@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using HopeHarbor.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace HopeHarbor.Controllers;
 
@@ -31,6 +32,7 @@ public class ChatController : ControllerBase
 
     [HttpPost("ask")]
     [AllowAnonymous]
+    [EnableRateLimiting("public-anon")]
     public async Task<IActionResult> Ask(
         [FromBody] ChatAskRequest request,
         [FromServices] IChatbotService chatbotService,
