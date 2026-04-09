@@ -498,7 +498,7 @@ const DonorPortalPage = () => {
                 Your donation impact forecast
               </h2>
               <p className="font-body text-sm text-muted-foreground">
-                Live estimate based on historical allocation patterns.
+                See how your donations can make a change based off historical allocation patterns.
               </p>
             </div>
             {impactForecast?.modelVersion && (
