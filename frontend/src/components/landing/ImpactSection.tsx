@@ -64,7 +64,7 @@ const ImpactSection = () => {
           <h2 className="font-heading text-3xl md:text-4xl font-bold leading-tight mb-6">
             The numbers tell part
             <br className="hidden md:block" />
-            of the story.
+            {" "}of the story.
           </h2>
           <p className="font-body text-white/60 leading-relaxed">
             Behind every statistic is a young woman rebuilding her life. We track

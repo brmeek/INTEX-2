@@ -43,7 +43,7 @@ const MissionSection = () => {
             <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground leading-tight mb-6">
               We exist because too many
               <br className="hidden md:block" />
-              girls have nowhere to go.
+              {" "}girls have nowhere to go.
             </h2>
             <div className="space-y-4 font-body text-muted-foreground leading-relaxed">
               <p>
