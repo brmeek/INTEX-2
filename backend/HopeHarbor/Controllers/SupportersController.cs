@@ -125,7 +125,7 @@ public class SupportersController : ControllerBase
             pipelineName: "donor_churn",
             triggerSource: "manual",
             initiatedBy: initiatedBy,
-            modelVersion: _donorChurnScoringService.ModelVersion,
+            modelVersion: "donor-churn-v1",
             cancellationToken: cancellationToken);
 
         try

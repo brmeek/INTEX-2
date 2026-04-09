@@ -6,25 +6,13 @@ namespace HopeHarbor.Services;
 
 public interface IResidentReintegrationScoringService
 {
-    string ModelVersion { get; }
     Task<int> ScoreAllAsync(HopeHarborContext db, CancellationToken cancellationToken = default);
     Task<bool> ScoreResidentAsync(HopeHarborContext db, int residentId, CancellationToken cancellationToken = default);
 }
 
 public sealed class ResidentReintegrationScoringService : IResidentReintegrationScoringService
 {
-    private const string DefaultModelVersion = "reintegration-readiness-v1";
-
-    public string ModelVersion { get; }
-
-    public ResidentReintegrationScoringService(IConfiguration configuration)
-    {
-        ModelVersion = ResolveModelVersion(
-            configuration,
-            envKey: "MODEL_VERSION_RESIDENT_REINTEGRATION",
-            configKey: "ModelVersions:ResidentReintegration",
-            fallback: DefaultModelVersion);
-    }
+    private const string ModelVersion = "reintegration-readiness-v1";
 
     private sealed class MonthlySnapshot
     {
@@ -298,18 +286,5 @@ public sealed class ResidentReintegrationScoringService : IResidentReintegration
             Math.Round(firstVsLatest, 4),
             Math.Round(firstVsLatest, 4),
             Math.Round(slope, 4));
-    }
-
-    private static string ResolveModelVersion(
-        IConfiguration configuration,
-        string envKey,
-        string configKey,
-        string fallback)
-    {
-        var configured = configuration[envKey];
-        if (string.IsNullOrWhiteSpace(configured))
-            configured = configuration[configKey];
-
-        return string.IsNullOrWhiteSpace(configured) ? fallback : configured.Trim();
     }
 }
