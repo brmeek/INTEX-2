@@ -79,7 +79,7 @@ const Footer = () => {
             </h4>
             <nav className="flex items-center gap-4">
               <a
-                href="https://www.linkedin.com/in/clippy-clippit-aa445b3a6/"
+                href="https://www.facebook.com/share/1Jrdt72mZh/?mibextid=wwXIfr"
                 target="_blank"
                 rel="noreferrer"
                 className="text-white/70 hover:text-white transition-colors"
@@ -88,7 +88,7 @@ const Footer = () => {
                 <Linkedin className="h-5 w-5" />
               </a>
               <a
-                href="https://www.instagram.com/tung_tung_sahurrrrr?igsh=MWs5Z3U3OWhoNHd4OA=="
+                href="https://www.facebook.com/share/1B1dYsfgXX/?mibextid=wwXIfr"
                 target="_blank"
                 rel="noreferrer"
                 className="text-white/70 hover:text-white transition-colors"
