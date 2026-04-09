@@ -202,7 +202,7 @@ const ChatbotWidget = () => {
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         className={cn(
-          "fixed right-4 z-30 inline-flex items-center gap-2 rounded-full bg-navy px-4 py-3 font-body text-xs font-semibold uppercase tracking-[0.18em] text-white shadow-elevated transition-colors hover:bg-navy-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:right-6",
+          "fixed right-4 z-30 inline-flex h-12 w-12 items-center justify-center rounded-full bg-navy p-0 text-white shadow-elevated transition-colors hover:bg-navy-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:right-6 sm:h-auto sm:w-auto sm:gap-2 sm:px-4 sm:py-3 sm:font-body sm:text-xs sm:font-semibold sm:uppercase sm:tracking-[0.18em]",
           buttonBottomClass
         )}
         aria-expanded={isOpen}
@@ -210,7 +210,7 @@ const ChatbotWidget = () => {
         aria-label="Open help chatbot"
       >
         <MessageCircle className="h-4 w-4" />
-        Help Chat
+        <span className="hidden sm:inline">Help Chat</span>
       </button>
     </>
   );
