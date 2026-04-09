@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { logoutUser } from "@/lib/authApi";
 import { cn } from "@/lib/utils";
-import { useTheme } from "@/context/useTheme";
 import {
   LayoutDashboard,
   Users,
@@ -13,18 +11,14 @@ import {
   Home,
   BarChart3,
   Anchor,
-  LogOut,
   Menu,
   X,
-  ChevronLeft,
   Map,
   Shield,
   CalendarClock,
   Megaphone,
-  Moon,
-  Sun,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import Navbar from "@/components/landing/Navbar";
 
 const adminToolLinks = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -52,10 +46,8 @@ interface AdminLayoutProps {
 type SidebarTab = "admin" | "metrics";
 
 const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
-  const { authSession, refreshAuthSession } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { authSession } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<SidebarTab>(
     metricLinks.some((link) => location.pathname.startsWith(link.href)) ? "metrics" : "admin"
@@ -69,22 +61,19 @@ const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
     }
   }, [location.pathname]);
 
-  const handleLogout = async () => {
-    await logoutUser();
-    await refreshAuthSession();
-    navigate("/login");
-  };
-
   return (
-    <div className="min-h-screen bg-muted flex">
+    <div className="min-h-screen bg-muted">
+      <Navbar />
+
+      <div className="flex pt-16 lg:pt-20">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 flex-col bg-navy text-white fixed inset-y-0 left-0 z-30">
+      <aside className="hidden lg:flex w-64 flex-col bg-navy text-white fixed left-0 top-16 lg:top-20 bottom-0 z-30">
         <div className="p-6 border-b border-white/10">
-          <Link to="/" className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <Anchor className="h-5 w-5 text-teal-light" />
-            <span className="font-heading text-lg font-bold">Hope Harbor</span>
-          </Link>
-          <p className="font-body text-xs text-white/40 mt-1">Staff Portal</p>
+            <span className="font-heading text-lg font-bold">Staff Portal</span>
+          </div>
+          <p className="font-body text-xs text-white/40 mt-1">Admin tools, metrics, and case operations</p>
         </div>
 
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -129,27 +118,20 @@ const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
         </nav>
 
         <div className="p-4 border-t border-white/10">
-          <p className="font-body text-xs text-white/40 truncate mb-2">{authSession?.email}</p>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 text-white/60 hover:text-white text-sm font-body transition-colors w-full"
-          >
-            <LogOut className="h-4 w-4" />
-            Sign Out
-          </button>
+          <p className="font-body text-xs text-white/40 truncate">{authSession?.email}</p>
         </div>
       </aside>
 
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div className="lg:hidden fixed inset-0 z-40">
+        <div className="lg:hidden fixed inset-x-0 top-16 bottom-0 z-40">
           <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
           <aside className="absolute left-0 top-0 bottom-0 w-64 bg-navy text-white flex flex-col">
             <div className="p-6 border-b border-white/10 flex justify-between items-center">
-              <Link to="/" className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <Anchor className="h-5 w-5 text-teal-light" />
-                <span className="font-heading text-lg font-bold">Hope Harbor</span>
-              </Link>
+                <span className="font-heading text-lg font-bold">Staff Portal</span>
+              </div>
               <button onClick={() => setSidebarOpen(false)} className="text-white/60 hover:text-white">
                 <X className="h-5 w-5" />
               </button>
@@ -196,13 +178,7 @@ const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
               ))}
             </nav>
             <div className="p-4 border-t border-white/10">
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 text-white/60 hover:text-white text-sm font-body transition-colors"
-              >
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </button>
+              <p className="font-body text-xs text-white/40 truncate">{authSession?.email}</p>
             </div>
           </aside>
         </div>
@@ -210,7 +186,7 @@ const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
 
       {/* Main Content */}
       <div className="flex-1 lg:ml-64">
-        <header className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border px-6 py-4 flex items-center justify-between shadow-soft">
+        <header className="sticky top-16 lg:top-20 z-20 bg-background/95 backdrop-blur border-b border-border px-6 py-4 flex items-center justify-between shadow-soft">
           <div className="flex items-center gap-4">
             <button className="lg:hidden text-foreground" onClick={() => setSidebarOpen(true)}>
               <Menu className="h-5 w-5" />
@@ -220,28 +196,10 @@ const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
               {subtitle && <p className="font-body text-xs text-muted-foreground">{subtitle}</p>}
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              title={theme === "light" ? "Dark mode" : "Light mode"}
-              aria-label={theme === "light" ? "Dark mode" : "Light mode"}
-              className="rounded-full"
-            >
-              {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-            </Button>
-            <Link to="/">
-              <Button variant="ghost" size="sm" className="font-body text-xs gap-1">
-                <ChevronLeft className="h-3 w-3" />
-                Public Site
-              </Button>
-            </Link>
-          </div>
         </header>
 
-        <main className="p-6">{children}</main>
+        <main id="main-content" tabIndex={-1} className="p-6 outline-none">{children}</main>
+      </div>
       </div>
     </div>
   );

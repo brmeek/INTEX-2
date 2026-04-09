@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
-import { Activity, Anchor, ArrowRight, BarChart3, BookOpen, Heart, LineChart, LogOut, Megaphone, ShieldCheck, Sparkles } from "lucide-react";
+import { Navigate } from "react-router-dom";
+import { Activity, Anchor, ArrowRight, BarChart3, BookOpen, Heart, LineChart, Megaphone, ShieldCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import { logoutUser } from "@/lib/authApi";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import CoverageGapFinder from "@/components/donor/CoverageGapFinder";
+import Navbar from "@/components/landing/Navbar";
 
 const donationAmounts = [25, 50, 100, 250, 500];
 const annualOkrTarget = 5000;
@@ -49,8 +49,7 @@ function getErrorMessage(error: unknown): string {
 }
 
 const DonorPortalPage = () => {
-  const { authSession, isAuthenticated, refreshAuthSession } = useAuth();
-  const navigate = useNavigate();
+  const { authSession, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [selectedAmount, setSelectedAmount] = useState<number | null>(100);
   const [customAmount, setCustomAmount] = useState("");
@@ -125,12 +124,6 @@ const DonorPortalPage = () => {
       value: impactForecast?.estimatedAllocationPhp.outreach ?? 0,
     },
   ];
-
-  const handleLogout = async () => {
-    await logoutUser();
-    await refreshAuthSession();
-    navigate("/donor/login");
-  };
 
   const loadSummary = useCallback(async () => {
     setSummaryLoading(true);
@@ -243,31 +236,14 @@ const DonorPortalPage = () => {
 
   return (
     <div className="min-h-screen bg-muted">
-      <header className="bg-navy text-white border-b border-white/10">
-        <div className="container h-20 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5">
-            <Anchor className="h-6 w-6 text-teal-light" />
-            <div>
-              <p className="font-heading text-lg font-bold">Hope Harbor</p>
-              <p className="font-body text-xs text-white/50">Donor Portal</p>
-            </div>
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link to="/">
-              <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10">
-                Public Site
-              </Button>
-            </Link>
-            <Button onClick={handleLogout} size="sm" variant="outline" className="border-white/20 bg-transparent text-white hover:bg-white/10">
-              <LogOut className="mr-1 h-4 w-4" />
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
-      <main className="container py-8 space-y-6">
+      <div className="pt-16 lg:pt-20">
+      <main id="main-content" tabIndex={-1} className="container py-8 space-y-6 outline-none">
         <section className="bg-card border border-border rounded-2xl p-6 shadow-soft">
+          <p className="font-body text-xs font-semibold tracking-widest uppercase text-accent mb-3">
+            Donor Portal
+          </p>
           <h1 className="font-heading text-3xl font-bold text-foreground">Welcome back, {donorDisplayName}</h1>
         </section>
 
@@ -604,6 +580,7 @@ const DonorPortalPage = () => {
           </p>
         </section>
       </main>
+      </div>
     </div>
   );
 };
