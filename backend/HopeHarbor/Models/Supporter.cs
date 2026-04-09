@@ -8,6 +8,7 @@ public class Supporter
 {
     [Key]
     [Column("supporter_id")]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int SupporterId { get; set; }
 
     [Column("display_name")]

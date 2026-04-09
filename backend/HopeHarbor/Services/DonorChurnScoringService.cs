@@ -6,6 +6,7 @@ namespace HopeHarbor.Services;
 
 public interface IDonorChurnScoringService
 {
+    string ModelVersion { get; }
     Task<int> ScoreAllAsync(HopeHarborContext db, CancellationToken cancellationToken = default);
 }
 
@@ -23,7 +24,18 @@ public class DonorChurnScoringService : IDonorChurnScoringService
     }
 
     private const decimal PredictionThreshold = 0.35m;
-    private const string ModelVersion = "donor-churn-v1";
+    private const string DefaultModelVersion = "donor-churn-v1";
+
+    public string ModelVersion { get; }
+
+    public DonorChurnScoringService(IConfiguration configuration)
+    {
+        ModelVersion = ResolveModelVersion(
+            configuration,
+            envKey: "MODEL_VERSION_DONOR_CHURN",
+            configKey: "ModelVersions:DonorChurn",
+            fallback: DefaultModelVersion);
+    }
 
     public async Task<int> ScoreAllAsync(HopeHarborContext db, CancellationToken cancellationToken = default)
     {
@@ -160,5 +172,18 @@ public class DonorChurnScoringService : IDonorChurnScoringService
         var exp = Math.Exp((double)(-z));
         var probability = 1m / (1m + (decimal)exp);
         return Math.Round(Math.Clamp(probability, 0m, 1m), 4);
+    }
+
+    private static string ResolveModelVersion(
+        IConfiguration configuration,
+        string envKey,
+        string configKey,
+        string fallback)
+    {
+        var configured = configuration[envKey];
+        if (string.IsNullOrWhiteSpace(configured))
+            configured = configuration[configKey];
+
+        return string.IsNullOrWhiteSpace(configured) ? fallback : configured.Trim();
     }
 }

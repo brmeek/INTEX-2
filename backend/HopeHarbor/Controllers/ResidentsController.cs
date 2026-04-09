@@ -312,7 +312,7 @@ public class ResidentsController : ControllerBase
             pipelineName: "resident_reintegration",
             triggerSource: "manual",
             initiatedBy: initiatedBy,
-            modelVersion: "reintegration-readiness-v1",
+            modelVersion: _residentReintegrationScoringService.ModelVersion,
             cancellationToken: CancellationToken.None);
 
         _ = Task.Run(async () =>
@@ -364,7 +364,7 @@ public class ResidentsController : ControllerBase
             pipelineName: "resident_reintegration",
             triggerSource: "manual",
             initiatedBy: initiatedBy,
-            modelVersion: "reintegration-readiness-v1",
+            modelVersion: _residentReintegrationScoringService.ModelVersion,
             cancellationToken: cancellationToken);
 
         try

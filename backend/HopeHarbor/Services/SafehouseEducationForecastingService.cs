@@ -6,6 +6,7 @@ namespace HopeHarbor.Services;
 
 public interface ISafehouseEducationForecastingService
 {
+    string ModelVersion { get; }
     Task<int> ScoreAllAsync(HopeHarborContext db, CancellationToken cancellationToken = default);
     Task<SafehouseEducationForecastEvaluation> EvaluateAsync(HopeHarborContext db, CancellationToken cancellationToken = default);
 }
@@ -20,7 +21,18 @@ public sealed class SafehouseEducationForecastEvaluation
 
 public sealed class SafehouseEducationForecastingService : ISafehouseEducationForecastingService
 {
-    private const string ModelVersion = "safehouse-education-forecast-v2";
+    private const string DefaultModelVersion = "safehouse-education-forecast-v2";
+
+    public string ModelVersion { get; }
+
+    public SafehouseEducationForecastingService(IConfiguration configuration)
+    {
+        ModelVersion = ResolveModelVersion(
+            configuration,
+            envKey: "MODEL_VERSION_SAFEHOUSE_EDUCATION_FORECAST",
+            configKey: "ModelVersions:SafehouseEducationForecast",
+            fallback: DefaultModelVersion);
+    }
 
     private sealed class EducationSnapshot
     {
@@ -139,7 +151,7 @@ public sealed class SafehouseEducationForecastingService : ISafehouseEducationFo
         };
     }
 
-    private static async Task ScoreSafehouseInternalAsync(
+    private async Task ScoreSafehouseInternalAsync(
         HopeHarborContext db,
         int safehouseId,
         decimal globalBaseline,
@@ -270,5 +282,18 @@ public sealed class SafehouseEducationForecastingService : ISafehouseEducationFo
 
         var globalBaseline = globalProgressRows.Count > 0 ? globalProgressRows.Average() : 75m;
         return Math.Clamp(globalBaseline, 0m, 100m);
+    }
+
+    private static string ResolveModelVersion(
+        IConfiguration configuration,
+        string envKey,
+        string configKey,
+        string fallback)
+    {
+        var configured = configuration[envKey];
+        if (string.IsNullOrWhiteSpace(configured))
+            configured = configuration[configKey];
+
+        return string.IsNullOrWhiteSpace(configured) ? fallback : configured.Trim();
     }
 }

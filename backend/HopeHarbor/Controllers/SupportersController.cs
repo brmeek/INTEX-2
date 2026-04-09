@@ -87,6 +87,7 @@ public class SupportersController : ControllerBase
     [Authorize(Policy = AuthPolicies.ManageCatalog)]
     public async Task<IActionResult> Create([FromBody] Supporter supporter)
     {
+        supporter.SupporterId = 0;
         _db.Supporters.Add(supporter);
         await _db.SaveChangesAsync();
         return CreatedAtAction(nameof(Get), new { id = supporter.SupporterId }, supporter);
@@ -124,7 +125,7 @@ public class SupportersController : ControllerBase
             pipelineName: "donor_churn",
             triggerSource: "manual",
             initiatedBy: initiatedBy,
-            modelVersion: "donor-churn-v1",
+            modelVersion: _donorChurnScoringService.ModelVersion,
             cancellationToken: cancellationToken);
 
         try

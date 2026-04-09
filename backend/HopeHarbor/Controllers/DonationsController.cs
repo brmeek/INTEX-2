@@ -252,7 +252,6 @@ public class DonationsController : ControllerBase
         {
             supporter = new Supporter
             {
-                SupporterId = await GetNextSupporterIdAsync(cancellationToken),
                 SupporterName = normalizedEmail.Split('@')[0],
                 SupporterType = "Individual",
                 Email = normalizedEmail,
@@ -374,15 +373,6 @@ public class DonationsController : ControllerBase
         _db.Donations.Remove(item);
         await _db.SaveChangesAsync();
         return NoContent();
-    }
-
-    private async Task<int> GetNextSupporterIdAsync(CancellationToken cancellationToken)
-    {
-        var max = await _db.Supporters
-            .AsNoTracking()
-            .Select(s => (int?)s.SupporterId)
-            .MaxAsync(cancellationToken);
-        return (max ?? 0) + 1;
     }
 
     private async Task<int> GetNextDonationIdAsync(CancellationToken cancellationToken)

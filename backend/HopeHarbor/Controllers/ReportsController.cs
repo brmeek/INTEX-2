@@ -13,17 +13,23 @@ namespace HopeHarbor.Controllers;
 public class ReportsController : ControllerBase
 {
     private readonly HopeHarborContext _db;
+    private readonly IDonorChurnScoringService _donorChurnScoringService;
+    private readonly IResidentReintegrationScoringService _residentReintegrationScoringService;
     private readonly ISocialMediaConversionScoringService _socialMediaConversionScoringService;
     private readonly ISafehouseEducationForecastingService _safehouseEducationForecastingService;
     private readonly IPipelineRunTracker _pipelineRunTracker;
 
     public ReportsController(
         HopeHarborContext db,
+        IDonorChurnScoringService donorChurnScoringService,
+        IResidentReintegrationScoringService residentReintegrationScoringService,
         ISocialMediaConversionScoringService socialMediaConversionScoringService,
         ISafehouseEducationForecastingService safehouseEducationForecastingService,
         IPipelineRunTracker pipelineRunTracker)
     {
         _db = db;
+        _donorChurnScoringService = donorChurnScoringService;
+        _residentReintegrationScoringService = residentReintegrationScoringService;
         _socialMediaConversionScoringService = socialMediaConversionScoringService;
         _safehouseEducationForecastingService = safehouseEducationForecastingService;
         _pipelineRunTracker = pipelineRunTracker;
@@ -108,7 +114,7 @@ public class ReportsController : ControllerBase
             pipelineName: "safehouse_education_forecast",
             triggerSource: "manual",
             initiatedBy: initiatedBy,
-            modelVersion: "safehouse-education-forecast-v2",
+            modelVersion: _safehouseEducationForecastingService.ModelVersion,
             cancellationToken: cancellationToken);
 
         try
@@ -132,6 +138,20 @@ public class ReportsController : ControllerBase
                 runId
             });
         }
+    }
+
+    [HttpGet("model-versions")]
+    [Authorize(Roles = "Admin")]
+    public IActionResult GetModelVersions()
+    {
+        return Ok(new
+        {
+            donorChurn = _donorChurnScoringService.ModelVersion,
+            residentReintegration = _residentReintegrationScoringService.ModelVersion,
+            safehouseEducationForecast = _safehouseEducationForecastingService.ModelVersion,
+            socialMediaConversion = _socialMediaConversionScoringService.ModelVersion,
+            resolvedAtUtc = DateTime.UtcNow
+        });
     }
 
     [HttpGet("donation-trends")]

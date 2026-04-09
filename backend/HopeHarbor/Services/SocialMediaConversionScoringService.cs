@@ -4,6 +4,7 @@ namespace HopeHarbor.Services;
 
 public interface ISocialMediaConversionScoringService
 {
+    string ModelVersion { get; }
     SocialMediaConversionPrediction ScoreDraft(SocialMediaDraftInput input);
 }
 
@@ -26,7 +27,18 @@ public sealed class SocialMediaDraftInput
 
 public sealed class SocialMediaConversionScoringService : ISocialMediaConversionScoringService
 {
-    private const string ModelVersion = "social-media-conversion-v1";
+    private const string DefaultModelVersion = "social-media-conversion-v1";
+
+    public string ModelVersion { get; }
+
+    public SocialMediaConversionScoringService(IConfiguration configuration)
+    {
+        ModelVersion = ResolveModelVersion(
+            configuration,
+            envKey: "MODEL_VERSION_SOCIAL_MEDIA_CONVERSION",
+            configKey: "ModelVersions:SocialMediaConversion",
+            fallback: DefaultModelVersion);
+    }
 
     public SocialMediaConversionPrediction ScoreDraft(SocialMediaDraftInput input)
     {
@@ -127,5 +139,18 @@ public sealed class SocialMediaConversionScoringService : ISocialMediaConversion
             ModelVersion = ModelVersion,
             ScoredAtUtc = DateTime.UtcNow
         };
+    }
+
+    private static string ResolveModelVersion(
+        IConfiguration configuration,
+        string envKey,
+        string configKey,
+        string fallback)
+    {
+        var configured = configuration[envKey];
+        if (string.IsNullOrWhiteSpace(configured))
+            configured = configuration[configKey];
+
+        return string.IsNullOrWhiteSpace(configured) ? fallback : configured.Trim();
     }
 }

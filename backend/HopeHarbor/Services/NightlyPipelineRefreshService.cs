@@ -112,17 +112,17 @@ public sealed class NightlyPipelineRefreshService : BackgroundService
 
             var donorCount = await RunPipelineAsync(
                 pipelineName: "donor_churn",
-                modelVersion: "donor-churn-v1",
+                modelVersion: donorChurnScoringService.ModelVersion,
                 scoreFunc: ct => donorChurnScoringService.ScoreAllAsync(db, ct));
 
             var residentCount = await RunPipelineAsync(
                 pipelineName: "resident_reintegration",
-                modelVersion: "reintegration-readiness-v1",
+                modelVersion: residentReintegrationScoringService.ModelVersion,
                 scoreFunc: ct => residentReintegrationScoringService.ScoreAllAsync(db, ct));
 
             var safehouseCount = await RunPipelineAsync(
                 pipelineName: "safehouse_education_forecast",
-                modelVersion: "safehouse-education-forecast-v2",
+                modelVersion: safehouseEducationForecastingService.ModelVersion,
                 scoreFunc: ct => safehouseEducationForecastingService.ScoreAllAsync(db, ct));
 
             _logger.LogInformation(

@@ -246,19 +246,19 @@ _ = Task.Run(async () =>
 
         var donorCount = await RunStartupPipelineAsync(
             pipelineName: "donor_churn",
-            modelVersion: "donor-churn-v1",
+            modelVersion: donorChurnScoringService.ModelVersion,
             scoreFunc: ct => donorChurnScoringService.ScoreAllAsync(startupDb, ct),
             cancellationToken: CancellationToken.None);
 
         var residentCount = await RunStartupPipelineAsync(
             pipelineName: "resident_reintegration",
-            modelVersion: "reintegration-readiness-v1",
+            modelVersion: residentReintegrationScoringService.ModelVersion,
             scoreFunc: ct => residentReintegrationScoringService.ScoreAllAsync(startupDb, ct),
             cancellationToken: CancellationToken.None);
 
         var safehouseCount = await RunStartupPipelineAsync(
             pipelineName: "safehouse_education_forecast",
-            modelVersion: "safehouse-education-forecast-v2",
+            modelVersion: safehouseEducationForecastingService.ModelVersion,
             scoreFunc: ct => safehouseEducationForecastingService.ScoreAllAsync(startupDb, ct),
             cancellationToken: CancellationToken.None);
 
