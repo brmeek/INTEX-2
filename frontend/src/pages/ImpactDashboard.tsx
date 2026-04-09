@@ -30,6 +30,7 @@ interface ImpactData {
   totalResidents: number;
   activeResidents: number;
   reintegrated: number;
+  reintegrationRate: number;
   safehouseCount: number;
   totalDonations: number;
   donorCount: number;
@@ -174,8 +175,8 @@ const ImpactDashboard = () => {
                 <div className="grid gap-4">
                   {[
                     {
-                      label: "Successfully Reintegrated",
-                      value: data.reintegrated,
+                      label: "Reintegration Rate",
+                      value: `${data.reintegrationRate}%`,
                       icon: TrendingUp,
                     },
                     { label: "Safe Homes Operating", value: data.safehouseCount, icon: Home },

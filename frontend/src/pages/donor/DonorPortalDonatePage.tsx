@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 
 const donationAmounts = [25, 50, 100, 250, 500];
-const annualOkrTarget = 5000;
+const annualOkrTarget = 50000;
 
 interface DonorSummary {
   year: number;
