@@ -20,14 +20,14 @@ public class DonorChurnScore
     public bool ChurnPredicted { get; set; }
 
     [Column("risk_tier")]
-    [MaxLength(20)]
+    [StringLength(20)]
     public string RiskTier { get; set; } = "Low";
 
     [Column("scored_at_utc")]
     public DateTime ScoredAtUtc { get; set; }
 
     [Column("model_version")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string ModelVersion { get; set; } = "donor-churn-v1";
 
     [Column("days_since_last_donation")]

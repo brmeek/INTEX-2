@@ -20,15 +20,15 @@ public class EducationRecord
     public DateOnly? RecordDate { get; set; }
 
     [Column("education_level")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? EducationLevel { get; set; }
 
     [Column("school_name")]
-    [MaxLength(255)]
+    [StringLength(255)]
     public string? SchoolName { get; set; }
 
     [Column("enrollment_status")]
-    [MaxLength(50)]
+    [StringLength(50)]
     public string? EnrollmentStatus { get; set; }
 
     [Column("attendance_rate")]
@@ -38,9 +38,10 @@ public class EducationRecord
     public decimal? ProgressPercent { get; set; }
 
     [Column("completion_status")]
-    [MaxLength(50)]
+    [StringLength(50)]
     public string? CompletionStatus { get; set; }
 
     [Column("notes")]
+    [StringLength(2000)]
     public string? Notes { get; set; }
 }

@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import CoverageGapFinder from "@/components/donor/CoverageGapFinder";
 import Navbar from "@/components/landing/Navbar";
 
-const donationAmounts = [25, 50, 100, 250, 500];
+const donationAmounts = [100, 250, 500, 750, 1000];
 const annualOkrTarget = 50000;
 
 interface DonorSummary {

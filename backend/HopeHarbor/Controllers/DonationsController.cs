@@ -121,19 +121,23 @@ public class DonationsController : ControllerBase
             .Select(s => s.SupporterId)
             .ToListAsync();
 
+        var currentYear = DateTime.UtcNow.Year;
+        var organizationTotalThisYear = await _db.Donations
+            .Where(d => d.DonationDate.HasValue && d.DonationDate.Value.Year == currentYear)
+            .SumAsync(d => d.Amount ?? 0m);
+
         if (supporterIds.Count == 0)
         {
             return Ok(new DonorSummaryResponse
             {
-                Year = DateTime.UtcNow.Year,
+                Year = currentYear,
                 DonorTotalThisYear = 0m,
-                OrganizationTotalThisYear = 0m,
+                OrganizationTotalThisYear = organizationTotalThisYear,
                 LifetimeTotal = 0m,
                 DonationCountThisYear = 0
             });
         }
 
-        var currentYear = DateTime.UtcNow.Year;
         var donations = _db.Donations.Where(d => d.SupporterId != null && supporterIds.Contains(d.SupporterId.Value));
 
         var donorTotalThisYear = await donations
@@ -144,9 +148,6 @@ public class DonationsController : ControllerBase
             .CountAsync(d => d.DonationDate.HasValue && d.DonationDate.Value.Year == currentYear);
 
         var lifetimeTotal = await donations.SumAsync(d => d.Amount ?? 0m);
-        var organizationTotalThisYear = await _db.Donations
-            .Where(d => d.DonationDate.HasValue && d.DonationDate.Value.Year == currentYear)
-            .SumAsync(d => d.Amount ?? 0m);
 
         return Ok(new DonorSummaryResponse
         {

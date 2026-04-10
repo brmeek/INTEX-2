@@ -35,6 +35,10 @@ public class ReportsController : ControllerBase
     {
         var activeResidents = await _db.Residents.CountAsync(r => r.CaseStatus == "Active");
         var totalResidents = await _db.Residents.CountAsync();
+        var reintegratedResidents = await _db.Residents.CountAsync(r => r.ReintegrationStatus == "Completed");
+        var reintegrationRate = totalResidents > 0
+            ? Math.Round(100.0 * reintegratedResidents / totalResidents, 1)
+            : 0;
         var totalDonations = await _db.Donations.Where(d => d.Amount != null).SumAsync(d => d.Amount ?? 0);
         var donationCount = await _db.Donations.CountAsync();
         var safehouseCount = await _db.Safehouses.CountAsync();
@@ -89,6 +93,7 @@ public class ReportsController : ControllerBase
         {
             activeResidents,
             totalResidents,
+            reintegrationRate,
             totalDonations,
             donationCount,
             safehouseCount,
@@ -166,6 +171,9 @@ public class ReportsController : ControllerBase
         var totalResidents = await _db.Residents.CountAsync();
         var activeResidents = await _db.Residents.CountAsync(r => r.CaseStatus == "Active");
         var reintegrated = await _db.Residents.CountAsync(r => r.ReintegrationStatus == "Completed");
+        var reintegrationRate = totalResidents > 0
+            ? Math.Round(100.0 * reintegrated / totalResidents, 1)
+            : 0;
         var safehouseCount = await _db.Safehouses.CountAsync();
         var totalDonations = await _db.Donations.Where(d => d.Amount != null).SumAsync(d => d.Amount ?? 0);
         var totalRaisedThisYear = await _db.Donations
@@ -289,6 +297,7 @@ public class ReportsController : ControllerBase
             totalResidents,
             activeResidents,
             reintegrated,
+            reintegrationRate,
             safehouseCount,
             totalDonations,
             totalRaisedThisYear,

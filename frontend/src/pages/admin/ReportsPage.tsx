@@ -104,6 +104,24 @@ const ReportsPage = () => {
         </div>
       ) : (
         <div className="space-y-6">
+          {outcomes && (
+            <div className="bg-card rounded-xl p-4 sm:p-6 shadow-soft border border-border">
+              <p className="font-body text-xs font-semibold tracking-widest uppercase text-accent mb-3">
+                Primary Outcome
+              </p>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h3 className="font-heading text-base sm:text-lg font-bold text-foreground">Reintegration Rate</h3>
+                  <p className="font-body text-sm text-muted-foreground mt-1">
+                    Share of all residents who have completed reintegration.
+                  </p>
+                </div>
+                <p className="font-heading text-4xl sm:text-5xl font-bold text-foreground">
+                  {outcomes.reintegrationRate}%
+                </p>
+              </div>
+            </div>
+          )}
           <div className="bg-card rounded-xl p-4 sm:p-6 shadow-soft border border-border">
             <h3 className="font-heading text-base sm:text-lg font-bold text-foreground mb-4">Donation Trends Over Time</h3>
             <p className="font-body text-xs text-muted-foreground mb-3">
@@ -138,7 +156,7 @@ const ReportsPage = () => {
             {outcomes && (
               <div className="bg-card rounded-xl p-4 sm:p-6 shadow-soft border border-border">
                 <h3 className="font-heading text-base sm:text-lg font-bold text-foreground mb-1">Residents by Status</h3>
-                <p className="font-body text-xs text-muted-foreground mb-4">Reintegration rate: {outcomes.reintegrationRate}%</p>
+                <p className="font-body text-xs text-muted-foreground mb-4">Current resident status distribution across the program.</p>
                 <div role="img" aria-label="Pie chart showing resident count by case status" className="h-[220px] sm:h-[250px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -216,7 +234,7 @@ const ReportsPage = () => {
                       </div>
                       <span className="text-xs font-body px-2 py-1 rounded-full bg-secondary">Active: {s.activeResidents}</span>
                     </div>
-                    <p className="font-body text-xs text-muted-foreground">Capacity: {s.capacity || "-"} · Residents: {s.residentCount}</p>
+                    <p className="font-body text-xs text-muted-foreground">Capacity: {s.capacity || "-"} Â· Residents: {s.residentCount}</p>
                     {occupancyPct != null ? (
                       <div className="flex items-center gap-2">
                         <div className="h-2 flex-1 rounded-full bg-muted">

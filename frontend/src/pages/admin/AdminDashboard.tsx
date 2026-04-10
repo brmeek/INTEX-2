@@ -6,6 +6,7 @@ import { Users, Heart, Home, Calendar, DollarSign, ClipboardList, AlertTriangle,
 interface DashboardData {
   activeResidents: number;
   totalResidents: number;
+  reintegrationRate: number;
   totalDonations: number;
   donationCount: number;
   safehouseCount: number;
@@ -68,10 +69,11 @@ const AdminDashboard = () => {
   const stats = data
     ? [
         { label: "Residents currently in care", value: data.activeResidents, icon: Users, color: "bg-teal text-white" },
+        { label: "Reintegration rate", value: `${data.reintegrationRate}%`, icon: ArrowUpRight, color: "bg-accent text-white" },
         { label: "Total donations received (all time)", value: `₱${data.totalDonations.toLocaleString()}`, icon: DollarSign, color: "bg-coral text-white" },
         { label: "Number of donations recorded", value: data.donationCount, icon: Heart, color: "bg-navy text-white" },
-        { label: "Safehouse locations", value: data.safehouseCount, icon: Home, color: "bg-accent text-white" },
-        { label: "Residents served overall", value: data.totalResidents, icon: ClipboardList, color: "bg-navy-light text-white" },
+        { label: "Safehouse locations", value: data.safehouseCount, icon: Home, color: "bg-navy-light text-white" },
+        { label: "Residents served overall", value: data.totalResidents, icon: ClipboardList, color: "bg-navy text-white" },
       ]
     : [];
 
@@ -196,7 +198,7 @@ const AdminDashboard = () => {
               <h3 className="font-heading text-base font-bold text-foreground">Program summary</h3>
               <p className="font-body text-xs text-muted-foreground">Totals and context (all-time unless noted)</p>
             </div>
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {stats.map((s) => (
               <div key={s.label} className="bg-card rounded-xl p-5 shadow-soft border border-border">
                 <div className={`w-10 h-10 rounded-lg ${s.color} flex items-center justify-center mb-3`}>

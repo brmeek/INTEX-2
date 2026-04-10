@@ -20,28 +20,31 @@ public class HomeVisitation
     public DateOnly? VisitDate { get; set; }
 
     [Column("social_worker")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? SocialWorker { get; set; }
 
     [Column("visit_type")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? VisitType { get; set; }
 
     [Column("location_visited")]
-    [MaxLength(255)]
+    [StringLength(255)]
     public string? LocationVisited { get; set; }
 
     [Column("family_members_present")]
+    [StringLength(2000)]
     public string? FamilyMembersPresent { get; set; }
 
     [Column("purpose")]
+    [StringLength(2000)]
     public string? Purpose { get; set; }
 
     [Column("observations")]
+    [StringLength(2000)]
     public string? Observations { get; set; }
 
     [Column("family_cooperation_level")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? FamilyCooperationLevel { get; set; }
 
     [Column("safety_concerns_noted")]
@@ -51,9 +54,10 @@ public class HomeVisitation
     public bool? FollowUpNeeded { get; set; }
 
     [Column("follow_up_notes")]
+    [StringLength(2000)]
     public string? FollowUpNotes { get; set; }
 
     [Column("visit_outcome")]
-    [MaxLength(100)]
+    [StringLength(100)]
     public string? VisitOutcome { get; set; }
 }
