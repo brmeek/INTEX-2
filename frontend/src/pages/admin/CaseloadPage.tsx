@@ -321,19 +321,12 @@ const CaseloadPage = () => {
                   <option key={option} value={option}>{option}</option>
                 ))}
               </select>
-              <select className={inputClass} value={form.admissionDate} onChange={(e) => setForm({ ...form, admissionDate: e.target.value })}>
-                <option value="">Admission Date</option>
-                {Array.from({ length: 366 }, (_, i) => {
-                  const date = new Date();
-                  date.setDate(date.getDate() - i);
-                  const iso = date.toISOString().slice(0, 10);
-                  return (
-                    <option key={iso} value={iso}>
-                      {date.toLocaleDateString()}
-                    </option>
-                  );
-                })}
-              </select>
+              <input
+                type="date"
+                className={inputClass}
+                value={form.admissionDate}
+                onChange={(e) => setForm({ ...form, admissionDate: e.target.value })}
+              />
               <select className={inputClass} value={form.safehouseId} onChange={(e) => setForm({ ...form, safehouseId: e.target.value })}>
                 <option value="">Unassigned Safehouse</option>
                 {safehouses.map((safehouse) => (
