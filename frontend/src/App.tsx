@@ -139,10 +139,18 @@ const App = () => {
               <Route path="/admin/users" element={<ProtectedRoute requireRole="Admin"><UsersAdminPage /></ProtectedRoute>} />
               <Route path="/admin/donors" element={<ProtectedRoute requireRole="Admin"><DonorsAdminPage /></ProtectedRoute>} />
               <Route path="/admin/caseload" element={<ProtectedRoute requireRole="Admin"><CaseloadPage /></ProtectedRoute>} />
+              <Route path="/admin/case-load" element={<Navigate to="/admin/caseload" replace />} />
               <Route path="/admin/caseload/:id" element={<ProtectedRoute requireRole="Admin"><CaseDetailPage /></ProtectedRoute>} />
               <Route path="/admin/recordings" element={<ProtectedRoute requireRole="Admin"><ProcessRecordingsPage /></ProtectedRoute>} />
+              <Route path="/admin/process-recordings" element={<Navigate to="/admin/recordings" replace />} />
+              <Route path="/admin/process-recording" element={<Navigate to="/admin/recordings" replace />} />
+              <Route path="/admin/proccess-recordings" element={<Navigate to="/admin/recordings" replace />} />
+              <Route path="/admin/proccess-recording" element={<Navigate to="/admin/recordings" replace />} />
               <Route path="/admin/visitations" element={<ProtectedRoute requireRole="Admin"><VisitationsPage /></ProtectedRoute>} />
+              <Route path="/admin/visitation" element={<Navigate to="/admin/visitations" replace />} />
+              <Route path="/admin/visits" element={<Navigate to="/admin/visitations" replace />} />
               <Route path="/admin/partners" element={<ProtectedRoute requireRole="Admin"><PartnersAdminPage /></ProtectedRoute>} />
+              <Route path="/admin/partner" element={<Navigate to="/admin/partners" replace />} />
               <Route path="/admin/reports" element={<ProtectedRoute requireRole="Admin"><ReportsPage /></ProtectedRoute>} />
               <Route path="/admin/social-conversion-planner" element={<ProtectedRoute requireRole="Admin"><SocialConversionPlannerPage /></ProtectedRoute>} />
               <Route path="/admin/trafficking-map" element={<ProtectedRoute requireRole="Admin"><TraffickingMapPage /></ProtectedRoute>} />

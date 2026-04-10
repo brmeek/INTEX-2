@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { DeleteConfirmDialog } from "@/components/admin/DeleteConfirmDialog";
 import { api } from "@/lib/api";
+import { getApiErrorMessage } from "@/lib/apiErrors";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -123,6 +124,27 @@ const DonorsAdminPage = () => {
   }, [tab, inKindEstimateForm]);
 
   const handleSave = async () => {
+    if (!form.supporterName.trim()) {
+      toast({ title: "Name Required", description: "Please enter a supporter name.", variant: "destructive" });
+      return;
+    }
+    if (!form.email.trim()) {
+      toast({ title: "Email Required", description: "Please enter an email address.", variant: "destructive" });
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      toast({ title: "Invalid Email", description: "Please enter a valid email address.", variant: "destructive" });
+      return;
+    }
+    if (!form.phone.trim()) {
+      toast({ title: "Phone Required", description: "Please enter a phone number.", variant: "destructive" });
+      return;
+    }
+    if (!form.region.trim()) {
+      toast({ title: "Region Required", description: "Please enter a region.", variant: "destructive" });
+      return;
+    }
+
     try {
       if (editItem) {
         await api.put(`/api/supporters/${editItem.supporterId}`, { ...editItem, ...form });
@@ -136,7 +158,7 @@ const DonorsAdminPage = () => {
       setForm({ supporterName: "", supporterType: "Monetary", email: "", phone: "", status: "Active", region: "", notes: "" });
       loadSupporters();
     } catch (e) {
-      toast({ title: "Error", description: String(e), variant: "destructive" });
+      toast({ title: "Error", description: getApiErrorMessage(e), variant: "destructive" });
     }
   };
 
@@ -156,7 +178,7 @@ const DonorsAdminPage = () => {
       setSupporterToDelete(null);
       loadSupporters();
     } catch (e) {
-      toast({ title: "Error", description: String(e), variant: "destructive" });
+      toast({ title: "Error", description: getApiErrorMessage(e), variant: "destructive" });
     } finally {
       setDeletePending(false);
     }

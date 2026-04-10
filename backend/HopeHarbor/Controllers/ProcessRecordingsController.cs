@@ -8,6 +8,10 @@ namespace HopeHarbor.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Route("api/process-recordings")]
+[Route("api/process-recording")]
+[Route("api/proccess-recordings")]
+[Route("api/proccess-recording")]
 [Authorize(Policy = AuthPolicies.ViewAdminData)]
 public class ProcessRecordingsController : ControllerBase
 {
@@ -34,34 +38,45 @@ public class ProcessRecordingsController : ControllerBase
 
     [HttpPost]
     [Authorize(Policy = AuthPolicies.ManageCatalog)]
-    public async Task<IActionResult> Create([FromBody] ProcessRecording recording)
+    public async Task<IActionResult> Create([FromBody] ProcessRecording recording, CancellationToken cancellationToken)
     {
-        recording.CreatedAt = DateTime.UtcNow;
+        if (recording.RecordingId <= 0)
+            recording.RecordingId = await GetNextRecordingIdAsync(cancellationToken);
+
         _db.ProcessRecordings.Add(recording);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(cancellationToken);
         return CreatedAtAction(nameof(Get), new { id = recording.RecordingId }, recording);
     }
 
     [HttpPut("{id}")]
     [Authorize(Policy = AuthPolicies.ManageCatalog)]
-    public async Task<IActionResult> Update(int id, [FromBody] ProcessRecording recording)
+    public async Task<IActionResult> Update(int id, [FromBody] ProcessRecording recording, CancellationToken cancellationToken)
     {
-        var existing = await _db.ProcessRecordings.FindAsync(id);
+        var existing = await _db.ProcessRecordings.FindAsync([id], cancellationToken);
         if (existing == null) return NotFound();
         _db.Entry(existing).CurrentValues.SetValues(recording);
         existing.RecordingId = id;
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(cancellationToken);
         return Ok(existing);
     }
 
     [HttpDelete("{id}")]
     [Authorize(Policy = AuthPolicies.ManageCatalog)]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        var item = await _db.ProcessRecordings.FindAsync(id);
+        var item = await _db.ProcessRecordings.FindAsync([id], cancellationToken);
         if (item == null) return NotFound();
         _db.ProcessRecordings.Remove(item);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(cancellationToken);
         return NoContent();
+    }
+
+    private async Task<int> GetNextRecordingIdAsync(CancellationToken cancellationToken)
+    {
+        var max = await _db.ProcessRecordings
+            .AsNoTracking()
+            .Select(r => (int?)r.RecordingId)
+            .MaxAsync(cancellationToken);
+        return (max ?? 0) + 1;
     }
 }

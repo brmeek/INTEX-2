@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { DeleteConfirmDialog } from "@/components/admin/DeleteConfirmDialog";
 import { api } from "@/lib/api";
+import { getApiErrorMessage } from "@/lib/apiErrors";
 import { Button } from "@/components/ui/button";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -47,6 +48,27 @@ const PartnersAdminPage = () => {
   useEffect(() => { load(); }, []);
 
   const handleSave = async () => {
+    if (!form.partnerName.trim()) {
+      toast({ title: "Name Required", description: "Please enter a partner name.", variant: "destructive" });
+      return;
+    }
+    if (!form.contactName.trim()) {
+      toast({ title: "Contact Required", description: "Please enter a contact name.", variant: "destructive" });
+      return;
+    }
+    if (!form.email.trim()) {
+      toast({ title: "Email Required", description: "Please enter an email address.", variant: "destructive" });
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      toast({ title: "Invalid Email", description: "Please enter a valid email address.", variant: "destructive" });
+      return;
+    }
+    if (!form.phone.trim()) {
+      toast({ title: "Phone Required", description: "Please enter a phone number.", variant: "destructive" });
+      return;
+    }
+
     try {
       if (editItem) {
         await api.put(`/api/partners/${editItem.partnerId}`, { ...editItem, ...form });
@@ -59,7 +81,7 @@ const PartnersAdminPage = () => {
       setEditItem(null);
       load();
     } catch (e) {
-      toast({ title: "Error", description: String(e), variant: "destructive" });
+      toast({ title: "Error", description: getApiErrorMessage(e), variant: "destructive" });
     }
   };
 
@@ -79,7 +101,7 @@ const PartnersAdminPage = () => {
       setPartnerToDelete(null);
       load();
     } catch (e) {
-      toast({ title: "Error", description: String(e), variant: "destructive" });
+      toast({ title: "Error", description: getApiErrorMessage(e), variant: "destructive" });
     } finally {
       setDeletePending(false);
     }

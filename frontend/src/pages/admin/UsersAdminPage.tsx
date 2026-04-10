@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { DeleteConfirmDialog } from "@/components/admin/DeleteConfirmDialog";
 import { api } from "@/lib/api";
+import { getApiErrorMessage } from "@/lib/apiErrors";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
@@ -26,18 +27,6 @@ const defaultForm: UserFormState = {
   isAdmin: false,
   isDonor: true,
 };
-
-function getErrorMessage(error: unknown): string {
-  const fallback = "Request failed.";
-  if (!(error instanceof Error)) return fallback;
-
-  try {
-    const parsed = JSON.parse(error.message) as { message?: string };
-    return parsed.message || error.message || fallback;
-  } catch {
-    return error.message || fallback;
-  }
-}
 
 const UsersAdminPage = () => {
   const { toast } = useToast();
@@ -67,7 +56,7 @@ const UsersAdminPage = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: getErrorMessage(error),
+        description: getApiErrorMessage(error),
         variant: "destructive",
       });
     } finally {
@@ -105,6 +94,26 @@ const UsersAdminPage = () => {
 
   const handleSave = async () => {
     const selectedRoles = getSelectedRoles();
+    const email = form.email.trim();
+
+    if (!email) {
+      toast({
+        title: "Email Required",
+        description: "Please enter an email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (selectedRoles.length === 0) {
       toast({
         title: "Role Required",
@@ -126,14 +135,14 @@ const UsersAdminPage = () => {
     try {
       if (editUser) {
         await api.put(`/api/admin/users/${editUser.id}`, {
-          email: form.email.trim(),
+          email,
           password: form.password.trim() ? form.password : null,
           roles: selectedRoles,
         });
         toast({ title: "Updated", description: "User updated successfully." });
       } else {
         await api.post("/api/admin/users", {
-          email: form.email.trim(),
+          email,
           password: form.password,
           roles: selectedRoles,
         });
@@ -147,7 +156,7 @@ const UsersAdminPage = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: getErrorMessage(error),
+        description: getApiErrorMessage(error),
         variant: "destructive",
       });
     }
@@ -169,7 +178,7 @@ const UsersAdminPage = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: getErrorMessage(error),
+        description: getApiErrorMessage(error),
         variant: "destructive",
       });
     } finally {

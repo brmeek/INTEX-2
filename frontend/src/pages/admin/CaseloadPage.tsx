@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { DeleteConfirmDialog } from "@/components/admin/DeleteConfirmDialog";
 import { api } from "@/lib/api";
+import { getApiErrorMessage } from "@/lib/apiErrors";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -39,6 +40,59 @@ interface Resident {
   readinessScoredAtUtc?: string | null;
 }
 
+interface SafehouseOption {
+  safehouseId: number;
+  safehouseName?: string | null;
+  region?: string | null;
+}
+
+interface ResidentFormState {
+  firstName: string;
+  lastName: string;
+  gender: string;
+  caseStatus: string;
+  caseCategory: string;
+  caseSubcategory: string;
+  admissionDate: string;
+  safehouseId: string;
+  assignedSocialWorker: string;
+  referralSource: string;
+  hasDisability: boolean;
+  is4PsBeneficiary: boolean;
+  isSoloParentChild: boolean;
+  isIndigenous: boolean;
+  isInformalSettler: boolean;
+}
+
+const CASE_CATEGORY_OPTIONS = ["Trafficked", "PhysicalAbuse", "SexualAbuse", "Neglected", "Abandoned"];
+const CASE_SUBCATEGORY_OPTIONS: Record<string, string[]> = {
+  Trafficked: ["Labor", "Sex", "Online Exploitation", "Forced Marriage", "Other"],
+  PhysicalAbuse: ["Domestic Violence", "Corporal Punishment", "Severe Injury", "Other"],
+  SexualAbuse: ["Incest", "Assault", "Exploitation", "Other"],
+  Neglected: ["Educational", "Medical", "Emotional", "Basic Needs", "Other"],
+  Abandoned: ["Street Child", "No Guardian", "Lost Contact", "Other"],
+};
+const SOCIAL_WORKER_OPTIONS = ["SW-01", "SW-02", "SW-03", "SW-04", "SW-05", "SW-06", "SW-07", "SW-08"];
+const REFERRAL_SOURCE_OPTIONS = ["Police", "School", "Hospital", "Barangay", "NGO Partner", "Walk-in", "Court", "DSWD"];
+
+const createDefaultForm = (): ResidentFormState => ({
+  firstName: "",
+  lastName: "",
+  gender: "Female",
+  caseStatus: "Active",
+  caseCategory: "Trafficked",
+  caseSubcategory: CASE_SUBCATEGORY_OPTIONS.Trafficked[0],
+  admissionDate: "",
+  safehouseId: "",
+  assignedSocialWorker: SOCIAL_WORKER_OPTIONS[0],
+  referralSource: REFERRAL_SOURCE_OPTIONS[0],
+  hasDisability: false,
+  is4PsBeneficiary: false,
+  isSoloParentChild: false,
+  isIndigenous: false,
+  isInformalSettler: false,
+});
+
 const CaseloadPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -52,13 +106,10 @@ const CaseloadPage = () => {
   const [refreshingReadiness, setRefreshingReadiness] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<Resident | null>(null);
+  const [safehouses, setSafehouses] = useState<SafehouseOption[]>([]);
   const [residentToDelete, setResidentToDelete] = useState<Resident | null>(null);
   const [deletePending, setDeletePending] = useState(false);
-  const [form, setForm] = useState({
-    firstName: "", lastName: "", gender: "Female", caseStatus: "Active", caseCategory: "Trafficked",
-    caseSubcategory: "", admissionDate: "", safehouseId: "", assignedSocialWorker: "", referralSource: "",
-    hasDisability: false, is4PsBeneficiary: false, isSoloParentChild: false, isIndigenous: false, isInformalSettler: false,
-  });
+  const [form, setForm] = useState<ResidentFormState>(createDefaultForm());
 
   const load = async (p = 1) => {
     setLoading(true);
@@ -77,7 +128,34 @@ const CaseloadPage = () => {
 
   useEffect(() => { load(); }, [statusFilter, categoryFilter]);
 
+  useEffect(() => {
+    api.get<SafehouseOption[]>("/api/safehouses")
+      .then(setSafehouses)
+      .catch(() => setSafehouses([]));
+  }, []);
+
   const handleSave = async () => {
+    if (!form.firstName.trim()) {
+      toast({ title: "First Name Required", description: "Please enter a first name.", variant: "destructive" });
+      return;
+    }
+    if (!form.lastName.trim()) {
+      toast({ title: "Last Name Required", description: "Please enter a last name.", variant: "destructive" });
+      return;
+    }
+    if (!form.admissionDate) {
+      toast({ title: "Admission Date Required", description: "Please select an admission date.", variant: "destructive" });
+      return;
+    }
+    if (!form.caseCategory) {
+      toast({ title: "Case Category Required", description: "Please choose a case category.", variant: "destructive" });
+      return;
+    }
+    if (!form.caseSubcategory) {
+      toast({ title: "Case Subcategory Required", description: "Please choose a case subcategory.", variant: "destructive" });
+      return;
+    }
+
     try {
       const body = { ...form, safehouseId: form.safehouseId ? Number(form.safehouseId) : null };
       if (editItem) {
@@ -91,7 +169,7 @@ const CaseloadPage = () => {
       setEditItem(null);
       load();
     } catch (e) {
-      toast({ title: "Error", description: String(e), variant: "destructive" });
+      toast({ title: "Error", description: getApiErrorMessage(e), variant: "destructive" });
     }
   };
 
@@ -111,7 +189,7 @@ const CaseloadPage = () => {
       setResidentToDelete(null);
       load();
     } catch (e) {
-      toast({ title: "Error", description: String(e), variant: "destructive" });
+      toast({ title: "Error", description: getApiErrorMessage(e), variant: "destructive" });
     } finally {
       setDeletePending(false);
     }
@@ -132,19 +210,27 @@ const CaseloadPage = () => {
         load(page);
       }, 2500);
     } catch (e) {
-      toast({ title: "Error", description: String(e), variant: "destructive" });
+      toast({ title: "Error", description: getApiErrorMessage(e), variant: "destructive" });
     } finally {
       setRefreshingReadiness(false);
     }
   };
 
   const openEdit = (r: Resident) => {
+    const caseCategory = r.caseCategory || "Trafficked";
+    const categorySubcategories = CASE_SUBCATEGORY_OPTIONS[caseCategory] ?? [];
+    const fallbackSubcategory = categorySubcategories[0] ?? "";
+    const caseSubcategory = categorySubcategories.includes(r.caseSubcategory || "")
+      ? (r.caseSubcategory || fallbackSubcategory)
+      : fallbackSubcategory;
     setEditItem(r);
     setForm({
       firstName: r.firstName, lastName: r.lastName, gender: r.gender, caseStatus: r.caseStatus,
-      caseCategory: r.caseCategory, caseSubcategory: r.caseSubcategory || "",
+      caseCategory,
+      caseSubcategory,
       admissionDate: r.admissionDate || "", safehouseId: r.safehouseId ? String(r.safehouseId) : "",
-      assignedSocialWorker: r.assignedSocialWorker || "", referralSource: r.referralSource || "",
+      assignedSocialWorker: r.assignedSocialWorker || SOCIAL_WORKER_OPTIONS[0],
+      referralSource: r.referralSource || REFERRAL_SOURCE_OPTIONS[0],
       hasDisability: r.hasDisability, is4PsBeneficiary: r.is4PsBeneficiary,
       isSoloParentChild: r.isSoloParentChild, isIndigenous: r.isIndigenous, isInformalSettler: r.isInformalSettler,
     });
@@ -152,6 +238,7 @@ const CaseloadPage = () => {
   };
 
   const inputClass = "w-full px-3 py-2 rounded-lg border border-border bg-secondary font-body text-sm focus:outline-none focus:ring-2 focus:ring-accent";
+  const subcategoryOptions = CASE_SUBCATEGORY_OPTIONS[form.caseCategory] ?? [];
   const getReadinessPillClass = (tier?: string | null) => {
     if (tier === "High Readiness") return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300";
     if (tier === "Needs Monitoring") return "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300";
@@ -183,7 +270,7 @@ const CaseloadPage = () => {
             <option value="">All Categories</option>
             <option>Trafficked</option><option>PhysicalAbuse</option><option>SexualAbuse</option><option>Neglected</option><option>Abandoned</option>
           </select>
-          <Button onClick={() => { setEditItem(null); setForm({ firstName: "", lastName: "", gender: "Female", caseStatus: "Active", caseCategory: "Trafficked", caseSubcategory: "", admissionDate: "", safehouseId: "", assignedSocialWorker: "", referralSource: "", hasDisability: false, is4PsBeneficiary: false, isSoloParentChild: false, isIndigenous: false, isInformalSettler: false }); setShowForm(true); }} size="sm" className="bg-accent text-white hover:bg-teal-light font-body gap-1">
+          <Button onClick={() => { setEditItem(null); setForm(createDefaultForm()); setShowForm(true); }} size="sm" className="bg-accent text-white hover:bg-teal-light font-body gap-1">
             <Plus className="h-4 w-4" /> Add Resident
           </Button>
           <Button
@@ -216,14 +303,56 @@ const CaseloadPage = () => {
               <select className={inputClass} value={form.caseStatus} onChange={(e) => setForm({ ...form, caseStatus: e.target.value })}>
                 <option>Active</option><option>Reintegrated</option><option>Transferred</option><option>Discharged</option>
               </select>
-              <select className={inputClass} value={form.caseCategory} onChange={(e) => setForm({ ...form, caseCategory: e.target.value })}>
-                <option>Trafficked</option><option>PhysicalAbuse</option><option>SexualAbuse</option><option>Neglected</option><option>Abandoned</option>
+              <select
+                className={inputClass}
+                value={form.caseCategory}
+                onChange={(e) => {
+                  const nextCategory = e.target.value;
+                  const nextSubcategory = CASE_SUBCATEGORY_OPTIONS[nextCategory]?.[0] ?? "";
+                  setForm({ ...form, caseCategory: nextCategory, caseSubcategory: nextSubcategory });
+                }}
+              >
+                {CASE_CATEGORY_OPTIONS.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
               </select>
-              <input className={inputClass} placeholder="Sub-category" value={form.caseSubcategory} onChange={(e) => setForm({ ...form, caseSubcategory: e.target.value })} />
-              <input type="date" className={inputClass} value={form.admissionDate} onChange={(e) => setForm({ ...form, admissionDate: e.target.value })} />
-              <input className={inputClass} placeholder="Safehouse ID" value={form.safehouseId} onChange={(e) => setForm({ ...form, safehouseId: e.target.value })} />
-              <input className={inputClass} placeholder="Assigned Social Worker" value={form.assignedSocialWorker} onChange={(e) => setForm({ ...form, assignedSocialWorker: e.target.value })} />
-              <input className={inputClass} placeholder="Referral Source" value={form.referralSource} onChange={(e) => setForm({ ...form, referralSource: e.target.value })} />
+              <select className={inputClass} value={form.caseSubcategory} onChange={(e) => setForm({ ...form, caseSubcategory: e.target.value })}>
+                {subcategoryOptions.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+              <select className={inputClass} value={form.admissionDate} onChange={(e) => setForm({ ...form, admissionDate: e.target.value })}>
+                <option value="">Admission Date</option>
+                {Array.from({ length: 366 }, (_, i) => {
+                  const date = new Date();
+                  date.setDate(date.getDate() - i);
+                  const iso = date.toISOString().slice(0, 10);
+                  return (
+                    <option key={iso} value={iso}>
+                      {date.toLocaleDateString()}
+                    </option>
+                  );
+                })}
+              </select>
+              <select className={inputClass} value={form.safehouseId} onChange={(e) => setForm({ ...form, safehouseId: e.target.value })}>
+                <option value="">Unassigned Safehouse</option>
+                {safehouses.map((safehouse) => (
+                  <option key={safehouse.safehouseId} value={String(safehouse.safehouseId)}>
+                    {safehouse.safehouseName || `Safehouse ${safehouse.safehouseId}`}
+                    {safehouse.region ? ` (${safehouse.region})` : ""}
+                  </option>
+                ))}
+              </select>
+              <select className={inputClass} value={form.assignedSocialWorker} onChange={(e) => setForm({ ...form, assignedSocialWorker: e.target.value })}>
+                {SOCIAL_WORKER_OPTIONS.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+              <select className={inputClass} value={form.referralSource} onChange={(e) => setForm({ ...form, referralSource: e.target.value })}>
+                {REFERRAL_SOURCE_OPTIONS.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
             </div>
             <div className="flex flex-wrap gap-4 mb-4 text-sm font-body">
               <label className="flex items-center gap-2"><input type="checkbox" checked={form.hasDisability} onChange={(e) => setForm({ ...form, hasDisability: e.target.checked })} /> Has Disability</label>

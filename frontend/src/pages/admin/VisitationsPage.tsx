@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { api } from "@/lib/api";
+import { getApiErrorMessage } from "@/lib/apiErrors";
 import { Button } from "@/components/ui/button";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -88,13 +89,35 @@ const VisitationsPage = () => {
   }, [tab]);
 
   const handleSave = async () => {
+    const residentId = Number(form.residentId);
+    if (!Number.isFinite(residentId) || residentId <= 0) {
+      toast({ title: "Resident Required", description: "Please enter a valid resident ID.", variant: "destructive" });
+      return;
+    }
+    if (!form.visitDate) {
+      toast({ title: "Visit Date Required", description: "Please select a visit date.", variant: "destructive" });
+      return;
+    }
+    if (!form.socialWorker.trim()) {
+      toast({ title: "Social Worker Required", description: "Please enter a social worker.", variant: "destructive" });
+      return;
+    }
+    if (!form.locationVisited.trim()) {
+      toast({ title: "Location Required", description: "Please enter the location visited.", variant: "destructive" });
+      return;
+    }
+    if (!form.observations.trim()) {
+      toast({ title: "Observations Required", description: "Please enter your observations.", variant: "destructive" });
+      return;
+    }
+
     try {
-      await api.post("/api/homevisitations", { ...form, residentId: Number(form.residentId) });
+      await api.post("/api/homevisitations", { ...form, residentId });
       toast({ title: "Saved", description: "Home visitation recorded." });
       setShowForm(false);
       loadVisits();
     } catch (e) {
-      toast({ title: "Error", description: String(e), variant: "destructive" });
+      toast({ title: "Error", description: getApiErrorMessage(e), variant: "destructive" });
     }
   };
 

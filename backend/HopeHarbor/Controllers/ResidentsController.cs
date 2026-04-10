@@ -9,6 +9,8 @@ namespace HopeHarbor.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Route("api/caseload")]
+[Route("api/case-load")]
 [Authorize(Policy = AuthPolicies.ViewAdminData)]
 public class ResidentsController : ControllerBase
 {
@@ -64,7 +66,7 @@ public class ResidentsController : ControllerBase
                 r.FirstName,
                 r.LastName,
                 r.DateOfBirth,
-                r.Gender,
+                Gender = NormalizeGenderForClient(r.Gender),
                 r.AdmissionDate,
                 r.CaseStatus,
                 r.CaseCategory,
@@ -219,7 +221,7 @@ public class ResidentsController : ControllerBase
             resident.FirstName,
             resident.LastName,
             resident.DateOfBirth,
-            resident.Gender,
+            Gender = NormalizeGenderForClient(resident.Gender),
             resident.AdmissionDate,
             resident.CaseStatus,
             resident.CaseCategory,
@@ -264,33 +266,38 @@ public class ResidentsController : ControllerBase
 
     [HttpPost]
     [Authorize(Policy = AuthPolicies.ManageCatalog)]
-    public async Task<IActionResult> Create([FromBody] Resident resident)
+    public async Task<IActionResult> Create([FromBody] Resident resident, CancellationToken cancellationToken)
     {
+        if (resident.ResidentId <= 0)
+            resident.ResidentId = await GetNextResidentIdAsync(cancellationToken);
+
+        resident.Gender = NormalizeGenderForStorage(resident.Gender);
         _db.Residents.Add(resident);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(cancellationToken);
         return CreatedAtAction(nameof(Get), new { id = resident.ResidentId }, resident);
     }
 
     [HttpPut("{id}")]
     [Authorize(Policy = AuthPolicies.ManageCatalog)]
-    public async Task<IActionResult> Update(int id, [FromBody] Resident resident)
+    public async Task<IActionResult> Update(int id, [FromBody] Resident resident, CancellationToken cancellationToken)
     {
-        var existing = await _db.Residents.FindAsync(id);
+        var existing = await _db.Residents.FindAsync([id], cancellationToken);
         if (existing == null) return NotFound();
+        resident.Gender = NormalizeGenderForStorage(resident.Gender);
         _db.Entry(existing).CurrentValues.SetValues(resident);
         existing.ResidentId = id;
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(cancellationToken);
         return Ok(existing);
     }
 
     [HttpDelete("{id}")]
     [Authorize(Policy = AuthPolicies.ManageCatalog)]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        var item = await _db.Residents.FindAsync(id);
+        var item = await _db.Residents.FindAsync([id], cancellationToken);
         if (item == null) return NotFound();
         _db.Residents.Remove(item);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(cancellationToken);
         return NoContent();
     }
 
@@ -399,5 +406,41 @@ public class ResidentsController : ControllerBase
                 residentId = id
             });
         }
+    }
+
+    private async Task<int> GetNextResidentIdAsync(CancellationToken cancellationToken)
+    {
+        var max = await _db.Residents
+            .AsNoTracking()
+            .Select(r => (int?)r.ResidentId)
+            .MaxAsync(cancellationToken);
+        return (max ?? 0) + 1;
+    }
+
+    private static string? NormalizeGenderForStorage(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        var normalized = value.Trim();
+        if (normalized.Equals("Female", StringComparison.OrdinalIgnoreCase))
+            return "F";
+        if (normalized.Equals("Male", StringComparison.OrdinalIgnoreCase))
+            return "M";
+
+        return normalized[..1].ToUpperInvariant();
+    }
+
+    private static string? NormalizeGenderForClient(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return value;
+
+        return value.Trim().ToUpperInvariant() switch
+        {
+            "F" => "Female",
+            "M" => "Male",
+            _ => value
+        };
     }
 }

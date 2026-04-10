@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { api } from "@/lib/api";
+import { getApiErrorMessage } from "@/lib/apiErrors";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -52,15 +53,45 @@ const ProcessRecordingsPage = () => {
   useEffect(() => { load(); }, []);
 
   const handleSave = async () => {
+    const residentId = Number(form.residentId);
+    if (!Number.isFinite(residentId) || residentId <= 0) {
+      toast({ title: "Resident Required", description: "Please enter a valid resident ID.", variant: "destructive" });
+      return;
+    }
+    if (!form.sessionDate) {
+      toast({ title: "Session Date Required", description: "Please select a session date.", variant: "destructive" });
+      return;
+    }
+    if (!form.socialWorker.trim()) {
+      toast({ title: "Social Worker Required", description: "Please enter a social worker.", variant: "destructive" });
+      return;
+    }
+    if (!form.emotionalState.trim()) {
+      toast({ title: "Emotional State Required", description: "Please enter the observed emotional state.", variant: "destructive" });
+      return;
+    }
+    if (!form.narrativeSummary.trim()) {
+      toast({ title: "Narrative Required", description: "Please enter a narrative summary.", variant: "destructive" });
+      return;
+    }
+    if (!form.interventionsApplied.trim()) {
+      toast({ title: "Interventions Required", description: "Please enter interventions applied.", variant: "destructive" });
+      return;
+    }
+    if (!form.followUpActions.trim()) {
+      toast({ title: "Follow-up Required", description: "Please enter follow-up actions.", variant: "destructive" });
+      return;
+    }
+
     try {
-      const body = { ...form, residentId: Number(form.residentId) };
+      const body = { ...form, residentId };
       await api.post("/api/processrecordings", body);
       toast({ title: "Saved", description: "Process recording created." });
       setShowForm(false);
       setForm({ residentId: "", sessionDate: "", socialWorker: "", sessionType: "Individual", emotionalState: "", narrativeSummary: "", interventionsApplied: "", followUpActions: "" });
       load();
     } catch (e) {
-      toast({ title: "Error", description: String(e), variant: "destructive" });
+      toast({ title: "Error", description: getApiErrorMessage(e), variant: "destructive" });
     }
   };
 

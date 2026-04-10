@@ -8,6 +8,9 @@ namespace HopeHarbor.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Route("api/intervention-plans")]
+[Route("api/case-conferences")]
+[Route("api/conferences")]
 [Authorize(Policy = AuthPolicies.ViewAdminData)]
 public class InterventionPlansController : ControllerBase
 {
@@ -35,36 +38,48 @@ public class InterventionPlansController : ControllerBase
 
     [HttpPost]
     [Authorize(Policy = AuthPolicies.ManageCatalog)]
-    public async Task<IActionResult> Create([FromBody] InterventionPlan plan)
+    public async Task<IActionResult> Create([FromBody] InterventionPlan plan, CancellationToken cancellationToken)
     {
+        if (plan.PlanId <= 0)
+            plan.PlanId = await GetNextPlanIdAsync(cancellationToken);
+
         plan.CreatedAt = DateTime.UtcNow;
         plan.UpdatedAt = DateTime.UtcNow;
         _db.InterventionPlans.Add(plan);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(cancellationToken);
         return CreatedAtAction(nameof(Get), new { id = plan.PlanId }, plan);
     }
 
     [HttpPut("{id}")]
     [Authorize(Policy = AuthPolicies.ManageCatalog)]
-    public async Task<IActionResult> Update(int id, [FromBody] InterventionPlan plan)
+    public async Task<IActionResult> Update(int id, [FromBody] InterventionPlan plan, CancellationToken cancellationToken)
     {
-        var existing = await _db.InterventionPlans.FindAsync(id);
+        var existing = await _db.InterventionPlans.FindAsync([id], cancellationToken);
         if (existing == null) return NotFound();
         _db.Entry(existing).CurrentValues.SetValues(plan);
         existing.PlanId = id;
         existing.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(cancellationToken);
         return Ok(existing);
     }
 
     [HttpDelete("{id}")]
     [Authorize(Policy = AuthPolicies.ManageCatalog)]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        var item = await _db.InterventionPlans.FindAsync(id);
+        var item = await _db.InterventionPlans.FindAsync([id], cancellationToken);
         if (item == null) return NotFound();
         _db.InterventionPlans.Remove(item);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(cancellationToken);
         return NoContent();
+    }
+
+    private async Task<int> GetNextPlanIdAsync(CancellationToken cancellationToken)
+    {
+        var max = await _db.InterventionPlans
+            .AsNoTracking()
+            .Select(p => (int?)p.PlanId)
+            .MaxAsync(cancellationToken);
+        return (max ?? 0) + 1;
     }
 }
